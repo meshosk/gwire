@@ -6,7 +6,7 @@ import basic from './components/basic/basic.vue'
 <template>
 <main> 
   <div class="flex-shrink-0 p-3" style="width: 280px;">
-    asdasd
+    asdasd TESTs
   </div>
   <div>
     

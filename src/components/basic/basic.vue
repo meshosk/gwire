@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const x = ref(0);
-const y = ref(0);
+var x = ref(0);
+var y = ref(0);
 
 function onMousedown(e) {
     x = e.offseX;

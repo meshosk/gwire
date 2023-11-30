@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "vite --port 80 --host 0.0.0.0",
+    "dev-normal": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",
-    "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false"
+    "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
+    "bash": "bash"
   },
   "dependencies": {
     "pinia": "^2.1.7",
