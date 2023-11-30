@@ -1,0 +1,1 @@
+docker run --rm -it -v ${PWD}:/mnt/app -w "/mnt/app/" node:latest npm create vue@latest
