@@ -1,1 +1,6 @@
 docker run --rm -it -v ${PWD}:/mnt/app -w "/mnt/app/" node:latest npm create vue@latest
+
+
+// if using docker as command, vite must set host as 0.0.0.0
+
+docker run --rm -it -v ${PWD}:/mnt/app -p 80:80 -w "/mnt/app/" node:latest bash
