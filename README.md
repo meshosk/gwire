@@ -1,4 +1,10 @@
-# gwire
+# IN DEVELOPMENT gwire
+
+This web app will provide posibility of creating custom guitar wirings, showing active parts in circiut, coils polarity, export diagram into PDF.
+
+
+
+
 
 This template should help get you started developing with Vue 3 in Vite.
 
