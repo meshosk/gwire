@@ -1,0 +1,25 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Docker vue live run",
+            "type": "shell",
+            "command": "docker run --rm -it -v ${PWD}:/mnt/app -p 80:80 -w /mnt/app/ node:latest npm run dev",
+            "problemMatcher": []
+        },
+        {
+            "label": "Docker npm install",
+            "type": "shell",
+            "command": "docker run --rm -it -v ${PWD}:/mnt/app -p 80:80 -w /mnt/app/ node:latest npm install",
+            "problemMatcher": []
+        },
+        {
+            "label": "Docker npm update",
+            "type": "shell",
+            "command": "docker run --rm -it -v ${PWD}:/mnt/app -p 80:80 -w /mnt/app/ node:latest npm update",
+            "problemMatcher": []
+        }
+    ]
+  }
