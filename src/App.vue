@@ -1,15 +1,32 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import basic from './components/basic/basic.vue'
+import Rectangle from './components/basic/Rectangle.vue'
+import {ref} from "vue"
+import Circle from "@/components/basic/Circle.vue";
+
+const comps = ref([]);
+var ids = 1;
+var r = false;
+function add() {
+
+    if (r) {
+        comps.value.push(Rectangle)
+    } else {
+        comps.value.push(Circle)
+    }
+    r = !r;
+}
+
 </script>
 
 <template>
   <main>
     <div class="menu">
       asdasd TESTs
+        <button @click="add">Add</button>
     </div>
     <svg>
-      <basic />
+        <component v-for="comp in comps" :is="comp"/>
     </svg>
   </main>
 </template>
