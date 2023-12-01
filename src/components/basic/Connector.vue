@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import {isRef, ref, Ref, UnwrapRef, shallowRef, watch} from 'vue'
-import {Movable} from "@/components/basic/Movable";
+import {ref} from "vue";
+import {DraggableOver} from "@/components/basic/DraggableOver";
 
-//const m = new Movable();
+
+const m = new DraggableOver();
 const color = ref("gray");
 
 </script>
 
 <template>
-  <circle r="10" stroke="black" stroke-width="2" :fill="color" />
+  <circle r="10" stroke="black" stroke-width="2" :fill="color"
+          @mousedown="m.mouseIsOver()"
+  />
 </template>

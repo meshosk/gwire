@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {isRef, ref, Ref, UnwrapRef, watch} from 'vue'
-import {Movable} from "@/components/basic/Movable";
+import {Movable} from "@/components/basic/index";
 import Connector from "@/components/basic/Connector.vue";
 
 const m = new Movable();

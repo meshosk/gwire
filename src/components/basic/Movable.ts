@@ -1,6 +1,7 @@
 import {ref} from 'vue'
 import {MouseService} from "@/components/MouseServise";
-import {Clickable} from "@/components/basic/Clickable";
+import {Clickable} from "./index";
+
 
 export class Movable extends Clickable {
 

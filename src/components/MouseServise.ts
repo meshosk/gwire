@@ -1,7 +1,7 @@
 import {ref, inject} from 'vue'
-import {Movable} from "@/components/basic/Movable";
-import {Clickable} from "@/components/basic/Clickable";
-import {DraggableOver} from "@/components/basic/DraggableOver";
+import {DraggableOver, Movable, Clickable} from "./basic/index";
+
+
 export class MouseService {
 
     private _draggedItems :Object[] = [];
@@ -78,6 +78,7 @@ export class MouseService {
 
     registerDraggableOver(item : DraggableOver) {
         this._draggableOver = item;
+        console.log("dragging")
     }
     unRegisterDraggableOver(item : DraggableOver) {
         if (this._draggableOver == item) {
