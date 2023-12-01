@@ -2,14 +2,22 @@ import {Movable} from "./index";
 
 export class DraggableOver extends Movable {
 
-    mouseIsOver(){
-       this.mouseService.registerDraggableOver(this);
+    setAsSource(){
+       this.mouseService.registerDragSource(this);
     }
 
-    mouseIsOut(){
-       this.mouseService.unRegisterDraggableOver(this);
+    setAsTarget(){
+        this.mouseService.registerDragTarget(this);
     }
-    draggedTo(itemsDraggedOver: DraggableOver[]){
+
+    clearTarget() {
+        this.mouseService.registerDragTarget(null);
+    }
+
+    stopDragging(){
+       this.mouseService.clearDrag();
+    }
+    draggedOver(itemsDraggedOver: DraggableOver){
         console.log("pop");
     }
 }

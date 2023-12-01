@@ -10,6 +10,8 @@ const color = ref("gray");
 
 <template>
   <circle r="10" stroke="black" stroke-width="2" :fill="color"
-          @mousedown="m.mouseIsOver()"
+          @mousedown="m.setAsSource()"
+          @mouseenter="m.setAsTarget()"
+          @mouseleave="m.clearTarget()"
   />
 </template>

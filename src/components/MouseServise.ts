@@ -5,7 +5,11 @@ import {DraggableOver, Movable, Clickable} from "./basic/index";
 export class MouseService {
 
     private _draggedItems :Object[] = [];
-    private _draggableOver :DraggableOver|null = null;
+
+    private _dragSource :DraggableOver|null = null;
+    private _dragTarget :DraggableOver|null = null;
+
+
     private _mouseX = 0;
     private _mouseY = 0;
 
@@ -24,13 +28,9 @@ export class MouseService {
     onMouseUp() {
         this._isDown = false;
 
-        if (this._draggableOver != null) {
-            let draggables =  this._draggedItems.filter( (i:Movable) => {
-                return i instanceof DraggableOver;
-            }).map( (i:Movable) => (i as DraggableOver));
-            this._draggableOver.draggedTo(draggables);
+        if (this._dragTarget != null && this._dragSource != null) {
+                this._dragTarget.draggedOver(this._dragSource);
         }
-
 
         this.clearRegistered();
     }
@@ -64,6 +64,8 @@ export class MouseService {
     }
 
     clearRegistered(){
+        this.clearDrag();
+
         this._draggedItems.forEach((m) => {
             if (m instanceof Clickable) {
                 m.mouseReleased();
@@ -76,14 +78,21 @@ export class MouseService {
         return this._isDown;
     }
 
-    registerDraggableOver(item : DraggableOver) {
-        this._draggableOver = item;
-        console.log("dragging")
-    }
-    unRegisterDraggableOver(item : DraggableOver) {
-        if (this._draggableOver == item) {
-            this._draggableOver = null;
+    registerDragSource(item : DraggableOver|null) {
+        if (this._dragSource == null) {
+            this._dragSource = item;
         }
+    }
+    registerDragTarget(item : DraggableOver|null) {
+        if (this._dragSource != item) {
+            this._dragTarget = item;
+        }
+    }
+
+
+    clearDrag() {
+        this._dragSource = null;
+        this._dragTarget = null;
     }
 
 
