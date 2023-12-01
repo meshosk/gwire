@@ -1,23 +1,27 @@
 import {ref} from 'vue'
 import {MouseService} from "@/components/MouseServise";
- export class Movable {
+import {Clickable} from "@/components/basic/Clickable";
 
-     private _x = ref(0);
-     private _y = ref(0);
+export class Movable extends Clickable {
 
-     private _isDragged = ref(false);
+    private _x = ref(0);
+    private _y = ref(0);
 
-     private _canTrack = false;
+    /**
+     * If true, current instance is actually dragged
+     * @private
+     */
+    private _isDragged = ref(false);
 
-     private mouseService = MouseService.inject();
+    public mouseService = MouseService.inject();
 
     onMouseDown(e: MouseEvent) {
-        this._canTrack = true;
+        this.mousePressed()
         this.mouseService.register(this);
     }
 
-    mouseMoved(deltaX, deltaY){
-        if (this._canTrack) {
+    mouseMoved(deltaX, deltaY) {
+        if (this.mouseIsDown) {
             if (this._isDragged != true) {
                 this._isDragged.value = true;
             }
@@ -30,25 +34,24 @@ import {MouseService} from "@/components/MouseServise";
         }
     }
 
+    get isDragged() {
+        return this._isDragged;
+    }
 
-     get isDragged() {
-         return this._isDragged;
-     }
+    get x() {
+        return this._x;
+    }
 
-     set isDragged(value) {
-         this._isDragged = value;
-     }
+    set x(value) {
+        this._x = value;
+    }
 
-     get x() {
-         return this._x;
-     }
-     set x(value) {
-         this._x = value;
-     }
-     get y() {
-         return this._y;
-     }
-     set y(value) {
-         this._y = value;
-     }
+    get y() {
+        return this._y;
+    }
+
+    set y(value) {
+        this._y = value;
+    }
+
 }

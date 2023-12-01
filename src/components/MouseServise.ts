@@ -1,9 +1,11 @@
 import {ref, inject} from 'vue'
-import type {Movable} from "@/components/basic/Movable";
+import {Movable} from "@/components/basic/Movable";
+import {Clickable} from "@/components/basic/Clickable";
+import {DraggableOver} from "@/components/basic/DraggableOver";
 export class MouseService {
 
-    private _draggedItems :Movable[] = [];
-
+    private _draggedItems :Object[] = [];
+    private _draggableOver :DraggableOver|null = null;
     private _mouseX = 0;
     private _mouseY = 0;
 
@@ -21,6 +23,15 @@ export class MouseService {
 
     onMouseUp() {
         this._isDown = false;
+
+        if (this._draggableOver != null) {
+            let draggables =  this._draggedItems.filter( (i:Movable) => {
+                return i instanceof DraggableOver;
+            }).map( (i:Movable) => (i as DraggableOver));
+            this._draggableOver.draggedTo(draggables);
+        }
+
+
         this.clearRegistered();
     }
 
@@ -31,13 +42,14 @@ export class MouseService {
             let deltaY = e.clientY - this._mouseY;
 
             this._draggedItems.forEach((m) => {
-                m.mouseMoved(deltaX, deltaY);
+                if (m instanceof Movable) {
+                    (m as Movable).mouseMoved(deltaX, deltaY);
+                }
             });
 
             this._mouseX = e.clientX;
             this._mouseY = e.clientY;
         }
-        console.log("MS move")
     }
 
     register(instance: Movable) {
@@ -53,7 +65,9 @@ export class MouseService {
 
     clearRegistered(){
         this._draggedItems.forEach((m) => {
-            m.isDragged.value = false;
+            if (m instanceof Clickable) {
+                m.mouseReleased();
+            }
         });
         this._draggedItems = [];
     }
@@ -61,6 +75,17 @@ export class MouseService {
     get isDown(): boolean {
         return this._isDown;
     }
+
+    registerDraggableOver(item : DraggableOver) {
+        this._draggableOver = item;
+    }
+    unRegisterDraggableOver(item : DraggableOver) {
+        if (this._draggableOver == item) {
+            this._draggableOver = null;
+        }
+    }
+
+
 
     get mouseX(): number {
         return this._mouseX;

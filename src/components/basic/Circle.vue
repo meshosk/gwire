@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {isRef, ref, Ref, UnwrapRef, shallowRef, watch} from 'vue'
 import {Movable} from "@/components/basic/Movable";
+import Connector from "@/components/basic/Connector.vue";
 
 const m = new Movable();
 const color = ref("blue");
 
-watch(m.isDragged, async() => {
-  if (m.isDragged.value === true) {
+watch(m.mouseIsDown, async() => {
+  if (m.mouseIsDown.value === true) {
     color.value = "yellow";
   } else {
     color.value = "blue";
@@ -15,7 +16,11 @@ watch(m.isDragged, async() => {
 </script>
 
 <template>
-    <circle :cx="m.x.value" :cy="m.y.value" r="40" stroke="black" stroke-width="3" :fill="color"
+  <g  :transform="[  'translate('+m.x.value+', '+m.y.value+')']">
+    <circle r="40" stroke="black" stroke-width="3" :fill="color"
           @mousedown="m.onMouseDown"
     />
+    <Connector :cx="-10" :cy="-20" />
+    <Connector :cx="20" :cy="30" />
+  </g>
 </template>
