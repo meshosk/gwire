@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import Rectangle from './components/basic/Rectangle.vue'
-import {ref} from "vue"
+import {markRaw, ref, shallowRef} from "vue"
 import Circle from "@/components/basic/Circle.vue";
+import {MouseService} from "@/components/MouseServise";
 
 const comps = ref([]);
 var ids = 1;
 var r = false;
+var mouseService = MouseService.inject();
+
 function add() {
 
     if (r) {
-        comps.value.push(Rectangle)
+        comps.value.push(markRaw(Rectangle))
     } else {
-        comps.value.push(Circle)
+        comps.value.push(markRaw(Circle))
     }
     r = !r;
 }
@@ -22,10 +25,10 @@ function add() {
 <template>
   <main>
     <div class="menu">
-      asdasd TESTs
+      asdasd TESTs xxxx
         <button @click="add">Add</button>
     </div>
-    <svg>
+    <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
         <component v-for="comp in comps" :is="comp"/>
     </svg>
   </main>

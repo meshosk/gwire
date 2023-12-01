@@ -5,10 +5,14 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import {MouseService} from "@/components/MouseServise";
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+
+app.provide("MouseService", new MouseService());
+
 
 app.mount('#app')
