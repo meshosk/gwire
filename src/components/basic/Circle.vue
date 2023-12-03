@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, watch} from 'vue'
-import {Movable} from "@/components/basic/Movable";
+import {Movable, DraggableOver} from "@/components/basic/index";
 import Connector from "@/components/basic/Connector.vue";
 
 const m = new Movable();
@@ -13,14 +13,20 @@ watch(m.mouseIsDown, async() => {
     color.value = "blue";
   }
 })
+
+function onDragOver(source :DraggableOver, target :DraggableOver) {
+  source.x.value = target.x.value;
+  source.y.value = target.y.value;
+}
+
 </script>
 
 <template>
-  <g  :transform="[  'translate('+m.x.value+', '+m.y.value+')']">
-    <circle r="40" stroke="black" stroke-width="3" :fill="color"
+
+    <circle :cx="m.x.value" :cy="m.y.value" r="40" stroke="black" stroke-width="3" :fill="color"
           @mousedown="m.onMouseDown"
     />
-    <Connector :cx="-10" :cy="-20" />
-    <Connector :cx="20" :cy="30" />
-  </g>
+    <Connector :x="m.x.value" :x-shift="-10" :y="m.y.value" :y-shift="-20" :onDragAction="onDragOver"/>
+    <Connector :x="m.x.value" :x-shift="20" :y="m.y.value" :y-shift="30" :onDragAction="onDragOver"/>
+
 </template>

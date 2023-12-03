@@ -4,6 +4,7 @@ import Rectangle from './components/basic/Rectangle.vue'
 import {markRaw, ref, shallowRef} from "vue"
 import Circle from "@/components/basic/Circle.vue";
 import {MouseService} from "@/components/MouseServise";
+import Cable from "@/components/basic/Cable.vue";
 
 const comps = ref([]);
 var ids = 1;
@@ -30,6 +31,8 @@ function add() {
     </div>
     <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
         <component v-for="comp in comps" :is="comp"/>
+        <cable/>
+        <cable/>
     </svg>
   </main>
 </template>

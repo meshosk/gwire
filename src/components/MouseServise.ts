@@ -1,14 +1,12 @@
 import {ref, inject} from 'vue'
 import {DraggableOver, Movable, Clickable} from "./basic/index";
 
-
 export class MouseService {
 
     private _draggedItems :Object[] = [];
 
     private _dragSource :DraggableOver|null = null;
-    private _dragTarget :DraggableOver|null = null;
-
+    private _dragOverTMP :DraggableOver|null = null;
 
     private _mouseX = 0;
     private _mouseY = 0;
@@ -19,20 +17,44 @@ export class MouseService {
         return inject("MouseService");
     }
 
+    private getDragUnderMouse(mouseX, mouseY) :DraggableOver|null {
+        let elements = document.elementsFromPoint(mouseX, mouseY);
+        for (let x of elements) {
+            if (x.hasOwnProperty("__vueParentComponent")) {
+                for (const property in x.__vueParentComponent.devtoolsRawSetupState) {
+                    let obj = x.__vueParentComponent.devtoolsRawSetupState[property];
+                    if (obj instanceof DraggableOver && obj != this._dragSource) {
+                        // only draggable
+                        if ((obj as DraggableOver).isIn(mouseX, mouseY)) {
+                            return obj;
+                        }
+                    }
+                }
+            }
+        };
+        return null;
+    }
     onMouseDown(e: MouseEvent) {
         this._isDown = true;
         this._mouseX = e.clientX;
         this._mouseY = e.clientY;
     }
 
-    onMouseUp() {
+    onMouseUp(e: MouseEvent) {
         this._isDown = false;
 
-        if (this._dragTarget != null && this._dragSource != null) {
-                this._dragTarget.draggedOver(this._dragSource);
-        }
+        let dragTarget = this.getDragUnderMouse(e.clientX, e.clientY);
+        let sourceTarget = this._dragSource;
 
         this.clearRegistered();
+
+        if (sourceTarget != null) {
+            if (dragTarget != null) {
+                dragTarget.onDraggedOverAction(sourceTarget, dragTarget);
+            }
+            sourceTarget.onDraggingEndtAction();
+        }
+
     }
 
     onMouseMove(e: MouseEvent) {
@@ -46,14 +68,25 @@ export class MouseService {
                     (m as Movable).mouseMoved(deltaX, deltaY);
                 }
             });
-
             this._mouseX = e.clientX;
             this._mouseY = e.clientY;
+        }
+
+        if (this._dragSource != null) {
+            let under = this.getDragUnderMouse(e.clientX, e.clientY);
+            if (this._dragOverTMP != under) {
+                this._dragOverTMP?._onDraggingOverEndAction();
+            }
+            if (under != null) {
+                under.onDraggingOverAction(this._dragSource);
+                this._dragOverTMP = under;
+            }
         }
     }
 
     register(instance: Movable) {
         this._draggedItems.push(instance);
+        instance.startMovingAction();
     }
 
     unregister(instance: Movable){
@@ -64,11 +97,14 @@ export class MouseService {
     }
 
     clearRegistered(){
-        this.clearDrag();
-
+        this._dragSource = null;
         this._draggedItems.forEach((m) => {
+            if (m instanceof Movable) {
+                (m as Movable).stopMovingAction();
+            }
+
             if (m instanceof Clickable) {
-                m.mouseReleased();
+                (m as Clickable).mouseReleased();
             }
         });
         this._draggedItems = [];
@@ -78,23 +114,21 @@ export class MouseService {
         return this._isDown;
     }
 
+    checkForDraggingOver(item : DraggableOver|null) {
+        if (this._dragSource !== null) {
+            if (item != null && item != this._dragSource) {
+                item.onDraggingOverAction(this._dragSource);
+            }
+        }
+    }
     registerDragSource(item : DraggableOver|null) {
-        if (this._dragSource == null) {
+        if (this._dragSource === null) {
             this._dragSource = item;
+            this._dragSource?.onDraggingStartAction();
+        } else {
+
         }
     }
-    registerDragTarget(item : DraggableOver|null) {
-        if (this._dragSource != item) {
-            this._dragTarget = item;
-        }
-    }
-
-
-    clearDrag() {
-        this._dragSource = null;
-        this._dragTarget = null;
-    }
-
 
 
     get mouseX(): number {

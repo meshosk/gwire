@@ -7,6 +7,9 @@ export class Movable extends Clickable {
 
     private _x = ref(0);
     private _y = ref(0);
+    private _startMovingAction: () => void = () => {}
+    private _stopMovingAction: () => void = () => {}
+
 
     /**
      * If true, current instance is actually dragged
@@ -14,7 +17,7 @@ export class Movable extends Clickable {
      */
     private _isDragged = ref(false);
 
-    public mouseService = MouseService.inject();
+    private mouseService = MouseService.inject();
 
     onMouseDown(e: MouseEvent) {
         this.mousePressed()
@@ -33,6 +36,22 @@ export class Movable extends Clickable {
                 this._isDragged.value = false;
             }
         }
+    }
+
+    get startMovingAction(): () => void {
+        return this._startMovingAction;
+    }
+
+    set startMovingAction(value: () => void) {
+        this._startMovingAction = value;
+    }
+
+    get stopMovingAction(): () => void {
+        return this._stopMovingAction;
+    }
+
+    set stopMovingAction(value: () => void) {
+        this._stopMovingAction = value;
     }
 
     get isDragged() {
