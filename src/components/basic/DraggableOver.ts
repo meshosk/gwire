@@ -1,12 +1,12 @@
 import {Movable} from "./index";
-import {ref} from "vue";
 import type Ref from "vue";
 import {MouseService} from "@/components/MouseServise";
 
 export class DraggableOver extends Movable {
 
     private _dropAreaElement: Ref<HTMLElement | undefined>;
-    private mouseService = MouseService.inject();
+    private _mouseService = MouseService.inject();
+    private _mainVueComponent: any;
     private _onDraggedOverAction: (source: DraggableOver, target: DraggableOver) => void = (source, target) => {
         target.x.value = source.x.value;
         target.y.value = source.y.value;
@@ -16,11 +16,11 @@ export class DraggableOver extends Movable {
     private _onDraggingOverAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
     private _onDraggingOverEndAction: () => void = () => {}
     private _onDraggingStartAction: () => void = () => {}
-    private _onDraggingEndtAction: () => void = () => {}
+    private _onDraggingEndAction: () => void = () => {}
 
 
 
-    constructor(dropAreaElement :Ref<HTMLElement | undefined>) {
+    constructor( dropAreaElement :Ref<HTMLElement | undefined>) {
         super();
         this._dropAreaElement = dropAreaElement;
     }
@@ -35,12 +35,16 @@ export class DraggableOver extends Movable {
     }
 
 
-    get onDraggingEndtAction(): () => void {
-        return this._onDraggingEndtAction;
+    get mainVueComponent(): any {
+        return this._mainVueComponent;
     }
 
-    set onDraggingEndtAction(value: () => void) {
-        this._onDraggingEndtAction = value;
+    get onDraggingEndAction(): () => void {
+        return this._onDraggingEndAction;
+    }
+
+    set onDraggingEndAction(value: () => void) {
+        this._onDraggingEndAction = value;
     }
 
     get onDraggingOverEndAction(): () => void {
@@ -81,10 +85,10 @@ export class DraggableOver extends Movable {
 
 
     setAsSource(){
-       this.mouseService.registerDragSource(this);
+       this._mouseService.registerDragSource(this);
     }
 
     stopDragging(){
-       this.mouseService.clearDrag();
+       this._mouseService.clearDrag();
     }
 }

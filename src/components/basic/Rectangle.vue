@@ -13,18 +13,16 @@ watch(m.mouseIsDown, async() => {
   }
 })
 function onDragOver(source :DraggableOver, target :DraggableOver) {
-    source.x.value = m.x.value + target.x.value;
-    source.y.value = m.y.value + target.y.value;
+    source.x.value = target.xShifted.value;
+    source.y.value = target.yShifted.value;
 }
 
 </script>
 
 <template>
-  <g  :transform="[  'translate('+m.x.value+', '+m.y.value+')']">
-     <rect width="300" height="100" :style="{fill: color}" style="stroke-width:3;stroke:rgb(0,0,0)"
+     <rect :x="m.x.value" :y="m.y.value" width="300" height="100" :style="{fill: color}" style="stroke-width:3;stroke:rgb(0,0,0)"
         @mousedown="m.onMouseDown"
      />
-    <Connector :x="50" :y="50"  :onDragAction="onDragOver"/>
-    <Connector :x="200" :y="50"  :onDragAction="onDragOver"/>
-  </g>
+    <Connector :x="m.x.value" :x-shift="50" :y="m.y.value" :y-shift="50"  :onDragAction="onDragOver"/>
+    <Connector :x="m.x.value" :x-shift="200" :y="m.y.value" :y-shift="50"   :onDragAction="onDragOver"/>
 </template>

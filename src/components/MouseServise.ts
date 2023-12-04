@@ -51,8 +51,9 @@ export class MouseService {
         if (sourceTarget != null) {
             if (dragTarget != null) {
                 dragTarget.onDraggedOverAction(sourceTarget, dragTarget);
+                dragTarget.onDraggingEndAction();
             }
-            sourceTarget.onDraggingEndtAction();
+            sourceTarget.onDraggingEndAction();
         }
 
     }

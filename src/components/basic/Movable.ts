@@ -1,4 +1,6 @@
-import {ref} from 'vue'
+
+import {computed, ref} from 'vue'
+
 import {MouseService} from "@/components/MouseServise";
 import {Clickable} from "./index";
 
@@ -7,17 +9,35 @@ export class Movable extends Clickable {
 
     private _x = ref(0);
     private _y = ref(0);
+
+    private _xShift = ref(0);
+    private _yShift = ref(0);
+
+    private _xShifted;
+    private _yShifted;
+
     private _startMovingAction: () => void = () => {}
     private _stopMovingAction: () => void = () => {}
-
 
     /**
      * If true, current instance is actually dragged
      * @private
      */
-    private _isDragged = ref(false);
+    private _isDragged: Ref<UnwrapRef<boolean>> = ref(false);
 
     private mouseService = MouseService.inject();
+
+
+    constructor() {
+        super();
+        // computed need to be initialized in constructor
+        this._xShifted = computed(() => {
+            return this._x.value + this._xShift.value;
+        });
+        this._yShifted = computed(() => {
+            return this._y.value + this._yShift.value;
+        });
+    }
 
     onMouseDown(e: MouseEvent) {
         this.mousePressed()
@@ -36,6 +56,21 @@ export class Movable extends Clickable {
                 this._isDragged.value = false;
             }
         }
+    }
+
+    get xShifted() {
+        return this._xShifted;
+    }
+
+    get yShifted() {
+        return this._yShifted;
+    }
+
+    get xShift() {
+        return this._xShift;
+    }
+    get yShift(){
+        return this._yShift;
     }
 
     get startMovingAction(): () => void {
@@ -62,16 +97,8 @@ export class Movable extends Clickable {
         return this._x;
     }
 
-    set x(value) {
-        this._x = value;
-    }
-
     get y() {
         return this._y;
-    }
-
-    set y(value) {
-        this._y = value;
     }
 
 }

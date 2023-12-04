@@ -4,17 +4,22 @@ import {DraggableOver} from "@/components/basic/DraggableOver";
 
 const props = defineProps(['onDragAction','x', 'y','xShift', 'yShift'])
 
+defineEmits(["update:x", "update:y"])
+
+
 const cele =  ref<HTMLElement | undefined>(undefined);
 const color = ref("gray");
 const m = new DraggableOver(cele);
-m.x.value = props.x + props.xShift;
-m.y.value = props.y + props.yShift;
+m.xShift.value = props.xShift;
+m.yShift.value = props.yShift;
+m.x.value = props.x;
+m.y.value = props.y;
 
 watch(() => props.x, (n) => {
-  m.x.value = props.x + props.xShift;
+  m.x.value = props.x;
 })
 watch(() => props.y,(n) => {
-  m.y.value = props.y + props.yShift;
+  m.y.value = props.y;
 })
 
 m.onDraggedOverAction = props.onDragAction;
@@ -23,7 +28,7 @@ let setDefaultState = () => {
 }
 
 m.onDraggingOverEndAction = setDefaultState;
-m.onDraggingEndtAction = setDefaultState;
+m.onDraggingEndAction = setDefaultState;
 m.stopMovingAction = setDefaultState;
 
 m.onDraggingStartAction = () => {
@@ -37,7 +42,7 @@ m.onDraggingOverAction = (source) => {
 </script>
 
 <template>
-  <circle :cy="m.y.value" :cx="m.x.value" ref="cele" r="10" stroke="black" stroke-width="2" :fill="color"
+  <circle :cx="m.xShifted.value" :cy="m.yShifted.value"  ref="cele" r="10" stroke="black" stroke-width="2" :fill="color"
           @mousedown="m.setAsSource()"
   />
 </template>
