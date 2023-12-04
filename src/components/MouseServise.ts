@@ -3,28 +3,65 @@ import {DraggableOver, Movable, Clickable} from "./basic/index";
 
 export class MouseService {
 
+    /**
+     * List of all dragged items - for future
+     * @private
+     */
     private _draggedItems :Object[] = [];
 
+    /**
+     * Item that is dragged - drag starter
+     * @private
+     */
     private _dragSource :DraggableOver|null = null;
+    /**
+     * Ref to dragged over item. This item may not be the final destination
+     * @private
+     */
     private _dragOverTMP :DraggableOver|null = null;
 
+    /**
+     * Previous x mouse position, for delta calculation
+     * @private
+     */
     private _mouseX = 0;
+    /**
+     * Previous y mouse position, for delta calculation
+     * @private
+     */
     private _mouseY = 0;
 
+    /**
+     * Mouse button is pressed down
+     * @private
+     */
     private _isDown = false;
 
+    /**
+     * Static method for easy injection
+     */
     static inject() {
         return inject("MouseService");
     }
 
+    /**
+     * Using shady-around-vue-play to get over which draggable component is set position. Dragged
+     * item is ignored. This should be changed to use Vue API in future.
+     * @param mouseX
+     * @param mouseY
+     * @private
+     */
     private getDragUnderMouse(mouseX, mouseY) :DraggableOver|null {
+        // get list of elements
         let elements = document.elementsFromPoint(mouseX, mouseY);
         for (let x of elements) {
+            // check if is vue marked HTMLElement
             if (x.hasOwnProperty("__vueParentComponent")) {
                 for (const property in x.__vueParentComponent.devtoolsRawSetupState) {
                     let obj = x.__vueParentComponent.devtoolsRawSetupState[property];
+                    // get vue props that inherits from DraggableOver
                     if (obj instanceof DraggableOver && obj != this._dragSource) {
-                        // only draggable
+                        // Check if is position in valid hit-box for item
                         if ((obj as DraggableOver).isIn(mouseX, mouseY)) {
                             return obj;
                         }
