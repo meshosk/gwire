@@ -4,11 +4,11 @@ import {DraggableOver} from "@/components/basic/DraggableOver";
 
 const props = defineProps(['onDragAction','x', 'y','xShift', 'yShift'])
 
-defineEmits(["update:x", "update:y"])
-
+const emit = defineEmits(["update:x", "update:y"])
 
 const cele =  ref<HTMLElement | undefined>(undefined);
 const color = ref("gray");
+
 const m = new DraggableOver(cele);
 m.xShift.value = props.xShift;
 m.yShift.value = props.yShift;
@@ -21,6 +21,15 @@ watch(() => props.x, (n) => {
 watch(() => props.y,(n) => {
   m.y.value = props.y;
 })
+
+watch(() => m.x.value, (n) => {
+  emit("update:x", n);
+})
+watch(() => m.y.value,(n) => {
+    emit("update:y", n);
+})
+
+
 
 m.onDraggedOverAction = props.onDragAction;
 let setDefaultState = () => {
@@ -36,7 +45,6 @@ m.onDraggingStartAction = () => {
 }
 m.onDraggingOverAction = (source) => {
     color.value = "green"
-
 }
 
 </script>

@@ -12,12 +12,10 @@ var editorService = EditorService.inject();
 
 function add(type :string) {
   editorService.addPart(type);
-  let b = vueComps['Cable'];
-  let a = markRaw(Cable);
 }
 
 const getComponent = (s) => {
-  let a = this[s];
+  let a = vueComps[s];
   return a;
 }
 
@@ -26,18 +24,10 @@ const getComponent = (s) => {
 <template>
   <main>
     <div class="menu">
-      asdasd TESTs xxxx
         <button @click='add("Cable")'>Add cable</button>
-<!--        <button @click='add("Circle")'>Add circle</button>-->
-      <ul>
-        <li v-for="part in editorService.parts.value">
-          {{ part.vueComponentName }}
-        </li>
-      </ul>
     </div>
     <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
-        <component v-for="t in editorService.parts.value"  :is='getComponent("Cable")'/>
-
+        <component v-for="comp in editorService.parts.value"  :is='getComponent(comp.vueComponentName)'/>
     </svg>
   </main>
 </template>
