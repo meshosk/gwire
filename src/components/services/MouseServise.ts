@@ -63,6 +63,7 @@ export class MouseService {
                     if (obj instanceof DraggableOver && obj != this._dragSource) {
                         // Check if is position in valid hit-box for item
                         if ((obj as DraggableOver).isIn(mouseX, mouseY)) {
+                            console.log("is there")
                             return obj;
                         }
                     }
@@ -160,11 +161,9 @@ export class MouseService {
         }
     }
     registerDragSource(item : DraggableOver|null) {
-        if (this._dragSource === null) {
+        if (this._dragSource === null && item.canStartDrag == true) {
             this._dragSource = item;
             this._dragSource?.onDraggingStartAction();
-        } else {
-
         }
     }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {DraggableOver} from "@/components/parts/common";
-import {ref, onMounted } from "vue";
+import {ref } from "vue";
 import Connector from "@/components/parts/views/ConnectorView.vue";
 
 // model prop contains background ref to Circuit part, vue comp is used as view only
@@ -28,9 +28,6 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
   source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
 }
-onMounted(() => {
-    let a = 5;
-});
 
 </script>
 

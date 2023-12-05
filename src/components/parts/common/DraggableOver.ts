@@ -7,11 +7,8 @@ export class DraggableOver extends Movable {
     private _dropAreaElement: Ref<HTMLElement | undefined>;
     private _mouseService = MouseService.inject();
     private _mainVueComponent: any;
-    private _onDraggedOverAction: (source: DraggableOver, target: DraggableOver) => void = (source, target) => {
-        target.x.value = source.x.value;
-        target.y.value = source.y.value;
-    }
-
+    private _canStartDrag = true;
+    private _onDraggedOverAction: (source: DraggableOver, target: DraggableOver) => void = (source, target) => {}
     private _onDropAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
     private _onDraggingOverAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
     private _onDraggingOverEndAction: () => void = () => {}
@@ -83,9 +80,16 @@ export class DraggableOver extends Movable {
         this._onDropAction = value;
     }
 
+    get canStartDrag(): boolean {
+        return this._canStartDrag;
+    }
+
+    set canStartDrag(value: boolean) {
+        this._canStartDrag = value;
+    }
 
     setAsSource(){
-       this._mouseService.registerDragSource(this);
+            this._mouseService.registerDragSource(this);
     }
 
     stopDragging(){

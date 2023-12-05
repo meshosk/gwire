@@ -2,7 +2,7 @@
 import {ref, watch} from "vue";
 import {DraggableOver} from "@/components/parts/common";
 
-const props = defineProps(['onDragAction','x', 'y','xShift', 'yShift'])
+const props = defineProps(['onDragAction','x', 'y','xShift', 'yShift', "isDraggable"])
 
 const emit = defineEmits(["update:x", "update:y"])
 
@@ -14,6 +14,7 @@ m.xShift.value = props.xShift;
 m.yShift.value = props.yShift;
 m.x.value = props.x;
 m.y.value = props.y;
+m.canStartDrag =  props.isDraggable != null ? props.isDraggable : true;
 
 watch(() => props.x, (n) => {
   m.x.value = props.x;
@@ -28,7 +29,6 @@ watch(() => m.x.value, (n) => {
 watch(() => m.y.value,(n) => {
     emit("update:y", n);
 })
-
 
 
 m.onDraggedOverAction = props.onDragAction;

@@ -9,9 +9,8 @@ const color = ref("blue");
 const props = defineProps(['model'])
 
 const model :CircleModel = props.model;
-
 model.onPartChangeState = (model) => {
-   // model.ge
+
 }
 
 watch(m.mouseIsDown, async() => {
@@ -34,9 +33,10 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
     />
     <text :x="m.x.value + 10" :y="m.y.value+10" class="small" style="color: white"
           @mousedown="m.onMouseDown"
-    >On</text>
-    <ConnectorView :x="m.x.value" :x-shift="-10" :y="m.y.value" :y-shift="-20" :onDragAction="onDragOver"/>
-    <ConnectorView :x="m.x.value" :x-shift="20" :y="m.y.value" :y-shift="30" :onDragAction="onDragOver"/>
+          onclick="() => model.isPressed != model.isPressed"
+    >{{ model.isPressed }}</text>
+    <ConnectorView :x="m.x.value" :x-shift="-10" :y="m.y.value" :y-shift="-20" is-draggable="false" :onDragAction="onDragOver"/>
+    <ConnectorView :x="m.x.value" :x-shift="20" :y="m.y.value" :y-shift="30" is-draggable="false" :onDragAction="onDragOver"/>
 </template>
 <style scoped>
 text {
