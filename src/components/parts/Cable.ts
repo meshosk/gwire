@@ -1,11 +1,18 @@
-import {ConnectPoint} from "@/components/parts/ConnectPoint";
+import {ConnectPoint, CircuitPart} from "@/components/parts";
 
-export class Cable {
+/**
+ * Just cable that can connect two points
+ */
+export class Cable extends CircuitPart {
 
-    private pointA :ConnectPoint = new ConnectPoint();
-    private pointB :ConnectPoint = new ConnectPoint();
+    readonly circuitPartName: string = "cable";
+    public readonly vueComponentName: string = "Cable";
 
     constructor() {
-        this.pointA.connect(this.pointB);
+        super(2);
+     //   this.pins[0].connect(this.pins[1]);
     }
+
+
+
 }

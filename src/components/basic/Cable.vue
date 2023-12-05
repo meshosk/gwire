@@ -18,6 +18,12 @@ c1.y.value = 100;
 c2.x.value = 300;
 c2.y.value = 100;
 
+function onDragOver(source :DraggableOver, target :DraggableOver) {
+  source.x.value = target.xShifted.value;
+  source.y.value = target.yShifted.value;
+}
+
+
 </script>
 
 <template>
@@ -25,10 +31,12 @@ c2.y.value = 100;
 
     <Connector v-model:x="c1.x.value" :x-shift="0" v-model:y="c1.y.value" :y-shift="0"
                @mousedown="(e) => {c1.onMouseDown(e); c1.setAsSource()}"
+               :onDragAction="onDragOver"
     />
 
     <Connector v-model:x="c2.x.value" :x-shift="0" v-model:y="c2.y.value" :y-shift="0"
                @mousedown="(e) => {c2.onMouseDown(e); c2.setAsSource()}"
+               :onDragAction="onDragOver"
     />
 </template>
 

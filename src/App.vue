@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import Rectangle from './components/basic/Rectangle.vue'
 import {markRaw, ref, shallowRef} from "vue"
-import Circle from "@/components/basic/Circle.vue";
 import {MouseService} from "@/components/MouseServise";
+import {EditorService} from "@/components/EditorService";
+import *  as vueComps from "@/components/basic";
 import Cable from "@/components/basic/Cable.vue";
+import {CircuitPart} from "@/components/parts";
 
-const comps = ref([]);
-var ids = 1;
-var r = false;
+
 var mouseService = MouseService.inject();
+var editorService = EditorService.inject();
 
-function add() {
+function add(type :string) {
+  editorService.addPart(type);
+  let b = vueComps['Cable'];
+  let a = markRaw(Cable);
+}
 
-    if (r) {
-        comps.value.push(markRaw(Rectangle))
-    } else {
-        comps.value.push(markRaw(Circle))
-    }
-    r = !r;
+const getComponent = (s) => {
+  let a = this[s];
+  return a;
 }
 
 </script>
@@ -27,12 +27,17 @@ function add() {
   <main>
     <div class="menu">
       asdasd TESTs xxxx
-        <button @click="add">Add</button>
+        <button @click='add("Cable")'>Add cable</button>
+<!--        <button @click='add("Circle")'>Add circle</button>-->
+      <ul>
+        <li v-for="part in editorService.parts.value">
+          {{ part.vueComponentName }}
+        </li>
+      </ul>
     </div>
     <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
-        <component v-for="comp in comps" :is="comp"/>
-        <cable/>
-        <cable/>
+        <component v-for="t in editorService.parts.value"  :is='getComponent("Cable")'/>
+
     </svg>
   </main>
 </template>
