@@ -5,8 +5,8 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
-import {MouseService} from "@/components/MouseServise";
-import {EditorService} from "@/components/EditorService";
+import {MouseService} from "@/components/services/MouseServise";
+import {EditorService} from "@/components/services/EditorService";
 
 const app = createApp(App)
 

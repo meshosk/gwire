@@ -1,16 +1,22 @@
 <script setup lang="ts">
 
-import {DraggableOver} from "@/components/basic/index";
+import {DraggableOver} from "@/components/parts/common";
 import {ref, onMounted } from "vue";
-import Connector from "@/components/basic/Connector.vue";
+import Connector from "@/components/parts/views/ConnectorView.vue";
 
-const c1ele  = ref<HTMLElement | undefined>(undefined);
+// model prop contains background ref to Circuit part, vue comp is used as view only
+// for this reason it only react on model change
+const props = defineProps(['model'])
+
+if (props.model == null) {
+    throw new Error("Model not defined");
+}
+
+const c1ele = ref<HTMLElement | undefined>(undefined);
 const c1 = new DraggableOver(c1ele);
 
-const c2ele  = ref<HTMLElement | undefined>(undefined);
+const c2ele = ref<HTMLElement | undefined>(undefined);
 const c2 = new DraggableOver(c2ele);
-
-const color = ref("gray");
 
 c1.x.value = 100;
 c1.y.value = 100;
@@ -22,7 +28,9 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
   source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
 }
-
+onMounted(() => {
+    let a = 5;
+});
 
 </script>
 

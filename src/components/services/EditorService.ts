@@ -1,12 +1,9 @@
-import {CircuitPart, Cable} from "@/components/parts";
-import * as pparts from "@/components/parts";
+import * as modelRef from "@/components/parts/models";
 import { ref, inject} from "vue";
 
 export class EditorService {
 
     private _parts  ;
-
-
 
     constructor(private context: Object) {
         this._parts = ref([]);
@@ -15,8 +12,7 @@ export class EditorService {
         return inject("EditorService");
     }
     public addPart(partName :string){
-
-        let instance = new pparts[partName]();
+        let instance = new modelRef[partName]();
         this._parts.value.push(instance);
         return instance;
     }

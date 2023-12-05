@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, watch} from "vue";
-import {DraggableOver} from "@/components/basic/DraggableOver";
+import {DraggableOver} from "@/components/parts/common";
 
 const props = defineProps(['onDragAction','x', 'y','xShift', 'yShift'])
 

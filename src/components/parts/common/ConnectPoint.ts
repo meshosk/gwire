@@ -1,4 +1,4 @@
-import {CircuitPart} from "@/components/parts";
+import {CircuitPart} from "@/components/parts/common";
 
 /**
  * Simulates internal connections of a single part

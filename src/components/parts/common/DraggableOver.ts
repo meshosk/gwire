@@ -1,6 +1,6 @@
 import {Movable} from "./index";
 import type Ref from "vue";
-import {MouseService} from "@/components/MouseServise";
+import {MouseService} from "@/components/services/MouseServise";
 
 export class DraggableOver extends Movable {
 

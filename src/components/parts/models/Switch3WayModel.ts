@@ -1,4 +1,4 @@
-import {ConnectPoint, CircuitPart} from "@/components/parts";
+import {ConnectPoint, CircuitPart} from "@/components/parts/common";
 import {ref, watch} from "vue";
 
 export enum Switch3WayState {
@@ -6,10 +6,9 @@ export enum Switch3WayState {
     Position2,
     Position3,
 }
-export class Switch3Way extends CircuitPart {
+export class Switch3WayModel extends CircuitPart {
 
     readonly circuitPartName: "3 way switch";
-    readonly vueComponentName: "switch3Way";
 
     private _position  = ref(Switch3WayState.Position1);
 

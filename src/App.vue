@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import {markRaw, ref, shallowRef} from "vue"
-import {MouseService} from "@/components/MouseServise";
-import {EditorService} from "@/components/EditorService";
-import *  as vueComps from "@/components/basic";
-import Cable from "@/components/basic/Cable.vue";
-import {CircuitPart} from "@/components/parts";
+import {markRaw, onMounted, ref, shallowRef} from "vue"
+import {MouseService} from "@/components/services/MouseServise";
+import {EditorService} from "@/components/services/EditorService";
+import *  as vueComps from "@/components/parts/views";
+import {CircuitPart} from "@/components/parts/common";
 
 
 var mouseService = MouseService.inject();
@@ -19,15 +18,17 @@ const getComponent = (s) => {
   return a;
 }
 
+
 </script>
 
 <template>
   <main>
     <div class="menu">
-        <button @click='add("Cable")'>Add cable</button>
+        <button @click='add("CableModel")'>Add cable</button>
+        <button @click='add("CircleModel")'>Add circle</button>
     </div>
     <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
-        <component v-for="comp in editorService.parts.value"  :is='getComponent(comp.vueComponentName)'/>
+        <component v-for="comp in editorService.parts.value"  :is='getComponent(comp.vueComponentName)' :model="comp"/>
     </svg>
   </main>
 </template>
