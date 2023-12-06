@@ -21,8 +21,7 @@ export class CircleModel extends CircuitPart {
 
     }
 
-
-    get isPressed(): Ref<UnwrapRef<boolean>> {
+    get isPressed(){
         return this._isPressed;
     }
 }

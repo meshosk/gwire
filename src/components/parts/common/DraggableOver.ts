@@ -1,4 +1,4 @@
-import {Movable} from "./index";
+import {CircuitPart, Movable} from "./index";
 import type Ref from "vue";
 import {MouseService} from "@/components/services/MouseServise";
 
@@ -15,9 +15,14 @@ export class DraggableOver extends Movable {
     private _onDraggingStartAction: () => void = () => {}
     private _onDraggingEndAction: () => void = () => {}
 
-    constructor( dropAreaElement :Ref<HTMLElement | undefined>) {
+    private readonly _circuitPart: CircuitPart;
+    private _draggableId: string;
+
+    constructor( circuitPart : CircuitPart, draggableId :string, dropAreaElement :Ref<HTMLElement | undefined> ) {
         super();
+        this._draggableId = draggableId;
         this._dropAreaElement = dropAreaElement;
+        this._circuitPart = circuitPart;
     }
 
     isIn(x:number, y:number):boolean{
@@ -29,8 +34,13 @@ export class DraggableOver extends Movable {
         && y >= boundary.y && y <= boundary.y + boundary.height
     }
 
-    get mainVueComponent(): any {
-        return this._mainVueComponent;
+
+    get draggableId(): string {
+        return this._draggableId;
+    }
+
+    get circuitPart(): CircuitPart {
+        return this._circuitPart;
     }
 
     get onDraggingEndAction(): () => void {

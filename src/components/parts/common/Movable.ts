@@ -22,7 +22,7 @@ export class Movable extends Clickable {
      * If true, current instance is actually dragged
      * @private
      */
-    private _isDragged: Ref<UnwrapRef<boolean>> = ref(false);
+    private _isDragged = ref(false);
 
     private mouseService = MouseService.inject();
 

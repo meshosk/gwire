@@ -3,12 +3,11 @@ import {ref, watch, defineComponent, toRaw} from 'vue'
 import {Movable, DraggableOver} from "@/components/parts/common";
 import ConnectorView from "@/components/parts/views/ConnectorView.vue";
 import {CircleModel} from "@/components/parts/models";
+import Connector from "@/components/parts/views/ConnectorView.vue";
 
 const m = new Movable();
 const color = ref("blue");
 const props = defineProps(['model'])
-
-
 const model :CircleModel = props.model; // wrapped in proxy
 
 
@@ -36,8 +35,20 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
       {{ model.isPressed ? "ON" : "OFF" }}</text>
   </g>
 
-    <ConnectorView :x="m.x.value" :x-shift="-10" :y="m.y.value" :y-shift="-20" is-draggable="false" :onDragAction="onDragOver"/>
-    <ConnectorView :x="m.x.value" :x-shift="20" :y="m.y.value" :y-shift="30" is-draggable="false" :onDragAction="onDragOver"/>
+    <ConnectorView
+        :x="m.x.value" :x-shift="-10"
+        :y="m.y.value" :y-shift="-20" is-draggable="false"
+        :onDragAction="onDragOver"
+        :model="model"
+        :draggable-id="'c1'"
+    />
+    <ConnectorView
+        :x="m.x.value" :x-shift="20"
+        :y="m.y.value" :y-shift="30" is-draggable="false"
+        :onDragAction="onDragOver"
+        :model="model"
+        :draggable-id="'c2'"
+    />
 </template>
 <style scoped>
 text {

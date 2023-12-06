@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import {ref, watch} from "vue";
 import {DraggableOver} from "@/components/parts/common";
+import {CableModel} from "@/components/parts/models";
 
-const props = defineProps(['onDragAction','x', 'y','xShift', 'yShift', "isDraggable"])
+const props = defineProps(['onDragAction','x', 'y','xShift', 'yShift', "isDraggable", 'model', 'draggableId'])
+const model :CableModel = props.model; // wrapped in proxy
+if (props.model == null) {
+  throw new Error("Model not defined");
+}
 
 const emit = defineEmits(["update:x", "update:y"])
 
 const cele =  ref<HTMLElement | undefined>(undefined);
 const color = ref("gray");
 
-const m = new DraggableOver(cele);
+const m = new DraggableOver(model, props.draggableId, cele);
 m.xShift.value = props.xShift;
 m.yShift.value = props.yShift;
 m.x.value = props.x;

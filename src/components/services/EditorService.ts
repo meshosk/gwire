@@ -5,7 +5,7 @@ export class EditorService {
 
     private _parts  ;
 
-    constructor(private context: Object) {
+    constructor() {
         this._parts = ref([]);
     }
     static inject()  {

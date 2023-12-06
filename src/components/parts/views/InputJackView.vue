@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import ConnectorView from "@/components/parts/views/ConnectorView.vue";
 import {DraggableOver, Movable} from "@/components/parts/common";
-import {CircleModel, InputJackModel} from "@/components/parts/models";
+import {InputJackModel} from "@/components/parts/models";
+import Connector from "@/components/parts/views/ConnectorView.vue";
 
 const props = defineProps(['model'])
 const model :InputJackModel = props.model; // wrapped in proxy
@@ -102,7 +103,19 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
           transform="rotate(90)" />
     </g>
   </g>
-  <ConnectorView :x="m.x.value" :x-shift="12" :y="m.y.value" :y-shift="15" is-draggable="false" :onDragAction="onDragOver"/>
-  <ConnectorView :x="m.x.value" :x-shift="85" :y="m.y.value" :y-shift="15" is-draggable="false" :onDragAction="onDragOver"/>
+  <ConnectorView
+      :x="m.x.value" :x-shift="12"
+      :y="m.y.value" :y-shift="15"
+      is-draggable="false" :onDragAction="onDragOver"
+      :model="model"
+      :draggable-id="'hot'"
+  />
+  <ConnectorView
+      :x="m.x.value" :x-shift="85"
+      :y="m.y.value" :y-shift="15" is-draggable="false"
+      :onDragAction="onDragOver"
+      :model="model"
+      :draggable-id="'ground'"
+  />
 
 </template>
