@@ -15,8 +15,6 @@ export class DraggableOver extends Movable {
     private _onDraggingStartAction: () => void = () => {}
     private _onDraggingEndAction: () => void = () => {}
 
-
-
     constructor( dropAreaElement :Ref<HTMLElement | undefined>) {
         super();
         this._dropAreaElement = dropAreaElement;
@@ -30,7 +28,6 @@ export class DraggableOver extends Movable {
         return x >= boundary.x  && x <= boundary.x + boundary.width
         && y >= boundary.y && y <= boundary.y + boundary.height
     }
-
 
     get mainVueComponent(): any {
         return this._mainVueComponent;

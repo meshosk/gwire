@@ -22,16 +22,6 @@ export abstract class CircuitPart {
         return this._pins;
     }
 
-    /**
-     * Returns other part that is current
-     */
-    public getConnectedParts(except :CircuitPart[]) :CircuitPart[]
-    {
-        return this._pins
-            .filter(c1 => c1.part != this  && !this._pins.some(c2 => c2.part == c1.part) )
-            .map( x => x.part);
-    }
-
     public disconnectAllInternalConnections() {
         for (let c of this._pins) {
             c.disconnectInternalConnectionsOnly();

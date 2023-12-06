@@ -26,6 +26,7 @@ const getComponent = (s) => {
     <div class="menu">
         <button @click='add("CableModel")'>Add cable</button>
         <button @click='add("CircleModel")'>Add circle</button>
+        <button @click='add("InputJackModel")'>Add input jack</button>
     </div>
     <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
         <component v-for="comp in editorService.parts.value"  :is='getComponent(comp.vueComponentName)' :model="comp"/>
