@@ -12,9 +12,9 @@ export abstract class CircuitPart {
         return this.constructor.name.replace("Model", "View");
     }
 
-    protected constructor(totalPinCount = 1) {
-        for (let i = 0; i < totalPinCount; i++) {
-            this._pins.push(new ConnectPoint(this));
+    protected constructor(pinsNames : string[]|number[]) {
+        for (let i = 0; i < pinsNames.length; i++) {
+            this._pins.push(new ConnectPoint(this, pinsNames[i]));
         }
     }
 

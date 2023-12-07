@@ -40,8 +40,8 @@ export class MouseService {
     /**
      * Static method for easy injection
      */
-    static inject() {
-        return inject("MouseService");
+    static inject() : MouseService {
+        return (inject("MouseService") as MouseService);
     }
 
     /**
@@ -88,7 +88,7 @@ export class MouseService {
         if (sourceTarget != null) {
             if (dragTarget != null) {
                 dragTarget.onDraggedOverAction(sourceTarget, dragTarget);
-                dragTarget.onDraggingEndAction();
+                sourceTarget.onDraggedOverAction(sourceTarget, dragTarget);
             }
             sourceTarget.onDraggingEndAction();
         }
@@ -124,6 +124,9 @@ export class MouseService {
 
     register(instance: Movable) {
         this._draggedItems.push(instance);
+        if (instance instanceof DraggableOver) {
+            this.registerDragSource(instance);
+        }
         instance.startMovingAction();
     }
 

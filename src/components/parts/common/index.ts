@@ -3,3 +3,4 @@ export * from "./Movable";
 export * from "./DraggableOver";
 export * from "./ConnectPoint";
 export * from "./CircuitPart";
+export * from "./ConnectionModeLock";

@@ -6,16 +6,25 @@ import {CircuitPart} from "@/components/parts/common";
  */
 export class ConnectPoint {
 
-    private readonly _part : CircuitPart;
+    private readonly _part : CircuitPart|null;
     private _connectedTo :ConnectPoint[] = [];
+    private readonly _name: string;
 
-    constructor(part: CircuitPart) {
+    constructor(part: CircuitPart|null, name :string) {
         this._part = part;
+        this._name = name;
     }
 
+    get name(): string {
+        return this._name;
+    }
 
     get part(): CircuitPart {
         return this._part;
+    }
+
+    public test() {
+        return "test";
     }
 
     public connect(connectPoint : ConnectPoint) {
@@ -70,6 +79,7 @@ export class ConnectPoint {
         // make copy of connected items
         return this._connectedTo.map(x => x);
     }
+
 
 
 }

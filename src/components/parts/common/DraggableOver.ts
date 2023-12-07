@@ -1,4 +1,4 @@
-import {CircuitPart, Movable} from "./index";
+import {CircuitPart, ConnectPoint, Movable} from "./index";
 import type Ref from "vue";
 import {MouseService} from "@/components/services/MouseServise";
 
@@ -10,19 +10,17 @@ export class DraggableOver extends Movable {
     private _canStartDrag = true;
     private _onDraggedOverAction: (source: DraggableOver, target: DraggableOver) => void = (source, target) => {}
     private _onDropAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
-    private _onDraggingOverAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
+    private _onDraggingOverAction: (droppedItem: DraggableOver, droppedOVer: DraggableOver) => void = (droppedItem :DraggableOver, droppedOVer: DraggableOver) => {}
     private _onDraggingOverEndAction: () => void = () => {}
     private _onDraggingStartAction: () => void = () => {}
     private _onDraggingEndAction: () => void = () => {}
 
-    private readonly _circuitPart: CircuitPart;
-    private _draggableId: string;
+    private readonly _connectPoint: ConnectPoint;
 
-    constructor( circuitPart : CircuitPart, draggableId :string, dropAreaElement :Ref<HTMLElement | undefined> ) {
+    constructor( connectPoint : ConnectPoint, dropAreaElement :Ref<HTMLElement | undefined> ) {
         super();
-        this._draggableId = draggableId;
         this._dropAreaElement = dropAreaElement;
-        this._circuitPart = circuitPart;
+        this._connectPoint = connectPoint;
     }
 
     isIn(x:number, y:number):boolean{
@@ -34,13 +32,8 @@ export class DraggableOver extends Movable {
         && y >= boundary.y && y <= boundary.y + boundary.height
     }
 
-
-    get draggableId(): string {
-        return this._draggableId;
-    }
-
-    get circuitPart(): CircuitPart {
-        return this._circuitPart;
+    get connectPoint(): ConnectPoint {
+        return this._connectPoint;
     }
 
     get onDraggingEndAction(): () => void {
@@ -59,11 +52,11 @@ export class DraggableOver extends Movable {
         this._onDraggingOverEndAction = value;
     }
 
-    get onDraggingOverAction(): (droppedItem: DraggableOver) => void {
+    get onDraggingOverAction(): (droppedItem: DraggableOver, droppedOVer: DraggableOver) => void {
         return this._onDraggingOverAction;
     }
 
-    set onDraggingOverAction(value: (droppedItem: DraggableOver) => void) {
+    set onDraggingOverAction(value: (droppedItem: DraggableOver, droppedOVer: DraggableOver) => void) {
         this._onDraggingOverAction = value;
     }
 
@@ -93,10 +86,6 @@ export class DraggableOver extends Movable {
 
     set canStartDrag(value: boolean) {
         this._canStartDrag = value;
-    }
-
-    setAsSource(){
-            this._mouseService.registerDragSource(this);
     }
 
     stopDragging(){

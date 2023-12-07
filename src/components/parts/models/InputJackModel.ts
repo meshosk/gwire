@@ -5,7 +5,7 @@ export class InputJackModel extends CircuitPart {
     readonly circuitPartName: "Input jack";
 
     constructor() {
-        super(2);
+        super(["hot", "ground"]);
     }
 
     public get signalPin(){

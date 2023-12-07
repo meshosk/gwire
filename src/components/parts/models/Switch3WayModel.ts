@@ -13,7 +13,7 @@ export class Switch3WayModel extends CircuitPart {
     private _position  = ref(Switch3WayState.Position1);
 
     constructor() {
-        super(6);
+    super([1,2,3,4,5,6]);
         watch( () => this._position, (value) => {
             switch (value) {
                 case Switch3WayState.Position1:

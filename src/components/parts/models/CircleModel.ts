@@ -11,7 +11,7 @@ export class CircleModel extends CircuitPart {
     private readonly _isPressed = ref(false);
 
     constructor() {
-        super(2);
+        super(["c1", "c2"]);
         this.pins[0].connect(this.pins[1]);
 
         watch(() => this.isPressed.value, (n) => {

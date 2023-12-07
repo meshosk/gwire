@@ -4,6 +4,7 @@ import {MouseService} from "@/components/services/MouseServise";
 import {EditorService} from "@/components/services/EditorService";
 import *  as vueComps from "@/components/parts/views";
 import {CircuitPart} from "@/components/parts/common";
+import TestCircle from "@/components/parts/views/TestCircle.vue";
 
 
 var mouseService = MouseService.inject();
@@ -29,6 +30,7 @@ const getComponent = (s) => {
         <button @click='add("InputJackModel")'>Add input jack</button>
     </div>
     <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
+        <test-circle />
         <component v-for="comp in editorService.parts.value"  :is='getComponent(comp.vueComponentName)' :model="comp"/>
     </svg>
   </main>

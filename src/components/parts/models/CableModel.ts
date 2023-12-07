@@ -8,7 +8,7 @@ export class CableModel extends CircuitPart {
     readonly circuitPartName: string = "cable";
 
     constructor() {
-        super(2);
+        super(["c1","c2"]);
         this.pins[0].connect(this.pins[1]);
     }
 
