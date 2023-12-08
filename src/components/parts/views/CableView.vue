@@ -24,8 +24,8 @@ c2.x.value = 300;
 c2.y.value = 100;
 
 function onDragOver(source :DraggableOver, target :DraggableOver) {
- // source.x.value = target.xShifted.value;
-  //source.y.value = target.yShifted.value;
+ source.x.value = target.xShifted.value;
+  source.y.value = target.yShifted.value;
 
     // make model connection
     source.connectPoint.connect(target.connectPoint);
@@ -60,5 +60,7 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
 </template>
 
 <style scoped>
-
+  line {
+    z-index: 1;
+  }
 </style>

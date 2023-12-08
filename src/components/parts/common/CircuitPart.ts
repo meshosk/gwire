@@ -4,6 +4,8 @@ export abstract class CircuitPart {
 
     private readonly _pins :ConnectPoint[] = [];
 
+    public drawPriority : boolean = false;
+
     public onPartChangeState :(circlePart: CircuitPart) => void = (circlePart) =>{};
 
     abstract readonly circuitPartName :string;
@@ -27,6 +29,7 @@ export abstract class CircuitPart {
             c.disconnectInternalConnectionsOnly();
         }
     }
+
 
 
 }

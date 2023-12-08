@@ -31,7 +31,8 @@ const getComponent = (s) => {
     </div>
     <svg @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
         <test-circle />
-        <component v-for="comp in editorService.parts.value"  :is='getComponent(comp.vueComponentName)' :model="comp"/>
+        <component v-for="comp in editorService.normalParts"  :is='getComponent(comp.vueComponentName)' :model="comp"/>
+        <component v-for="comp in editorService.prioritizedParts"  :is='getComponent(comp.vueComponentName)' :model="comp"/>
     </svg>
   </main>
 </template>

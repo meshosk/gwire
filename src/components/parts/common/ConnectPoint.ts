@@ -6,11 +6,11 @@ import {CircuitPart} from "@/components/parts/common";
  */
 export class ConnectPoint {
 
-    private readonly _part : CircuitPart|null;
+    private readonly _part : CircuitPart;
     private _connectedTo :ConnectPoint[] = [];
     private readonly _name: string;
 
-    constructor(part: CircuitPart|null, name :string) {
+    constructor(part: CircuitPart, name :string) {
         this._part = part;
         this._name = name;
     }
