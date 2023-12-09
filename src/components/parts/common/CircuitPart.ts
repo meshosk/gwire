@@ -1,8 +1,17 @@
 import {ConnectPoint} from "@/components/parts/common";
+import {ref} from "vue";
+
+export  enum HighlightType {
+    NONE,
+    SELECTED,
+    ROUTE
+}
 
 export abstract class CircuitPart {
 
     private readonly _pins :ConnectPoint[] = [];
+
+    private _highlight;
 
     public drawPriority : boolean = false;
 
@@ -15,6 +24,7 @@ export abstract class CircuitPart {
     }
 
     protected constructor(pinsNames : string[]|number[]) {
+        this._highlight = ref(HighlightType.NONE);
         for (let i = 0; i < pinsNames.length; i++) {
             this._pins.push(new ConnectPoint(this, pinsNames[i]));
         }
@@ -30,6 +40,11 @@ export abstract class CircuitPart {
         }
     }
 
+    get highlight() {
+        return this._highlight;
+    }
 
-
+    set highlight(value) {
+        this._highlight = value;
+    }
 }

@@ -4,7 +4,6 @@ import {EditorService} from "@/components/services/EditorService";
 import *  as vueComps from "@/components/parts/views";
 import TestCircle from "@/components/parts/views/TestCircle.vue";
 
-
 var mouseService = MouseService.inject();
 var editorService = EditorService.inject();
 
@@ -16,7 +15,6 @@ const getComponent = (s) => {
   let a = vueComps[s];
   return a;
 }
-
 
 </script>
 
