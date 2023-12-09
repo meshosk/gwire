@@ -15,7 +15,7 @@ if (props.model == null) {
 
 const c1 = new Movable();
 const c2 = new Movable();
-const connectionLock = new ConnectionLockService();
+const connectionLock =  ConnectionLockService.inject();
 
 c1.x.value = 100;
 c1.y.value = 100;
@@ -23,8 +23,12 @@ c1.y.value = 100;
 c2.x.value = 300;
 c2.y.value = 100;
 
+const onDragStart = (item) => {
+    connectionLock.releaseAllLockFor(item);
+}
+
 function onDragOver(source :DraggableOver, target :DraggableOver) {
- source.x.value = target.xShifted.value;
+  source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
 
     // make model connection
@@ -50,11 +54,13 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
 
     <Connector v-model:x="c1.x.value" :x-shift="0" v-model:y="c1.y.value" :y-shift="0"
                :onDraggedOver="onDragOver"
+               :on-drag-start="onDragStart"
                :connection="model.pins[0]"
     />
 
     <Connector v-model:x="c2.x.value" :x-shift="0" v-model:y="c2.y.value" :y-shift="0"
                :onDraggedOver="onDragOver"
+               :on-drag-start="onDragStart"
                :connection="model.pins[1]"
     />
 </template>

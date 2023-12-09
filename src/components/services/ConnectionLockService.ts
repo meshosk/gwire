@@ -10,11 +10,15 @@ export class ConnectionLockService {
     }
 
     lock( a: DraggableOver, b: DraggableOver, propsFunction, changeFunction, releaseAction) {
-        if (this.findWatcherKey( a, b) == null) {
-            this._watchers.set(new MapKey(a,b), new WatcherItem(propsFunction, changeFunction,releaseAction ))
+        let key = this.findWatcherKey( a, b);
+        if (key == null) {
+            let watcher = new WatcherItem(propsFunction, changeFunction,releaseAction )
+            this._watchers.set(new MapKey(a,b), watcher);
+            return watcher;
+        } else {
+            return key;
         }
     }
-
 
     private findWatcherKey(a: DraggableOver, b: DraggableOver){
         for (let key :MapKey of this._watchers.keys()) {
@@ -33,6 +37,21 @@ export class ConnectionLockService {
         }
     }
 
+    public releaseAllLockFor(a: DraggableOver){
+        let keys = [];
+        for (let key :MapKey of this._watchers.keys()) {
+            if (key.has(a)) {
+                keys.push(key);
+            }
+        }
+
+        for (let key :MapKey of keys) {
+            let watcher = this._watchers.get(key);
+            this._watchers.delete(key);
+            watcher.releaseWatcher();
+        }
+    }
+
 }
 
 class MapKey {
@@ -43,7 +62,10 @@ class MapKey {
         this.b = b;
     }
 
-    public is(aa,bb) :boolean {
+    public has(a :DraggableOver){
+        return this.a == a || this.b == a;
+    }
+    public is(aa :DraggableOver,bb :DraggableOver) :boolean {
         return this.a == aa && this.b == bb || this.a == bb && this.b == aa;
     }
 }

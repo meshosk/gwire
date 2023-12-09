@@ -21,7 +21,6 @@ watch(m.mouseIsDown, async() => {
 function onDragOver(source :DraggableOver, target :DraggableOver) {
   source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
-
 }
 
 </script>

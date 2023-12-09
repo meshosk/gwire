@@ -12,7 +12,7 @@ export class DraggableOver extends Movable {
     private _onDropAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
     private _onDraggingOverAction: (droppedItem: DraggableOver, droppedOVer: DraggableOver) => void = (droppedItem :DraggableOver, droppedOVer: DraggableOver) => {}
     private _onDraggingOverEndAction: () => void = () => {}
-    private _onDraggingStartAction: () => void = () => {}
+    private _onDraggingStartAction: (item :DraggableOver) => void = (x) => {}
     private _onDraggingEndAction: () => void = () => {}
 
     private readonly _connectPoint: ConnectPoint;
@@ -60,11 +60,11 @@ export class DraggableOver extends Movable {
         this._onDraggingOverAction = value;
     }
 
-    get onDraggingStartAction(): () => void {
+    get onDraggingStartAction(): (item :DraggableOver) => void {
         return this._onDraggingStartAction;
     }
 
-    set onDraggingStartAction(value: () => void) {
+    set onDraggingStartAction(value: (item :DraggableOver) => void) {
         this._onDraggingStartAction = value;
     }
 

@@ -158,14 +158,14 @@ export class MouseService {
     checkForDraggingOver(item : DraggableOver|null) {
         if (this._dragSource !== null) {
             if (item != null && item != this._dragSource) {
-                item.onDraggingOverAction(this._dragSource);
+                item.onDraggingOverAction(item, this._dragSource);
             }
         }
     }
     registerDragSource(item : DraggableOver|null) {
         if (this._dragSource === null && item.canStartDrag == true) {
             this._dragSource = item;
-            this._dragSource?.onDraggingStartAction();
+            this._dragSource?.onDraggingStartAction(item);
         }
     }
 

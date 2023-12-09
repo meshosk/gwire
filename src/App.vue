@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import {markRaw, onMounted, ref, shallowRef} from "vue"
 import {MouseService} from "@/components/services/MouseServise";
 import {EditorService} from "@/components/services/EditorService";
 import *  as vueComps from "@/components/parts/views";
-import {CircuitPart} from "@/components/parts/common";
 import TestCircle from "@/components/parts/views/TestCircle.vue";
 
 

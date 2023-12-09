@@ -2,7 +2,7 @@
 import {ref, watch} from "vue";
 import {ConnectPoint, DraggableOver} from "@/components/parts/common";
 
-const props = defineProps(['onDraggedOver','x', 'y','xShift', 'yShift', "isDraggable", 'connection'])
+const props = defineProps(['onDragStart','onDraggedOver','x', 'y','xShift', 'yShift', "isDraggable", 'connection'])
 const connection :ConnectPoint = props?.connection; // wrapped in proxy
 if (connection == null) {
   throw new Error("Connection not defined");
@@ -12,6 +12,8 @@ const emit = defineEmits(["update:x", "update:y"])
 
 const cele =  ref<HTMLElement | undefined>(undefined);
 const color = ref("gray");
+
+
 
 const m = new DraggableOver(connection, cele);
 m.xShift.value = props.xShift;
@@ -35,6 +37,12 @@ watch(() => m.y.value,(n) => {
 })
 
 m.onDraggedOverAction = props.onDraggedOver;
+m.onDraggingStartAction = (item) => {
+    if (props.onDragStart != null) {
+        props.onDragStart(item);
+    }
+    color.value = "yellow";
+}
 let setDefaultState = () => {
     color.value = "gray";
 }
@@ -43,9 +51,7 @@ m.onDraggingOverEndAction = setDefaultState;
 m.onDraggingEndAction = setDefaultState;
 m.stopMovingAction = setDefaultState;
 
-m.onDraggingStartAction = () => {
-    color.value = "yellow"
-}
+
 m.onDraggingOverAction = (source) => {
     color.value = "green"
 }
