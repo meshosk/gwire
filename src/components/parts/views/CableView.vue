@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ConnectionModeLock, DraggableOver, Movable} from "@/components/parts/common";
+import {ConnectionLockService, DraggableOver, Movable} from "@/components/parts/common";
 import {ref } from "vue";
 import Connector from "@/components/parts/views/ConnectorView.vue";
 import {CableModel} from "@/components/parts/models";
@@ -15,7 +15,7 @@ if (props.model == null) {
 
 const c1 = new Movable();
 const c2 = new Movable();
-const connectionLock = new ConnectionModeLock();
+const connectionLock = new ConnectionLockService();
 
 c1.x.value = 100;
 c1.y.value = 100;

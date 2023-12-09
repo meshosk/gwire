@@ -1,18 +1,22 @@
-import {watch} from "vue";
+import {watch, inject} from "vue";
 import type {DraggableOver} from "@/components/parts/common/DraggableOver";
 
-export class ConnectionModeLock {
+export class ConnectionLockService {
 
     private readonly _watchers: Map<MapKey, WatcherItem> = new Map<MapKey, WatcherItem>();
 
+    static inject() :ConnectionLockService  {
+        return <ConnectionLockService>inject("ConnectionLockService");
+    }
+
     lock( a: DraggableOver, b: DraggableOver, propsFunction, changeFunction, releaseAction) {
-        if (this.findWatcher( a, b) == null) {
+        if (this.findWatcherKey( a, b) == null) {
             this._watchers.set(new MapKey(a,b), new WatcherItem(propsFunction, changeFunction,releaseAction ))
         }
     }
 
 
-    private findWatcher(a: DraggableOver, b: DraggableOver){
+    private findWatcherKey(a: DraggableOver, b: DraggableOver){
         for (let key :MapKey of this._watchers.keys()) {
             if (key.is(a,b)) {
                 return key;
@@ -21,7 +25,7 @@ export class ConnectionModeLock {
     }
 
     public releaseLock(a: DraggableOver, b: DraggableOver) {
-        let key =  this.findWatcher(a,b);
+        let key =  this.findWatcherKey(a,b);
         if (key != null) {
             let watcher = this._watchers.get(key);
             this._watchers.delete(key);
@@ -40,7 +44,7 @@ class MapKey {
     }
 
     public is(aa,bb) :boolean {
-        return this.a == aa && this.b == bb;
+        return this.a == aa && this.b == bb || this.a == bb && this.b == aa;
     }
 }
 

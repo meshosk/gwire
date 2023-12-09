@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, watch, defineComponent, toRaw} from 'vue'
-import {Movable, DraggableOver, ConnectionModeLock} from "@/components/parts/common";
+import {Movable, DraggableOver, ConnectionLockService} from "@/components/parts/common";
 import ConnectorView from "@/components/parts/views/ConnectorView.vue";
 import {CircleModel} from "@/components/parts/models";
 import Connector from "@/components/parts/views/ConnectorView.vue";
@@ -17,8 +17,6 @@ watch(m.mouseIsDown, async() => {
     color.value = "blue";
   }
 })
-
-
 
 function onDragOver(source :DraggableOver, target :DraggableOver) {
   source.x.value = target.xShifted.value;
