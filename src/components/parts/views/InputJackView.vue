@@ -106,16 +106,16 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
   <ConnectorView
       :x="m.x.value" :x-shift="12"
       :y="m.y.value" :y-shift="15"
-      is-draggable="false" :onDragAction="onDragOver"
-      :model="model"
-      :draggable-id="'hot'"
+      is-draggable="false"
+      :onDraggedOver="onDragOver"
+      :connection="model.pins[0]"
   />
   <ConnectorView
       :x="m.x.value" :x-shift="85"
-      :y="m.y.value" :y-shift="15" is-draggable="false"
-      :onDragAction="onDragOver"
-      :model="model"
-      :draggable-id="'ground'"
+      :y="m.y.value" :y-shift="15"
+      is-draggable="false"
+      :onDraggedOver="onDragOver"
+      :connection="model.pins[1]"
   />
 
 </template>

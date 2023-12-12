@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
 import {ConnectionLockService, DraggableOver, HighlightType, Movable} from "@/components/parts/common";
-import {ref } from "vue";
 import Connector from "@/components/parts/views/ConnectorView.vue";
 import {CableModel} from "@/components/parts/models";
+import {EditorService} from "@/components/services/EditorService";
 
 // model prop contains background ref to Circuit part, vue comp is used as view only
 // for this reason it only react on model change
@@ -15,7 +15,10 @@ if (props.model == null) {
 
 const c1 = new Movable();
 const c2 = new Movable();
+
 const connectionLock =  ConnectionLockService.inject();
+const editorService = EditorService.inject();
+
 
 c1.x.value = 100;
 c1.y.value = 100;
@@ -47,16 +50,21 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
     )
 }
 
+const makeOnTop = (make : boolean) => {
+  model.highlight = make ? HighlightType.SELECTED : HighlightType.NONE;
+  editorService.makeOnTop(model);
+}
+
 
 </script>
 
 <template>
     <g
-        @mousedown="model.highlight = HighlightType.SELECTED"
-        @blur ="model.highlight = HighlightType.NONE"
+        @mousedown="makeOnTop(true)"
+        @blur ="makeOnTop(false)"
         :class="HighlightType[model.highlight]">
 
-    <line :x1="c1.x.value" :y1="c1.y.value" :x2="c2.x.value" :y2="c2.y.value" stroke="black" stroke-width="2" />
+    <line :x1="c1.x.value" :y1="c1.y.value" :x2="c2.x.value" :y2="c2.y.value" stroke="black" stroke-width="4" />
     <Connector v-model:x="c1.x.value" :x-shift="0" v-model:y="c1.y.value" :y-shift="0"
                :onDraggedOver="onDragOver"
                :on-drag-start="onDragStart"

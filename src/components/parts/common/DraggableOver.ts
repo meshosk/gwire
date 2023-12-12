@@ -84,7 +84,10 @@ export class DraggableOver extends Movable {
         return this._canStartDrag;
     }
 
-    set canStartDrag(value: boolean) {
+    set canStartDrag(value) {
+        if ( typeof value === "string") {
+            value = true === value;
+        }
         this._canStartDrag = value;
     }
 

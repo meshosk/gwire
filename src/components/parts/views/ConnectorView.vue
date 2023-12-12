@@ -20,7 +20,7 @@ m.xShift.value = props.xShift;
 m.yShift.value = props.yShift;
 m.x.value = props.x;
 m.y.value = props.y;
-m.canStartDrag =  props.isDraggable != null ? props.isDraggable : true;
+m.canStartDrag =  (props.isDraggable != null ? props.isDraggable : true);
 
 watch(() => props.x, (n) => {
   m.x.value = props.x;

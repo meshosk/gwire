@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import {ref, watch, defineComponent, toRaw} from 'vue'
-import {Movable, DraggableOver, ConnectionLockService} from "@/components/parts/common";
+import {ref, watch} from 'vue'
+import {Movable, DraggableOver,} from "@/components/parts/common";
 import ConnectorView from "@/components/parts/views/ConnectorView.vue";
 import {CircleModel} from "@/components/parts/models";
-import Connector from "@/components/parts/views/ConnectorView.vue";
 
 const m = new Movable();
 const color = ref("blue");
@@ -36,15 +35,17 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
 
     <ConnectorView
         :x="m.x.value" :x-shift="-10"
-        :y="m.y.value" :y-shift="-20" is-draggable="false"
+        :y="m.y.value" :y-shift="-20"
+        is-draggable="false"
         :onDraggedOver="onDragOver"
         :connection="model.pins[0]"
     />
     <ConnectorView
         :x="m.x.value" :x-shift="20"
-        :y="m.y.value" :y-shift="30" is-draggable="false"
+        :y="m.y.value" :y-shift="30"
+        is-draggable="false"
         :onDraggedOver="onDragOver"
-        :connection="model.pins[0]"
+        :connection="model.pins[1]"
     />
 </template>
 <style scoped>

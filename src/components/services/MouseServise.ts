@@ -123,10 +123,16 @@ export class MouseService {
     }
 
     register(instance: Movable) {
-        this._draggedItems.push(instance);
+
         if (instance instanceof DraggableOver) {
-            this.registerDragSource(instance);
+            let drg =  (instance as DraggableOver)
+            if (drg.canStartDrag === false) {
+                return;
+            }
+            this.registerDragSource(drg);
         }
+
+        this._draggedItems.push(instance);
         instance.startMovingAction();
     }
 
@@ -163,7 +169,7 @@ export class MouseService {
         }
     }
     registerDragSource(item : DraggableOver|null) {
-        if (this._dragSource === null && item.canStartDrag == true) {
+        if (this._dragSource === null ){
             this._dragSource = item;
             this._dragSource?.onDraggingStartAction(item);
         }

@@ -1,6 +1,7 @@
 import {ConnectPoint} from "@/components/parts/common";
 import {ref} from "vue";
 
+
 export  enum HighlightType {
     NONE,
     SELECTED,
@@ -9,6 +10,13 @@ export  enum HighlightType {
 
 export abstract class CircuitPart {
 
+    private static  idCount = 0;
+    private static getId() {
+        return CircuitPart.idCount++;
+    }
+
+
+    private readonly _id;
     private readonly _pins :ConnectPoint[] = [];
 
     private _highlight;
@@ -24,10 +32,15 @@ export abstract class CircuitPart {
     }
 
     protected constructor(pinsNames : string[]|number[]) {
+        this._id = CircuitPart.getId();
         this._highlight = ref(HighlightType.NONE);
         for (let i = 0; i < pinsNames.length; i++) {
             this._pins.push(new ConnectPoint(this, pinsNames[i]));
         }
+    }
+
+    get id() {
+        return this._id;
     }
 
     public get pins(): ConnectPoint[] {

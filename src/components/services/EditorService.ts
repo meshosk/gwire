@@ -1,11 +1,14 @@
 import * as modelRef from "@/components/parts/models";
-import {ref, inject} from "vue";
+import {ref, inject, toRaw} from "vue";
 import  * as Vue from "@vue/reactivity"
-import {CircuitPart} from "@/components/parts/common";
+import {CircuitPart, HighlightType} from "@/components/parts/common";
 
 export class EditorService {
 
     private readonly _parts  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>>;
+
+    private readonly _partsNormal  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>> = new ref([])
+    private readonly _partsPrioritized  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>> = new ref([])
 
     constructor() {
         this._parts = ref([]);
@@ -19,6 +22,7 @@ export class EditorService {
              throw new Error(`Model for '${partName}' was not found`);
          }
         this._parts.value.push(instance);
+        this.reloadTempCollections();
         return instance;
     }
 
@@ -26,12 +30,25 @@ export class EditorService {
         return this._parts;
     }
 
-    public get normalParts() :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>> {
-        return this._parts.value.filter(x => !x.drawPriority)
+    public get normalParts()  {
+        return this._partsNormal
     }
 
     public get prioritizedParts() {
-        return this._parts.value.filter(x => x.drawPriority)
+        return this._partsPrioritized
     }
 
+    public makeOnTop(part){
+        let index = this._parts.value.indexOf(part);
+        if (index >-1) {
+            this._parts.value.splice(index, 1);
+        }
+        this._parts.value.push(part);
+        this.reloadTempCollections();
+    }
+
+    private reloadTempCollections() {
+        this._partsNormal.value = this._parts.value.filter(x => x.drawPriority === false);
+        this._partsPrioritized.value = this._parts.value.filter(x => x.drawPriority === true)
+    }
 }
