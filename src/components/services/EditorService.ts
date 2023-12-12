@@ -1,7 +1,8 @@
 import * as modelRef from "@/components/parts/models";
 import {ref, inject, toRaw} from "vue";
 import  * as Vue from "@vue/reactivity"
-import {CircuitPart, HighlightType} from "@/components/parts/common";
+import {CircuitPart, ConnectPoint, HighlightType} from "@/components/parts/common";
+import {InputJackModel} from "@/components/parts/models";
 
 export class EditorService {
 
@@ -50,5 +51,35 @@ export class EditorService {
     private reloadTempCollections() {
         this._partsNormal.value = this._parts.value.filter(x => x.drawPriority === false);
         this._partsPrioritized.value = this._parts.value.filter(x => x.drawPriority === true)
+    }
+
+    public showRoute(){
+
+        for (let part of this._parts.value) {
+            part.highlight = HighlightType.NONE;
+        }
+
+        // find input jack
+        let jacks = this._parts.value.filter( x => x instanceof InputJackModel);
+        let pinBag = [];
+
+        for (let jack of jacks) {
+
+            let startingPin = jack.pins.find(x => x.name == "hot");
+
+            this.recursiveRoute(startingPin, pinBag);
+        }
+    }
+
+    private recursiveRoute(homePin :ConnectPoint, pinBag: ConnectPoint[]) {
+        homePin.part.highlight = HighlightType.ROUTE;
+        pinBag.push(homePin);
+        for (let pin of homePin.connectedTo) {
+            if (!pinBag.includes(pin)){
+                if (homePin.isConnectedTo(pin)) {
+                    this.recursiveRoute(pin, pinBag);
+                }
+            }
+        }
     }
 }

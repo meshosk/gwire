@@ -48,8 +48,11 @@ export abstract class CircuitPart {
     }
 
     public disconnectAllInternalConnections() {
-        for (let c of this._pins) {
-            c.disconnectInternalConnectionsOnly();
+        let inner = this._pins.filter(x => x.part == this);
+        for (let c of inner) {
+           for (let cc  of inner) {
+               c.disconnect(cc);
+           }
         }
     }
 

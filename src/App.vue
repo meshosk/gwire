@@ -11,6 +11,10 @@ function add(type :string) {
   editorService.addPart(type);
 }
 
+function showRoute(){
+  editorService.showRoute();
+}
+
 const getComponent = (s) => {
   let a = vueComps[s];
   return a;
@@ -21,6 +25,7 @@ const getComponent = (s) => {
 <template>
   <main>
     <div class="menu">
+        <button @click='showRoute'>Show route</button>
         <button @click='add("CableModel")'>Add cable</button>
         <button @click='add("CircleModel")'>Add circle</button>
         <button @click='add("InputJackModel")'>Add input jack</button>

@@ -95,4 +95,12 @@ const makeOnTop = (make : boolean) => {
               drop-shadow(-1px 2px 0px #3e68ff)
 
   }
+  g.ROUTE > * {
+      filter:
+              drop-shadow(-1px -1px 0px red)
+              drop-shadow(2px -1px 0px red)
+              drop-shadow(2px 2px 0px red)
+              drop-shadow(-1px 2px 0px red)
+
+  }
 </style>
