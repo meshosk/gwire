@@ -3,11 +3,11 @@ import ConnectorView from "@/components/parts/views/ConnectorView.vue";
 import {DraggableOver, Movable} from "@/components/parts/common";
 import {InputJackModel} from "@/components/parts/models";
 import Connector from "@/components/parts/views/ConnectorView.vue";
+import {toRaw} from "vue";
 
 const props = defineProps(['model'])
-const model :InputJackModel = props.model; // wrapped in proxy
+const model :InputJackModel = toRaw(props.model); // wrapped in proxy
 
-const m = new Movable();
 
 function onDragOver(source :DraggableOver, target :DraggableOver) {
   source.x.value = target.xShifted.value;
@@ -16,7 +16,7 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
 </script>
 
 <template>
-  <g :transform="`translate(${m.x.value} ${m.y.value - 10})`" @mousedown="m.onMouseDown">
+  <g :transform="`translate(${model.m.x.value} ${model.m.y.value - 10})`" @mousedown="model.m.onMouseDown">
     <g
         id="layer1">
       <rect
@@ -104,15 +104,15 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
     </g>
   </g>
   <ConnectorView
-      :x="m.x.value" :x-shift="12"
-      :y="m.y.value" :y-shift="15"
+      :x="model.m.x.value" :x-shift="12"
+      :y="model.m.y.value" :y-shift="15"
       is-draggable="false"
       :onDraggedOver="onDragOver"
       :connection="model.pins[0]"
   />
   <ConnectorView
-      :x="m.x.value" :x-shift="85"
-      :y="m.y.value" :y-shift="15"
+      :x="model.m.x.value" :x-shift="85"
+      :y="model.m.y.value" :y-shift="15"
       is-draggable="false"
       :onDraggedOver="onDragOver"
       :connection="model.pins[1]"

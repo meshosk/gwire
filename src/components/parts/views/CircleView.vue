@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue'
+import {ref, toRaw, watch} from 'vue'
 import {Movable, DraggableOver,} from "@/components/parts/common";
 import ConnectorView from "@/components/parts/views/ConnectorView.vue";
 import {CircleModel} from "@/components/parts/models";
 
-const m = new Movable();
 const color = ref("blue");
 const props = defineProps(['model'])
-const model :CircleModel = props.model; // wrapped in proxy
+const model :CircleModel = toRaw(props.model); // wrapped in proxy
 
-watch(m.mouseIsDown, async() => {
-  if (m.mouseIsDown.value === true) {
+watch(model.m.mouseIsDown, async() => {
+  if (model.m.mouseIsDown.value === true) {
     color.value = "yellow";
   } else {
     color.value = "blue";
@@ -24,25 +23,25 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
 
 </script>
 <template>
-    <circle :cx="m.x.value" :cy="m.y.value" r="40" stroke="black" stroke-width="3" :fill="color"
-          @mousedown="m.onMouseDown"
+    <circle :cx="model.m.x.value" :cy="model.m.y.value" r="40" stroke="black" stroke-width="3" :fill="color"
+          @mousedown="model.m.onMouseDown"
     />
-  <g :transform="`translate(${m.x.value} ${m.y.value - 10})`" @click="() =>  model.isPressed =  !model.isPressed">
+  <g :transform="`translate(${model.m.x.value} ${model.m.y.value - 10})`" @click="() =>  model.isPressed.value =  !model.isPressed.value">
     <rect x="0" y="0" fill="black" width="50" height="20" ></rect>
     <text  x="3" y="17"     >
-      {{ model.isPressed ? "ON" : "OFF" }}</text>
+      {{ model.isPressed.value ? "ON" : "OFF" }}</text>
   </g>
 
     <ConnectorView
-        :x="m.x.value" :x-shift="-10"
-        :y="m.y.value" :y-shift="-20"
+        :x="model.m.x.value" :x-shift="-10"
+        :y="model.m.y.value" :y-shift="-20"
         is-draggable="false"
         :onDraggedOver="onDragOver"
         :connection="model.pins[0]"
     />
     <ConnectorView
-        :x="m.x.value" :x-shift="20"
-        :y="m.y.value" :y-shift="30"
+        :x="model.m.x.value" :x-shift="20"
+        :y="model.m.y.value" :y-shift="30"
         is-draggable="false"
         :onDraggedOver="onDragOver"
         :connection="model.pins[1]"

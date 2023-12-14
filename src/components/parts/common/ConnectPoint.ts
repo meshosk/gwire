@@ -23,20 +23,11 @@ export class ConnectPoint {
         return this._part;
     }
 
-    public test() {
-        return "test";
-    }
-
     public connect(connectPoint : ConnectPoint) {
         if (this.isConnectedTo(connectPoint) == false) {
             this._connectedTo.push(connectPoint);
             connectPoint.connect(this);
         }
-    }
-
-
-    public disconnectFromPart(part) {
-
     }
 
     public  disconnect(connectPoint : ConnectPoint) {
@@ -59,5 +50,9 @@ export class ConnectPoint {
     }
 
 
+    public get asJSONObject() {
+
+
+    }
 
 }

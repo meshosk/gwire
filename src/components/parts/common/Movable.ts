@@ -8,7 +8,6 @@ export class Movable extends Clickable {
 
     private _x = ref(0);
     private _y = ref(0);
-
     private _xShift = ref(0);
     private _yShift = ref(0);
 
@@ -24,11 +23,12 @@ export class Movable extends Clickable {
      */
     private _isDragged = ref(false);
 
-    private mouseService: MouseService = MouseService.inject();
+    private _mouseService: MouseService;
 
 
     constructor() {
         super();
+        this._mouseService =  MouseService.inject();
         // computed need to be initialized in constructor
         this._xShifted = computed(() => {
             return this._x.value + this._xShift.value;
@@ -36,6 +36,7 @@ export class Movable extends Clickable {
         this._yShifted = computed(() => {
             return this._y.value + this._yShift.value;
         });
+
     }
 
     onMouseDown(e: MouseEvent) {
@@ -100,4 +101,8 @@ export class Movable extends Clickable {
         return this._y;
     }
 
+
+    get mouseService(): MouseService {
+        return this._mouseService;
+    }
 }

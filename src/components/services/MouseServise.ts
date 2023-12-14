@@ -37,11 +37,16 @@ export class MouseService {
      */
     private _isDown = false;
 
+    private static _service = null;
     /**
      * Static method for easy injection
      */
     static inject() : MouseService {
-        return (inject("MouseService") as MouseService);
+        return this._service;
+    }
+
+    constructor() {
+        MouseService._service =  this;
     }
 
     /**

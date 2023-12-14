@@ -19,7 +19,7 @@ export abstract class CircuitPart {
     private readonly _id;
     private readonly _pins :ConnectPoint[] = [];
 
-    private _highlight;
+    private _highlight = ref(HighlightType.NONE);
 
     public drawPriority : boolean = false;
 
@@ -62,5 +62,9 @@ export abstract class CircuitPart {
 
     set highlight(value) {
         this._highlight = value;
+    }
+
+    public  getPinsJSONObject(){
+
     }
 }

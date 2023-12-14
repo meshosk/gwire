@@ -5,8 +5,6 @@ import {MouseService} from "@/components/services/MouseServise";
 export class DraggableOver extends Movable {
 
     private _dropAreaElement: Ref<HTMLElement | undefined>;
-    private _mouseService = MouseService.inject();
-    private _mainVueComponent: any;
     private _canStartDrag = true;
     private _onDraggedOverAction: (source: DraggableOver, target: DraggableOver) => void = (source, target) => {}
     private _onDropAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
@@ -91,7 +89,4 @@ export class DraggableOver extends Movable {
         this._canStartDrag = value;
     }
 
-    stopDragging(){
-       this._mouseService.clearDrag();
-    }
 }
