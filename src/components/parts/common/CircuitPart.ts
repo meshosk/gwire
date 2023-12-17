@@ -1,5 +1,5 @@
-import {ConnectPoint} from "@/components/parts/common";
-import {ref} from "vue";
+import {ConnectPoint, Movable} from "@/components/parts/common";
+import {ref, watch} from "vue";
 
 
 export  enum HighlightType {
@@ -14,7 +14,6 @@ export abstract class CircuitPart {
     private static getId() {
         return CircuitPart.idCount++;
     }
-
 
     private readonly _id;
     private readonly _pins :ConnectPoint[] = [];
@@ -47,6 +46,10 @@ export abstract class CircuitPart {
         return this._pins;
     }
 
+    public pinByName(name :string) : ConnectPoint|undefined {
+        return this.pins.find( x =>x.name == name);
+    }
+
     public disconnectAllInternalConnections() {
         let inner = this._pins.filter(x => x.part == this);
         for (let c of inner) {
@@ -64,7 +67,14 @@ export abstract class CircuitPart {
         this._highlight = value;
     }
 
-    public  getPinsJSONObject(){
-
+    public makeAllPinsFollow(m :Movable) {
+        watch( () => [m.x.value, m.y.value],
+            () => {
+                for (let pin of this._pins) {
+                    pin.draggable.x.value = m.x.value;
+                    pin.draggable.y.value = m.y.value;
+                }
+            });
     }
+
 }

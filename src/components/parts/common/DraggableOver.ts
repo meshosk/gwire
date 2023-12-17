@@ -15,9 +15,8 @@ export class DraggableOver extends Movable {
 
     private readonly _connectPoint: ConnectPoint;
 
-    constructor( connectPoint : ConnectPoint, dropAreaElement :Ref<HTMLElement | undefined> ) {
+    constructor( connectPoint : ConnectPoint) {
         super();
-        this._dropAreaElement = dropAreaElement;
         this._connectPoint = connectPoint;
     }
 
@@ -28,6 +27,10 @@ export class DraggableOver extends Movable {
 
         return x >= boundary.x  && x <= boundary.x + boundary.width
         && y >= boundary.y && y <= boundary.y + boundary.height
+    }
+
+    set dropAreaElement(value: Ref<HTMLElement | undefined>) {
+        this._dropAreaElement = value;
     }
 
     get connectPoint(): ConnectPoint {

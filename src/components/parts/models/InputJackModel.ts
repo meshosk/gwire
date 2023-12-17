@@ -7,16 +7,16 @@ export class InputJackModel extends CircuitPart {
     private _m :Movable =  new Movable();
     constructor() {
         super(["hot", "ground"]);
+        this.makeAllPinsFollow(this._m);
     }
 
-    public get signalPin(){
-        return this.pins[0];
+    public get hotPin(){
+        return this.pinByName("hot");
     }
 
     public get groundPin() {
-        return this.pins[1];
+        return this.pinByName("ground")
     }
-
 
     get m(): Movable {
         return this._m;

@@ -1,40 +1,26 @@
 <script setup lang="ts">
-import {ref, watch} from "vue";
+import {onMounted, ref, watch} from "vue";
 import {ConnectPoint, DraggableOver} from "@/components/parts/common";
 
-const props = defineProps(['onDragStart','onDraggedOver','x', 'y','xShift', 'yShift', "isDraggable", 'connection'])
+const props = defineProps(['onDragStart','onDraggedOver', "isDraggable", 'connection', 'xShift', 'yShift'])
+
 const connection :ConnectPoint = props?.connection; // wrapped in proxy
 if (connection == null) {
   throw new Error("Connection not defined");
 }
 
-const emit = defineEmits(["update:x", "update:y"])
-
 const cele =  ref<HTMLElement | undefined>(undefined);
 const color = ref("gray");
 
-
-
-const m = new DraggableOver(connection, cele);
-m.xShift.value = props.xShift;
-m.yShift.value = props.yShift;
-m.x.value = props.x;
-m.y.value = props.y;
+const m = connection.draggable;
 m.canStartDrag =  (props.isDraggable != null ? props.isDraggable : true);
 
-watch(() => props.x, (n) => {
-  m.x.value = props.x;
-})
-watch(() => props.y,(n) => {
-  m.y.value = props.y;
-})
-
-watch(() => m.x.value, (n) => {
-    emit("update:x", n);
-})
-watch(() => m.y.value,(n) => {
-    emit("update:y", n);
-})
+if (props.xShift != null) {
+  m.xShift.value = props.xShift;
+}
+if (props.yShift != null) {
+  m.yShift.value = props.yShift;
+}
 
 m.onDraggedOverAction = props.onDraggedOver;
 m.onDraggingStartAction = (item) => {
@@ -51,10 +37,12 @@ m.onDraggingOverEndAction = setDefaultState;
 m.onDraggingEndAction = setDefaultState;
 m.stopMovingAction = setDefaultState;
 
-
 m.onDraggingOverAction = (source) => {
     color.value = "green"
 }
+onMounted(() => {
+  m.dropAreaElement = cele;
+})
 
 </script>
 

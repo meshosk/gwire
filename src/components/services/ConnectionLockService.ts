@@ -9,10 +9,10 @@ export class ConnectionLockService {
         return <ConnectionLockService>inject("ConnectionLockService");
     }
 
-    lock( a: DraggableOver, b: DraggableOver, propsFunction, changeFunction, releaseAction) {
+    lock( a: DraggableOver, b: DraggableOver) {
         let key = this.findWatcherKey( a, b);
         if (key == null) {
-            let watcher = new WatcherItem(propsFunction, changeFunction,releaseAction )
+            let watcher = new WatcherItem(a,b);
             this._watchers.set(new MapKey(a,b), watcher);
             return watcher;
         } else {
@@ -22,7 +22,7 @@ export class ConnectionLockService {
 
     private findWatcherKey(a: DraggableOver, b: DraggableOver){
         for (let key :MapKey of this._watchers.keys()) {
-            if (key.is(a,b)) {
+            if (key.has(a, b)) {
                 return key;
             }
         }
@@ -40,7 +40,7 @@ export class ConnectionLockService {
     public releaseAllLockFor(a: DraggableOver){
         let keys = [];
         for (let key :MapKey of this._watchers.keys()) {
-            if (key.has(a)) {
+            if (key.isInKey(a)) {
                 keys.push(key);
             }
         }
@@ -62,25 +62,38 @@ class MapKey {
         this.b = b;
     }
 
-    public has(a :DraggableOver){
-        return this.a == a || this.b == a;
+    public has(a :DraggableOver, b :DraggableOver) :boolean{
+        return this.a == a && this.b == b || this.a == b && this.b == a;
     }
-    public is(aa :DraggableOver,bb :DraggableOver) :boolean {
-        return this.a == aa && this.b == bb || this.a == bb && this.b == aa;
+
+    public isInKey(a :DraggableOver){
+        return this.a == a || this.b == a;
     }
 }
 
 class WatcherItem {
-    private _watcher;
-    private _releaseAction;
-
-    constructor(propsFunction, changeFunction, releaseAction) {
-        this._watcher = watch(propsFunction, changeFunction );
-        this._releaseAction = releaseAction;
+    private readonly _watcher;
+    private readonly _releaseAction;
+    constructor(a :DraggableOver, b :DraggableOver) {
+        a.connectPoint.connect(b.connectPoint);
+        // only cables are the ones that can create connection
+        // if this change, there will must be created watcher on a draggable, causing problem with shifted position
+        // to non-shifted conversion
+       this._watcher = watch(() => [b.x.value, b.y.value], (newX) => {
+           if (a.x.value != b.xShifted.value) {
+               a.x.value = b.xShifted.value
+           }
+           if (a.y.value != b.yShifted.value) {
+               a.y.value = b.yShifted.value;
+           }
+       });
+       this._releaseAction = () => {
+           this._watcher();
+           a.connectPoint.disconnect(b.connectPoint);
+       }
     }
 
     public releaseWatcher(){
-        this._watcher();
         this._releaseAction();
     }
 }

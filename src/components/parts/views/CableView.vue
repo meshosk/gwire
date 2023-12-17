@@ -18,40 +18,23 @@ const connectionLock =  ConnectionLockService.inject();
 const editorService = EditorService.inject();
 
 
-model.c1.x.value = 100;
-model.c1.y.value = 100;
-
-model.c2.x.value = 300;
-model.c2.y.value = 100;
-
 const onDragStart = (item) => {
     connectionLock.releaseAllLockFor(item);
 }
 
 function onDragOver(source :DraggableOver, target :DraggableOver) {
+  connectionLock.lock(source, target);
+
+  // position correction, when cable is connected on cable
   source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
-
-    // make model connection
-    source.connectPoint.connect(target.connectPoint);
-    // make connection
-    connectionLock.lock(
-        source, target,
-        () => [target.xShifted.value, target.yShifted.value],
-        () => {
-            source.x.value = target.xShifted.value;
-            source.y.value = target.yShifted.value;
-        },
-        () => {
-            source.connectPoint.disconnect(target.connectPoint)
-        }
-    )
 }
 
 const makeOnTop = (make : boolean) => {
   model.highlight.value = make ? HighlightType.SELECTED : HighlightType.NONE;
   editorService.makeOnTop(model);
 }
+
 
 
 </script>
@@ -61,18 +44,21 @@ const makeOnTop = (make : boolean) => {
         @mousedown="makeOnTop(true)"
         @blur ="makeOnTop(false)"
         :class="HighlightType[model.highlight.value]">
-
-    <line :x1="model.c1.x.value" :y1="model.c1.y.value" :x2="model.c2.x.value" :y2="model.c2.y.value" stroke="black" stroke-width="4" />
-    <Connector v-model:x="model.c1.x.value" :x-shift="0" v-model:y="model.c1.y.value" :y-shift="0"
-               :onDraggedOver="onDragOver"
-               :on-drag-start="onDragStart"
-               :connection="model.pins[0]"
-    />
-    <Connector v-model:x="model.c2.x.value" :x-shift="0" v-model:y="model.c2.y.value" :y-shift="0"
-               :onDraggedOver="onDragOver"
-               :on-drag-start="onDragStart"
-               :connection="model.pins[1]"
-    />
+      <line
+          :x1="model.c1.draggable.x.value" :y1="model.c1.draggable.y.value"
+          :x2="model.c2.draggable.x.value" :y2="model.c2.draggable.y.value"
+          stroke="black" stroke-width="4"
+      />
+      <Connector
+         :onDraggedOver="onDragOver"
+         :on-drag-start="onDragStart"
+         :connection="model.c1"
+      />
+      <Connector
+         :onDraggedOver="onDragOver"
+         :on-drag-start="onDragStart"
+         :connection="model.c2"
+      />
     </g>
 </template>
 

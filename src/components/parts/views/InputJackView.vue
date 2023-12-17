@@ -8,7 +8,6 @@ import {toRaw} from "vue";
 const props = defineProps(['model'])
 const model :InputJackModel = toRaw(props.model); // wrapped in proxy
 
-
 function onDragOver(source :DraggableOver, target :DraggableOver) {
   source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
@@ -104,18 +103,16 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
     </g>
   </g>
   <ConnectorView
-      :x="model.m.x.value" :x-shift="12"
-      :y="model.m.y.value" :y-shift="15"
-      is-draggable="false"
+      :xShift="12" :yShift="15"
+      :is-draggable="false"
       :onDraggedOver="onDragOver"
-      :connection="model.pins[0]"
+      :connection="model.hotPin"
   />
   <ConnectorView
-      :x="model.m.x.value" :x-shift="85"
-      :y="model.m.y.value" :y-shift="15"
-      is-draggable="false"
+      :x-shift="85" :y-shift="15"
+      :is-draggable="false"
       :onDraggedOver="onDragOver"
-      :connection="model.pins[1]"
+      :connection="model.groundPin"
   />
 
 </template>

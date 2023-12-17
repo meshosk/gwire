@@ -1,4 +1,4 @@
-import {CircuitPart} from "@/components/parts/common";
+import {CircuitPart, DraggableOver, Movable} from "@/components/parts/common";
 
 /**
  * Simulates internal connections of a single part
@@ -9,6 +9,8 @@ export class ConnectPoint {
     private readonly _part : CircuitPart;
     private _connectedTo :ConnectPoint[] = [];
     private readonly _name: string;
+
+    private readonly _draggable :DraggableOver = new DraggableOver(this);
 
     constructor(part: CircuitPart, name :string) {
         this._part = part;
@@ -49,6 +51,10 @@ export class ConnectPoint {
         return this._connectedTo;
     }
 
+
+    get draggable(): DraggableOver {
+        return this._draggable;
+    }
 
     public get asJSONObject() {
 

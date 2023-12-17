@@ -1,4 +1,4 @@
-import {ConnectPoint, CircuitPart, Movable} from "@/components/parts/common";
+import {ConnectPoint, CircuitPart, Movable, DraggableOver} from "@/components/parts/common";
 import {ref, watch} from "vue";
 
 /**
@@ -14,9 +14,9 @@ export class CircleModel extends CircuitPart {
 
     constructor() {
         super(["s1", "s2"]);
-      //  this.pins[0].connect(this.pins[1]);
-
         this._m = new Movable();
+
+        this.makeAllPinsFollow(this._m);
 
         watch(() => this.isPressed.value, (n) => {
 
@@ -29,6 +29,14 @@ export class CircleModel extends CircuitPart {
         })
     }
 
+
+    get s1(): ConnectPoint {
+        return this.pinByName("s1");
+    }
+
+    get s2(): ConnectPoint {
+        return this.pinByName("s2");
+    }
 
     get m(): Movable {
         return this._m;

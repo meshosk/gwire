@@ -31,20 +31,17 @@ function onDragOver(source :DraggableOver, target :DraggableOver) {
     <text  x="3" y="17"     >
       {{ model.isPressed.value ? "ON" : "OFF" }}</text>
   </g>
-
     <ConnectorView
-        :x="model.m.x.value" :x-shift="-10"
-        :y="model.m.y.value" :y-shift="-20"
-        is-draggable="false"
+        :XShift="-10" :yShift="-30"
+        :isDraggable="false"
         :onDraggedOver="onDragOver"
-        :connection="model.pins[0]"
+        :connection="model.s1"
     />
     <ConnectorView
-        :x="model.m.x.value" :x-shift="20"
-        :y="model.m.y.value" :y-shift="30"
-        is-draggable="false"
+        :xShift="20" :yShift="30"
+        :isDraggable="false"
         :onDraggedOver="onDragOver"
-        :connection="model.pins[1]"
+        :connection="model.s2"
     />
 </template>
 <style scoped>
