@@ -1,4 +1,5 @@
-import {CircuitPart, DraggableOver, Movable} from "@/components/parts/common";
+import {CircuitPart, DraggableOver, HighlightType, Movable} from "@/components/parts/common";
+import {ref} from "vue";
 
 /**
  * Simulates internal connections of a single part
@@ -6,6 +7,7 @@ import {CircuitPart, DraggableOver, Movable} from "@/components/parts/common";
  */
 export class ConnectPoint {
 
+    private _highlight = ref(HighlightType.NONE);
     private readonly _part : CircuitPart;
     private _connectedTo :ConnectPoint[] = [];
     private readonly _name: string;
@@ -54,6 +56,15 @@ export class ConnectPoint {
 
     get draggable(): DraggableOver {
         return this._draggable;
+    }
+
+
+    get highlight() {
+        return this._highlight;
+    }
+
+    set highlight(value) {
+        this._highlight = value;
     }
 
     public get asJSONObject() {

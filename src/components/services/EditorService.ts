@@ -57,6 +57,9 @@ export class EditorService {
 
         for (let part of this._parts.value) {
             part.highlight = HighlightType.NONE;
+            for (let pin of part.pins) {
+                pin.highlight = HighlightType.NONE;
+            }
         }
 
         // find input jack
@@ -73,6 +76,7 @@ export class EditorService {
 
     private recursiveRoute(homePin :ConnectPoint, pinBag: ConnectPoint[]) {
         homePin.part.highlight = HighlightType.ROUTE;
+        homePin.highlight = HighlightType.ROUTE;
         pinBag.push(homePin);
         for (let pin of homePin.connectedTo) {
             if (!pinBag.includes(pin)){

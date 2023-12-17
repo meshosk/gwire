@@ -45,7 +45,6 @@ const getComponent = (s) => {
     </svg>
   </main>
 </template>
-
 <style scoped lang="scss">
 
 main {
