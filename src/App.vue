@@ -19,9 +19,13 @@ function showRoute(){
 }
 
 
-function test() {
+function save() {
   let parts = editorService.parts.value.map(x => toRaw(x));
   serializationService.saveToFile(parts);
+}
+
+function load() {
+  serializationService.load();
 }
 const getComponent = (s) => {
   let a = vueComps[s];
@@ -32,7 +36,8 @@ const getComponent = (s) => {
 <template>
   <main>
     <div class="menu">
-        <button @click='test'>test</button>
+        <button @click='save'>Save</button>
+        <button @click='load'>Load</button>
         <button @click='showRoute'>Show route</button>
         <button @click='add("CableModel")'>Add cable</button>
         <button @click='add("CircleModel")'>Add circle</button>

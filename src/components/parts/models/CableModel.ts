@@ -16,7 +16,6 @@ export class CableModel extends CircuitPart {
         this.c2.draggable.x.value = 300;
         this.c2.draggable.y.value = 100;
 
-
         this.pins[0].connect(this.pins[1]);
     }
 
@@ -26,5 +25,14 @@ export class CableModel extends CircuitPart {
 
     get c2(): ConnectPoint {
         return this.pinByName("c2");
+    }
+
+    public get JSONObject() {
+        return {
+            id : this.constructor.name + "_" + this.id,
+            type: this.constructor.name,
+            c1 : this.c1.JSONObject,
+            c2 : this.c2.JSONObject
+        };
     }
 }

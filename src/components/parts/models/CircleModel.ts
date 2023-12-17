@@ -29,7 +29,6 @@ export class CircleModel extends CircuitPart {
         })
     }
 
-
     get s1(): ConnectPoint {
         return this.pinByName("s1");
     }
@@ -43,8 +42,18 @@ export class CircleModel extends CircuitPart {
     }
 
     get isPressed(){
-
         return this._isPressed;
+    }
+
+    public get JSONObject() {
+        return {
+            id : this.constructor.name + "_" + this.id,
+            movable: this.m.JSONObject,
+            type: this.constructor.name,
+            isPressed: this.isPressed.value,
+            s1 : this.s1.JSONObject,
+            s2 : this.s2.JSONObject
+        };
     }
 
 }

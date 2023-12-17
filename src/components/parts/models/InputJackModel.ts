@@ -17,8 +17,17 @@ export class InputJackModel extends CircuitPart {
     public get groundPin() {
         return this.pinByName("ground")
     }
-
     get m(): Movable {
         return this._m;
+    }
+
+    public get JSONObject() {
+        return {
+            id : this.constructor.name + "_" + this.id,
+            movable: this.m.JSONObject,
+            type: this.constructor.name,
+            hot : this.hotPin.JSONObject,
+            ground : this.groundPin.JSONObject
+        };
     }
 }

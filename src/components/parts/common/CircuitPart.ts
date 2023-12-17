@@ -77,4 +77,5 @@ export abstract class CircuitPart {
             });
     }
 
+    public abstract get JSONObject();
 }

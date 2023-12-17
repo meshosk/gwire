@@ -74,7 +74,13 @@ class MapKey {
 class WatcherItem {
     private readonly _watcher;
     private readonly _releaseAction;
+    private readonly _a: DraggableOver;
+    private readonly _b: DraggableOver;
+    private _isActive = true;
+
     constructor(a :DraggableOver, b :DraggableOver) {
+        this._a = a;
+        this._b = b;
         a.connectPoint.connect(b.connectPoint);
         // only cables are the ones that can create connection
         // if this change, there will must be created watcher on a draggable, causing problem with shifted position
@@ -90,10 +96,20 @@ class WatcherItem {
        this._releaseAction = () => {
            this._watcher();
            a.connectPoint.disconnect(b.connectPoint);
+           this._isActive = false;
        }
     }
 
     public releaseWatcher(){
         this._releaseAction();
+    }
+
+
+    get a(): DraggableOver {
+        return this._a;
+    }
+
+    get b(): DraggableOver {
+        return this._b;
     }
 }

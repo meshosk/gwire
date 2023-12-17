@@ -67,9 +67,11 @@ export class ConnectPoint {
         this._highlight = value;
     }
 
-    public get asJSONObject() {
-
-
+    public get JSONObject() {
+        return {
+            name : this.name,
+            draggable: this.draggable.JSONObject
+        }
     }
 
 }

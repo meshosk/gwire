@@ -101,8 +101,16 @@ export class Movable extends Clickable {
         return this._y;
     }
 
-
     get mouseService(): MouseService {
         return this._mouseService;
+    }
+
+    public get JSONObject() {
+        return {
+            x: this.x.value,
+            y:  this.y.value,
+            xShift: this.xShift.value,
+            yShift: this.yShift.value
+        }
     }
 }
