@@ -1,5 +1,6 @@
 import {getCurrentInstance, inject} from 'vue'
-import {CircuitPart, ConnectionLockService} from "@/components/parts/common";
+import {CircuitPart, ConnectionLockService, ConnectPoint} from "@/components/parts/common";
+import {EditorService} from "@/components/services/EditorService";
 export class SerializationService {
     private _app;
 
@@ -45,24 +46,68 @@ export class SerializationService {
     }
 
     public async load() {
-        const element = document.createElement("input")
-        element.setAttribute("type", "file");
 
-        element.onchange = () => {
-            let file = element.files[0];
-            let reader = new FileReader();
-            reader.onload =  () => {
-                // Display the file's contents
-                console.log(reader.result);
-            };
-            reader.readAsText(file);
+        let JSONString = await this.loadFile();
+        let JSONObject = JSON.parse(JSONString);
+
+        let editorService = EditorService.inject();
+        let connectionLockService = ConnectionLockService.inject();
+        let addedParts = new Map<string, CircuitPart>();
+        //TODO check version
+
+        // release all locks
+        connectionLockService.releaseAllLock();
+        //clean existing parts
+        editorService.clearParts();
+
+        // add parts
+        for (let obj of JSONObject.parts) {
+           let created = editorService.addPart(obj.type);
+           created.setFromJSON(obj);
+           addedParts.set(obj.id, created);
         }
-        element.click();
+
+        // create connections
+        for (let obj of JSONObject.parts) {
+            let part = addedParts.get(obj.id);
+
+            for (let internalPin: ConnectPoint of part.internalPins) {
+                let pinConnections = obj[internalPin.name];
+                if (pinConnections != null) {
+                    for (let connectedToPin of pinConnections.connectedTo) {
+                        let toConnectPart = addedParts.get(connectedToPin.part);
+                        let toConnectedPin = toConnectPart.pinByName(connectedToPin.name);
+                        if (toConnectedPin != null) {
+                            internalPin.connect(toConnectedPin);
+
+                            connectionLockService.lock( toConnectedPin.draggable, internalPin.draggable);
+                        }
+                    }
+                }
+            }
+        }
 
 
     }
     public connect(app){
         this._app = app;
+    }
+
+    private loadFile() :Promise<string> {
+        return new Promise( (resolve, reject) => {
+            const element = document.createElement("input")
+            element.setAttribute("type", "file");
+            element.onchange = () => {
+                let file = element.files[0];
+                let reader = new FileReader();
+                reader.onload =  () => {
+                    // Display the file's contents
+                    resolve(reader.result);
+                };
+                reader.readAsText(file);
+            }
+            element.click();
+        })
     }
 
 

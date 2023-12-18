@@ -14,12 +14,12 @@ export class ConnectionLockService {
         return this._service;
     }
 
-
     constructor() {
         ConnectionLockService._service = this;
     }
 
     lock( a: DraggableOver, b: DraggableOver) {
+        this.cleatInActiveLocks();
         let key = this.findWatcherKey( a, b);
         if (key == null) {
             let watcher = new WatcherItem(a,b);
@@ -43,8 +43,15 @@ export class ConnectionLockService {
         if (key != null) {
             let watcher = this._watchers.get(key);
             this._watchers.delete(key);
-            watcher.releaseWatcher();
+            watcher?.releaseWatcher();
         }
+    }
+
+    public releaseAllLock(){
+        for (let lock :WatcherItem of this._watchers.values()){
+            lock.releaseWatcher()
+        }
+        this._watchers.clear();
     }
 
     public releaseAllLockFor(a: DraggableOver){
@@ -58,14 +65,20 @@ export class ConnectionLockService {
         for (let key :MapKey of keys) {
             let watcher = this._watchers.get(key);
             this._watchers.delete(key);
-            watcher.releaseWatcher();
+            watcher?.releaseWatcher();
         }
+    }
+
+    public cleatInActiveLocks() {
+        //TODO implement
     }
 
     public get JSONObject() {
         let res = [];
         for (let item :WatcherItem of this._watchers.values()) {
-            res.push(item.JSONObject);
+            if (item.isActive) {
+                res.push(item.JSONObject);
+            }
         }
         return {
             type: this.constructor.name,
@@ -125,6 +138,9 @@ class WatcherItem {
         this._releaseAction();
     }
 
+    get isActive(): boolean {
+        return this._isActive;
+    }
 
     get a(): DraggableOver {
         return this._a;

@@ -50,10 +50,13 @@ export abstract class CircuitPart {
         return this.pins.find( x =>x.name == name);
     }
 
+    public get internalPins() {
+        return this._pins.filter(x => x.part == this);
+    }
+
     public disconnectAllInternalConnections() {
-        let inner = this._pins.filter(x => x.part == this);
-        for (let c of inner) {
-           for (let cc  of inner) {
+         for (let c of this.internalPins) {
+           for (let cc  of this.internalPins) {
                c.disconnect(cc);
            }
         }
@@ -78,4 +81,6 @@ export abstract class CircuitPart {
     }
 
     public abstract get JSONObject();
+
+
 }

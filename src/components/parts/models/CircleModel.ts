@@ -56,4 +56,15 @@ export class CircleModel extends CircuitPart {
         };
     }
 
+    public setFromJSON(o) {
+        if(this.constructor.name != o.type) {
+            throw Error("Wrong JSON object");
+        }
+
+        this.m.setFromJSON(o.movable);
+        this.isPressed.value = o.isPressed;
+        this.s1.setFromJSON(o.s1);
+        this.s2.setFromJSON(o.s2)
+    }
+
 }

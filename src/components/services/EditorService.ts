@@ -34,6 +34,11 @@ export class EditorService {
         return instance;
     }
 
+    public clearParts(){
+        this._parts.value = [];
+        this.reloadTempCollections();
+    }
+
     public get parts() :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>> {
         return this._parts;
     }
@@ -93,4 +98,6 @@ export class EditorService {
             }
         }
     }
+
+
 }

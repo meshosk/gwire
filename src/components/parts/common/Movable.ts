@@ -113,4 +113,10 @@ export class Movable extends Clickable {
             yShift: this.yShift.value
         }
     }
+    public setFromJSON(o) {
+       this.x.value = o.x;
+       this.y.value = o.y;
+       this.xShift.value = o.xShift;
+       this.yShift.value = o.yShift;
+    }
 }

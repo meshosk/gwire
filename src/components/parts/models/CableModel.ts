@@ -35,4 +35,13 @@ export class CableModel extends CircuitPart {
             c2 : this.c2.JSONObject
         };
     }
+
+    public setFromJSON(o) {
+        if(this.constructor.name != o.type) {
+            throw Error("Wrong JSON object");
+        }
+
+        this.c1.setFromJSON(o.c1);
+        this.c2.setFromJSON(o.c2)
+    }
 }

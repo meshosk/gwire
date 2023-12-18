@@ -30,4 +30,13 @@ export class InputJackModel extends CircuitPart {
             ground : this.groundPin?.JSONObject
         };
     }
+
+    public setFromJSON(o) {
+        if(this.constructor.name != o.type) {
+            throw Error("Wrong JSON object");
+        }
+        this.m.setFromJSON(o.movable);
+        this.hotPin.setFromJSON(o.hot);
+        this.groundPin.setFromJSON(o.ground)
+    }
 }

@@ -67,11 +67,31 @@ export class ConnectPoint {
         this._highlight = value;
     }
 
+
     public get JSONObject() {
-        return {
-            name : this.name,
-            draggable: this.draggable.JSONObject
+        let o = this.baseJSONObject;
+        o.connectedTo = [];
+        for (let cTo: ConnectPoint of this._connectedTo) {
+            if (cTo.part != this.part) {
+                o.connectedTo.push(cTo.baseJSONObject)
+            }
         }
+        return o;
+    }
+
+    private get baseJSONObject() {
+        return {
+            name: this.name,
+            part: this.part.id,
+            draggable: this.draggable.JSONObject,
+        }
+    }
+
+    public setFromJSON(o) {
+        if(this.name != o.name) {
+            throw Error("Wrong JSON object");
+        }
+        this.draggable.setFromJSON(o.draggable);
     }
 
 }
