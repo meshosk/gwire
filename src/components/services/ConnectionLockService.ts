@@ -1,12 +1,22 @@
 import {watch, inject} from "vue";
 import type {DraggableOver} from "@/components/parts/common/DraggableOver";
+import {DraggableOver} from "@/components/parts/common/DraggableOver";
 
 export class ConnectionLockService {
 
     private readonly _watchers: Map<MapKey, WatcherItem> = new Map<MapKey, WatcherItem>();
 
-    static inject() :ConnectionLockService  {
-        return <ConnectionLockService>inject("ConnectionLockService");
+    private static _service = null;
+    /**
+     * Static method for easy injection
+     */
+    static inject() : ConnectionLockService {
+        return this._service;
+    }
+
+
+    constructor() {
+        ConnectionLockService._service = this;
     }
 
     lock( a: DraggableOver, b: DraggableOver) {
@@ -50,6 +60,17 @@ export class ConnectionLockService {
             this._watchers.delete(key);
             watcher.releaseWatcher();
         }
+    }
+
+    public get JSONObject() {
+        let res = [];
+        for (let item :WatcherItem of this._watchers.values()) {
+            res.push(item.JSONObject);
+        }
+        return {
+            type: this.constructor.name,
+            locks: res
+        };
     }
 
 }
@@ -111,5 +132,18 @@ class WatcherItem {
 
     get b(): DraggableOver {
         return this._b;
+    }
+
+    public get JSONObject() {
+        return {
+            a: {
+                point : this._a.connectPoint.name,
+                part: this._a.connectPoint.part.id
+            },
+            b :{
+                point : this._b.connectPoint.name,
+                part: this._b.connectPoint.part.id
+            }
+        }
     }
 }

@@ -13,10 +13,17 @@ export class EditorService {
 
     constructor() {
         this._parts = ref([]);
+        EditorService._service =  this;
     }
-    static inject() :EditorService  {
-        return <EditorService>inject("EditorService");
+
+    private static _service = null;
+    /**
+     * Static method for easy injection
+     */
+    static inject() : EditorService {
+        return this._service;
     }
+
     public addPart(partName :string){
         let instance = new modelRef[partName]();
          if (instance == null) {

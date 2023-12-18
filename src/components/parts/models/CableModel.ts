@@ -29,7 +29,7 @@ export class CableModel extends CircuitPart {
 
     public get JSONObject() {
         return {
-            id : this.constructor.name + "_" + this.id,
+            id : this.id,
             type: this.constructor.name,
             c1 : this.c1.JSONObject,
             c2 : this.c2.JSONObject

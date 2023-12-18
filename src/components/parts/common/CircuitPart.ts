@@ -39,7 +39,7 @@ export abstract class CircuitPart {
     }
 
     get id() {
-        return this._id;
+        return this.constructor.name + "_" +this._id;
     }
 
     public get pins(): ConnectPoint[] {

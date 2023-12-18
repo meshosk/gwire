@@ -2,7 +2,6 @@
 import {MouseService} from "@/components/services/MouseServise";
 import {EditorService} from "@/components/services/EditorService";
 import *  as vueComps from "@/components/parts/views";
-import TestCircle from "@/components/parts/views/TestCircle.vue";
 import {SerializationService} from "@/components/services/SerializationService";
 import {onMounted, ref, toRaw} from "vue";
 
@@ -17,7 +16,6 @@ function add(type :string) {
 function showRoute(){
   editorService.showRoute();
 }
-
 
 function save() {
   let parts = editorService.parts.value.map(x => toRaw(x));
@@ -68,8 +66,4 @@ main {
   }
 
 }
-
-
-
-
 </style>

@@ -47,9 +47,9 @@ export class CircleModel extends CircuitPart {
 
     public get JSONObject() {
         return {
-            id : this.constructor.name + "_" + this.id,
-            movable: this.m.JSONObject,
+            id : this.id,
             type: this.constructor.name,
+            movable: this.m.JSONObject,
             isPressed: this.isPressed.value,
             s1 : this.s1.JSONObject,
             s2 : this.s2.JSONObject
