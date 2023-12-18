@@ -24,10 +24,10 @@ export class InputJackModel extends CircuitPart {
     public get JSONObject() {
         return {
             id : this.id,
-            movable: this.m.JSONObject,
+            m: this.m.JSONObject,
             type: this.constructor.name,
-            hot : this.hotPin?.JSONObject,
-            ground : this.groundPin?.JSONObject
+            hotPin : this.hotPin?.JSONObject,
+            groundPin : this.groundPin?.JSONObject
         };
     }
 
@@ -35,8 +35,6 @@ export class InputJackModel extends CircuitPart {
         if(this.constructor.name != o.type) {
             throw Error("Wrong JSON object");
         }
-        this.m.setFromJSON(o.movable);
-        this.hotPin.setFromJSON(o.hot);
-        this.groundPin.setFromJSON(o.ground)
+        this.loadMovablesFormJSON(o);
     }
 }

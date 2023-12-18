@@ -82,5 +82,26 @@ export abstract class CircuitPart {
 
     public abstract get JSONObject();
 
+    public loadMovablesFormJSON(o){
+        for (let propName of this.getGetters()){
+            let prop = this[propName];
+
+            if (prop instanceof Movable || prop instanceof ConnectPoint) {
+                this[propName].setFromJSON(o[propName]);
+            }
+        }
+    }
+
+    private getGetters() {
+        let list = [];
+       let propsD = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(this));
+        for (const [key, value] of Object.entries(propsD)) {
+           if (value.get != null) {
+               list.push(key);
+           }
+
+        }
+        return list;
+    }
 
 }

@@ -49,7 +49,7 @@ export class CircleModel extends CircuitPart {
         return {
             id : this.id,
             type: this.constructor.name,
-            movable: this.m.JSONObject,
+            m: this.m.JSONObject,
             isPressed: this.isPressed.value,
             s1 : this.s1.JSONObject,
             s2 : this.s2.JSONObject
@@ -61,10 +61,8 @@ export class CircleModel extends CircuitPart {
             throw Error("Wrong JSON object");
         }
 
-        this.m.setFromJSON(o.movable);
         this.isPressed.value = o.isPressed;
-        this.s1.setFromJSON(o.s1);
-        this.s2.setFromJSON(o.s2)
+        this.loadMovablesFormJSON(o);
     }
 
 }

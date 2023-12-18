@@ -19,7 +19,7 @@ export class ConnectionLockService {
     }
 
     lock( a: DraggableOver, b: DraggableOver) {
-        this.cleatInActiveLocks();
+        this.cleanInactiveLocks();
         let key = this.findWatcherKey( a, b);
         if (key == null) {
             let watcher = new WatcherItem(a,b);
@@ -69,23 +69,15 @@ export class ConnectionLockService {
         }
     }
 
-    public cleatInActiveLocks() {
-        //TODO implement
-    }
-
-    public get JSONObject() {
-        let res = [];
-        for (let item :WatcherItem of this._watchers.values()) {
-            if (item.isActive) {
-                res.push(item.JSONObject);
+    public cleanInactiveLocks() {
+        let copy = Array.from(this._watchers.keys());
+        for (let key of copy) {
+            let w = this._watchers.get(key);
+            if (w.isActive == false) {
+                this._watchers.delete(key);
             }
         }
-        return {
-            type: this.constructor.name,
-            locks: res
-        };
     }
-
 }
 
 class MapKey {
@@ -148,18 +140,5 @@ class WatcherItem {
 
     get b(): DraggableOver {
         return this._b;
-    }
-
-    public get JSONObject() {
-        return {
-            a: {
-                point : this._a.connectPoint.name,
-                part: this._a.connectPoint.part.id
-            },
-            b :{
-                point : this._b.connectPoint.name,
-                part: this._b.connectPoint.part.id
-            }
-        }
     }
 }

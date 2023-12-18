@@ -1,6 +1,7 @@
 import {getCurrentInstance, inject} from 'vue'
 import {CircuitPart, ConnectionLockService, ConnectPoint} from "@/components/parts/common";
 import {EditorService} from "@/components/services/EditorService";
+import {CableModel} from "@/components/parts/models";
 export class SerializationService {
     private _app;
 
@@ -31,10 +32,9 @@ export class SerializationService {
             version : 0.1,
             type : "Gwire JSON scheme save",
             name : "My custom scheme",
-            parts : jsonObjets,
-            locks : ConnectionLockService.inject().JSONObject,
             repo : "https://github.com/meshosk/gwire/",
             www : "not-created",
+            parts : jsonObjets
         };
 
         const element = document.createElement("a");
@@ -80,7 +80,12 @@ export class SerializationService {
                         if (toConnectedPin != null) {
                             internalPin.connect(toConnectedPin);
 
-                            connectionLockService.lock( toConnectedPin.draggable, internalPin.draggable);
+                            if (internalPin.part instanceof CableModel) {
+                                connectionLockService.lock( internalPin.draggable, toConnectedPin.draggable);
+                            } else {
+
+                                connectionLockService.lock(toConnectedPin.draggable, internalPin.draggable);
+                            }
                         }
                     }
                 }
