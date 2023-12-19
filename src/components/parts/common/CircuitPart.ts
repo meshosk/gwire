@@ -27,6 +27,7 @@ export abstract class CircuitPart {
     abstract readonly circuitPartName :string;
 
     public abstract get vueComponentName(): string;
+    public abstract get nonMinifiedClassName(): string;
 
     protected constructor(pinsNames : string[]|number[]) {
         this._id = CircuitPart.getId();
@@ -37,7 +38,7 @@ export abstract class CircuitPart {
     }
 
     get id() {
-        return this.constructor.name + "_" +this._id;
+        return this.nonMinifiedClassName + "_" +this._id;
     }
 
     public get pins(): ConnectPoint[] {

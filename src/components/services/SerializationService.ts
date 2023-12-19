@@ -32,7 +32,7 @@ export class SerializationService {
             type : "Gwire JSON scheme save",
             name : "My custom scheme",
             repo : "https://github.com/meshosk/gwire/",
-            www : "not-created",
+            www : "https://meshosk.github.io/gwire/",
             parts : jsonObjets
         };
 

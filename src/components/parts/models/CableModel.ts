@@ -30,14 +30,14 @@ export class CableModel extends CircuitPart {
     public get JSONObject() {
         return {
             id : this.id,
-            type: this.constructor.name,
+            type: this.nonMinifiedClassName,
             c1 : this.c1.JSONObject,
             c2 : this.c2.JSONObject
         };
     }
 
     public setFromJSON(o :any) {
-        if(this.constructor.name != o.type) {
+        if(this.nonMinifiedClassName != o.type) {
             throw new Error("Wrong JSON object");
         }
        this.loadMovablesFormJSON(o);
@@ -45,5 +45,9 @@ export class CableModel extends CircuitPart {
 
     get vueComponentName(): string {
         return "CableView";
+    }
+
+    get nonMinifiedClassName(): string {
+        return "CableModel";
     }
 }

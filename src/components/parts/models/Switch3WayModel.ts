@@ -55,6 +55,10 @@ export class Switch3WayModel extends CircuitPart {
         return "";
     }
 
+    get nonMinifiedClassName(): string {
+        return "";
+    }
+
 
 
 }

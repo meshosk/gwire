@@ -25,14 +25,14 @@ export class InputJackModel extends CircuitPart {
         return {
             id : this.id,
             m: this.m.JSONObject,
-            type: this.constructor.name,
+            type: this.nonMinifiedClassName,
             hotPin : this.hotPin?.JSONObject,
             groundPin : this.groundPin?.JSONObject
         };
     }
 
     public setFromJSON(o :any) {
-        if(this.constructor.name != o.type) {
+        if(this.nonMinifiedClassName != o.type) {
             throw new Error("Wrong JSON object");
         }
         this.loadMovablesFormJSON(o);
@@ -40,5 +40,9 @@ export class InputJackModel extends CircuitPart {
 
     get vueComponentName(): string {
         return "InputJackView";
+    }
+
+    get nonMinifiedClassName(): string {
+        return "InputJackModel";
     }
 }

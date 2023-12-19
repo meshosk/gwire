@@ -48,7 +48,7 @@ export class CircleModel extends CircuitPart {
     public get JSONObject() {
         return {
             id : this.id,
-            type: this.constructor.name,
+            type: this.nonMinifiedClassName,
             m: this.m.JSONObject,
             isPressed: this.isPressed.value,
             s1 : this.s1.JSONObject,
@@ -57,7 +57,7 @@ export class CircleModel extends CircuitPart {
     }
 
     public setFromJSON(o :any) {
-        if(this.constructor.name != o.type) {
+        if(this.nonMinifiedClassName != o.type) {
             throw new Error("Wrong JSON object");
         }
 
@@ -67,6 +67,10 @@ export class CircleModel extends CircuitPart {
 
     get vueComponentName(): string {
         return "CircleView";
+    }
+
+    get nonMinifiedClassName(): string {
+        return "CircleModel";
     }
 
 }
