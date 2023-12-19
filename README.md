@@ -4,6 +4,12 @@ __IN DEVELOPMENT__
 
 This web app will provide possibility of creating custom guitar wiring, showing active parts in circuit, coils polarity, export diagram into PDF.
 
+## Github pages
+
+App is running live here [https://meshosk.github.io/gwire/](https://meshosk.github.io/gwire/)
+
+ __Can be non or partially functional__
+
 ## How to run
 
 Currently, there is no CI\CD pipe, to put this app on web (but planned). App can be run on locally installed node or docker. Just run it using `vite`.
