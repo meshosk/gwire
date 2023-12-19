@@ -4,6 +4,7 @@ import {EditorService} from "@/components/services/EditorService";
 import *  as vueComps from "@/components/parts/views";
 import {SerializationService} from "@/components/services/SerializationService";
 import {onMounted, ref, toRaw} from "vue";
+import {CircuitPart} from "@/components/parts/common";
 
 var mouseService = MouseService.inject();
 var editorService = EditorService.inject();
@@ -18,15 +19,17 @@ function showRoute(){
 }
 
 function save() {
-  let parts = editorService.parts.value.map(x => toRaw(x));
+  let parts = editorService.parts.value.map(x  => toRaw(x));
+  // @ts-ignore
   serializationService.saveToFile(parts);
 }
 
 function load() {
   serializationService.load();
 }
-const getComponent = (s) => {
-  let a = vueComps[s];
+const getComponent = (s :string) => {
+  // @ts-ignore
+  let a :any = vueComps[s];
   return a;
 }
 </script>

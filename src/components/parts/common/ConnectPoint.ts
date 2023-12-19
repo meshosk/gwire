@@ -70,9 +70,11 @@ export class ConnectPoint {
 
     public get JSONObject() {
         let o = this.baseJSONObject;
+        // @ts-ignore
         o.connectedTo = [];
-        for (let cTo: ConnectPoint of this._connectedTo) {
+        for (let cTo of this._connectedTo) {
             if (cTo.part != this.part) {
+                // @ts-ignore
                 o.connectedTo.push(cTo.baseJSONObject)
             }
         }
@@ -87,7 +89,7 @@ export class ConnectPoint {
         }
     }
 
-    public setFromJSON(o) {
+    public setFromJSON(o :any) {
         if(this.name != o.name) {
             throw Error("Wrong JSON object");
         }

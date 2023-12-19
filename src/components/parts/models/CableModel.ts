@@ -20,11 +20,11 @@ export class CableModel extends CircuitPart {
     }
 
     get c1(): ConnectPoint {
-        return this.pinByName("c1");
+        return this.pins[0];
     }
 
     get c2(): ConnectPoint {
-        return this.pinByName("c2");
+        return this.pins[1];
     }
 
     public get JSONObject() {
@@ -36,7 +36,7 @@ export class CableModel extends CircuitPart {
         };
     }
 
-    public setFromJSON(o) {
+    public setFromJSON(o :any) {
         if(this.constructor.name != o.type) {
             throw Error("Wrong JSON object");
         }

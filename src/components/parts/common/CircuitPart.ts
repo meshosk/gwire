@@ -34,7 +34,7 @@ export abstract class CircuitPart {
         this._id = CircuitPart.getId();
         this._highlight = ref(HighlightType.NONE);
         for (let i = 0; i < pinsNames.length; i++) {
-            this._pins.push(new ConnectPoint(this, pinsNames[i]));
+            this._pins.push(new ConnectPoint(this, String(pinsNames[i])));
         }
     }
 
@@ -80,13 +80,15 @@ export abstract class CircuitPart {
             });
     }
 
-    public abstract get JSONObject();
+    public abstract get JSONObject() :object;
 
-    public loadMovablesFormJSON(o){
+    public loadMovablesFormJSON(o :any){
         for (let propName of this.getGetters()){
+            // @ts-ignore
             let prop = this[propName];
 
             if (prop instanceof Movable || prop instanceof ConnectPoint) {
+                // @ts-ignore
                 this[propName].setFromJSON(o[propName]);
             }
         }

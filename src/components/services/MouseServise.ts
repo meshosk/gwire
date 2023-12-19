@@ -37,7 +37,7 @@ export class MouseService {
      */
     private _isDown = false;
 
-    private static _service = null;
+    private static _service :MouseService;
     /**
      * Static method for easy injection
      */
@@ -56,13 +56,15 @@ export class MouseService {
      * @param mouseY
      * @private
      */
-    private getDragUnderMouse(mouseX, mouseY) :DraggableOver|null {
+    private getDragUnderMouse(mouseX :number, mouseY :number) :DraggableOver|null {
         // get list of elements
         let elements = document.elementsFromPoint(mouseX, mouseY);
         for (let x of elements) {
             // check if is vue marked HTMLElement
             if (x.hasOwnProperty("__vueParentComponent")) {
+                // @ts-ignore
                 for (const property in x.__vueParentComponent.devtoolsRawSetupState) {
+                    // @ts-ignore
                     let obj = x.__vueParentComponent.devtoolsRawSetupState[property];
                     // get vue props that inherits from DraggableOver
                     if (obj instanceof DraggableOver && obj != this._dragSource) {
@@ -118,10 +120,10 @@ export class MouseService {
         if (this._dragSource != null) {
             let under = this.getDragUnderMouse(e.clientX, e.clientY);
             if (this._dragOverTMP != under) {
-                this._dragOverTMP?._onDraggingOverEndAction();
+                this._dragOverTMP?.onDraggingOverEndAction();
             }
             if (under != null) {
-                under.onDraggingOverAction(this._dragSource);
+                under.onDraggingOverAction(under, this._dragSource);
                 this._dragOverTMP = under;
             }
         }
@@ -173,8 +175,8 @@ export class MouseService {
             }
         }
     }
-    registerDragSource(item : DraggableOver|null) {
-        if (this._dragSource === null ){
+    registerDragSource(item : DraggableOver) {
+        if (!this._dragSource){
             this._dragSource = item;
             this._dragSource?.onDraggingStartAction(item);
         }

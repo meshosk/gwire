@@ -30,11 +30,11 @@ export class CircleModel extends CircuitPart {
     }
 
     get s1(): ConnectPoint {
-        return this.pinByName("s1");
+        return this.pins[0];
     }
 
     get s2(): ConnectPoint {
-        return this.pinByName("s2");
+        return this.pins[1];
     }
 
     get m(): Movable {
@@ -56,7 +56,7 @@ export class CircleModel extends CircuitPart {
         };
     }
 
-    public setFromJSON(o) {
+    public setFromJSON(o :any) {
         if(this.constructor.name != o.type) {
             throw Error("Wrong JSON object");
         }

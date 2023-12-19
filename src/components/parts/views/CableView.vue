@@ -18,7 +18,7 @@ const connectionLock =  ConnectionLockService.inject();
 const editorService = EditorService.inject();
 
 
-const onDragStart = (item) => {
+const onDragStart = (item :DraggableOver) => {
     connectionLock.releaseAllLockFor(item);
 }
 

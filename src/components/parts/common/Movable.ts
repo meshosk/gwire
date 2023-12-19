@@ -44,15 +44,15 @@ export class Movable extends Clickable {
         this.mouseService.register(this);
     }
 
-    mouseMoved(deltaX, deltaY) {
-        if (this.mouseIsDown) {
-            if (this.isDragged != true) {
+    mouseMoved(deltaX :number, deltaY :number) {
+        if (this.mouseIsDown.value) {
+            if (this.isDragged.value != true) {
                 this.isDragged.value = true;
             }
             this.x.value += deltaX
             this.y.value += deltaY;
         } else {
-            if (this.isDragged != false) {
+            if (this.isDragged.value != false) {
                 this.isDragged.value = false;
             }
         }
@@ -113,7 +113,7 @@ export class Movable extends Clickable {
             yShift: this.yShift.value
         }
     }
-    public setFromJSON(o) {
+    public setFromJSON(o :any) {
        this.x.value = o.x;
        this.y.value = o.y;
        this.xShift.value = o.xShift;

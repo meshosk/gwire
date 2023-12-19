@@ -8,14 +8,14 @@ export enum Switch3WayState {
 }
 export class Switch3WayModel extends CircuitPart {
 
-    readonly circuitPartName: "3 way switch";
+    readonly circuitPartName = "3 way switch";
 
     private _position  = ref(Switch3WayState.Position1);
 
     constructor() {
     super([1,2,3,4,5,6]);
         watch( () => this._position, (value) => {
-            switch (value) {
+            switch (value.value) {
                 case Switch3WayState.Position1:
                     this.setPointsToPosition1();
                     return;
@@ -45,6 +45,10 @@ export class Switch3WayModel extends CircuitPart {
     private setPointsToPosition3() {
         this.disconnectAllInternalConnections();
         this.pins[1].connect(this.pins[3]);
+    }
+
+    get JSONObject(): object {
+        return {};
     }
 
 

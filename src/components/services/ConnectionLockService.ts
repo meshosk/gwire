@@ -1,12 +1,10 @@
 import {watch, inject} from "vue";
 import type {DraggableOver} from "@/components/parts/common/DraggableOver";
-import {DraggableOver} from "@/components/parts/common/DraggableOver";
-
 export class ConnectionLockService {
 
     private readonly _watchers: Map<MapKey, WatcherItem> = new Map<MapKey, WatcherItem>();
 
-    private static _service = null;
+    private static _service :ConnectionLockService;
     /**
      * Static method for easy injection
      */
@@ -31,7 +29,7 @@ export class ConnectionLockService {
     }
 
     private findWatcherKey(a: DraggableOver, b: DraggableOver){
-        for (let key :MapKey of this._watchers.keys()) {
+        for (let key  of this._watchers.keys()) {
             if (key.has(a, b)) {
                 return key;
             }
@@ -48,7 +46,7 @@ export class ConnectionLockService {
     }
 
     public releaseAllLock(){
-        for (let lock :WatcherItem of this._watchers.values()){
+        for (let lock  of this._watchers.values()){
             lock.releaseWatcher()
         }
         this._watchers.clear();
@@ -56,13 +54,13 @@ export class ConnectionLockService {
 
     public releaseAllLockFor(a: DraggableOver){
         let keys = [];
-        for (let key :MapKey of this._watchers.keys()) {
+        for (let key  of this._watchers.keys()) {
             if (key.isInKey(a)) {
                 keys.push(key);
             }
         }
 
-        for (let key :MapKey of keys) {
+        for (let key of keys) {
             let watcher = this._watchers.get(key);
             this._watchers.delete(key);
             watcher?.releaseWatcher();
@@ -73,7 +71,7 @@ export class ConnectionLockService {
         let copy = Array.from(this._watchers.keys());
         for (let key of copy) {
             let w = this._watchers.get(key);
-            if (w.isActive == false) {
+            if (w?.isActive == false) {
                 this._watchers.delete(key);
             }
         }

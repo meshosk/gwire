@@ -3,10 +3,9 @@ import {CircuitPart, ConnectionLockService, ConnectPoint} from "@/components/par
 import {EditorService} from "@/components/services/EditorService";
 import {CableModel} from "@/components/parts/models";
 export class SerializationService {
-    private _app;
 
 
-    private static _service = null;
+    private static _service :SerializationService
     /**
      * Static method for easy injection
      */
@@ -71,20 +70,22 @@ export class SerializationService {
         for (let obj of JSONObject.parts) {
             let part = addedParts.get(obj.id);
 
-            for (let internalPin: ConnectPoint of part.internalPins) {
-                let pinConnections = obj[internalPin.name];
-                if (pinConnections != null) {
-                    for (let connectedToPin of pinConnections.connectedTo) {
-                        let toConnectPart = addedParts.get(connectedToPin.part);
-                        let toConnectedPin = toConnectPart.pinByName(connectedToPin.name);
-                        if (toConnectedPin != null) {
-                            internalPin.connect(toConnectedPin);
+            if (part) {
+                for (let internalPin of part.internalPins) {
+                    let pinConnections = obj[internalPin.name];
+                    if (pinConnections != null) {
+                        for (let connectedToPin of pinConnections.connectedTo) {
+                            let toConnectPart = addedParts.get(connectedToPin.part);
+                            let toConnectedPin = toConnectPart?.pinByName(connectedToPin.name);
+                            if (toConnectedPin) {
+                                internalPin.connect(toConnectedPin);
 
-                            if (internalPin.part instanceof CableModel) {
-                                connectionLockService.lock( internalPin.draggable, toConnectedPin.draggable);
-                            } else {
+                                if (internalPin.part instanceof CableModel) {
+                                    connectionLockService.lock(internalPin.draggable, toConnectedPin.draggable);
+                                } else {
 
-                                connectionLockService.lock(toConnectedPin.draggable, internalPin.draggable);
+                                    connectionLockService.lock(toConnectedPin.draggable, internalPin.draggable);
+                                }
                             }
                         }
                     }
@@ -94,22 +95,21 @@ export class SerializationService {
 
 
     }
-    public connect(app){
-        this._app = app;
-    }
 
     private loadFile() :Promise<string> {
         return new Promise( (resolve, reject) => {
             const element = document.createElement("input")
             element.setAttribute("type", "file");
             element.onchange = () => {
-                let file = element.files[0];
-                let reader = new FileReader();
-                reader.onload =  () => {
-                    // Display the file's contents
-                    resolve(reader.result);
-                };
-                reader.readAsText(file);
+                let file = element["files"] ? element["files"][0] : null;
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload =  () => {
+                        // Display the file's contents
+                        resolve(reader.result instanceof String ? <string>reader.result : "");
+                    };
+                    reader.readAsText(file);
+                }
             }
             element.click();
         })

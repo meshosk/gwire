@@ -2,7 +2,7 @@ import {CircuitPart, Movable} from "@/components/parts/common";
 
 export class InputJackModel extends CircuitPart {
 
-    readonly circuitPartName: "Input jack";
+    readonly circuitPartName = "Input jack";
 
     private _m :Movable =  new Movable();
     constructor() {
@@ -31,7 +31,7 @@ export class InputJackModel extends CircuitPart {
         };
     }
 
-    public setFromJSON(o) {
+    public setFromJSON(o :any) {
         if(this.constructor.name != o.type) {
             throw Error("Wrong JSON object");
         }

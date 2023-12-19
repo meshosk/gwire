@@ -1,10 +1,10 @@
-import {CircuitPart, ConnectPoint, Movable} from "./index";
-import type Ref from "vue";
-import {MouseService} from "@/components/services/MouseServise";
+import { ConnectPoint, Movable} from "./index";
+import Ref from "vue";
+
 
 export class DraggableOver extends Movable {
 
-    private _dropAreaElement: Ref<HTMLElement | undefined>;
+    private _dropAreaElement: any;
     private _canStartDrag = true;
     private _onDraggedOverAction: (source: DraggableOver, target: DraggableOver) => void = (source, target) => {}
     private _onDropAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
@@ -29,7 +29,7 @@ export class DraggableOver extends Movable {
         && y >= boundary.y && y <= boundary.y + boundary.height
     }
 
-    set dropAreaElement(value: Ref<HTMLElement | undefined>) {
+    set dropAreaElement(value :any) {
         this._dropAreaElement = value;
     }
 
