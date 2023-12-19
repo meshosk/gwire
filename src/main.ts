@@ -1,4 +1,3 @@
-//import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
@@ -19,6 +18,10 @@ app.provide("MouseService", new MouseService());
 app.provide("EditorService", new EditorService());
 app.provide("ConnectionLockService", new ConnectionLockService());
 app.provide("SerializationService", new SerializationService());
+
+app.config.errorHandler = (err, instance, info) => {
+    console.log(err);
+}
 
 
 app.mount('#app')

@@ -4,7 +4,8 @@ import {EditorService} from "@/components/services/EditorService";
 import *  as vueComps from "@/components/parts/views";
 import {SerializationService} from "@/components/services/SerializationService";
 import {onMounted, ref, toRaw} from "vue";
-import {CircuitPart} from "@/components/parts/common";
+
+
 
 var mouseService = MouseService.inject();
 var editorService = EditorService.inject();
@@ -27,10 +28,9 @@ function save() {
 function load() {
   serializationService.load();
 }
-const getComponent = (s :string) => {
+function getComponent (comp: any) {
   // @ts-ignore
-  let a :any = vueComps[s];
-  return a;
+  return  vueComps[comp.vueComponentName];
 }
 </script>
 
@@ -46,8 +46,9 @@ const getComponent = (s :string) => {
     </div>
     <svg
         @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
-        <component v-for="comp in editorService.normalParts.value"  :is='getComponent(comp.vueComponentName)' :model="comp"/>
-        <component v-for="(comp,index) in editorService.prioritizedParts.value"  :is='getComponent(comp.vueComponentName)' :model="comp" :key="comp.id"/>
+
+        <component v-for="comp in editorService.normalParts.value"  :is="getComponent(comp)" :model="comp" :key="comp.id"/>
+        <component v-for="comp in editorService.prioritizedParts.value"  :is="getComponent(comp)" :model="comp" :key="comp.id"/>
     </svg>
   </main>
 </template>

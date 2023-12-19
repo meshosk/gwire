@@ -33,8 +33,12 @@ export class InputJackModel extends CircuitPart {
 
     public setFromJSON(o :any) {
         if(this.constructor.name != o.type) {
-            throw Error("Wrong JSON object");
+            throw new Error("Wrong JSON object");
         }
         this.loadMovablesFormJSON(o);
+    }
+
+    get vueComponentName(): string {
+        return "InputJackView";
     }
 }

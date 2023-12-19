@@ -58,11 +58,15 @@ export class CircleModel extends CircuitPart {
 
     public setFromJSON(o :any) {
         if(this.constructor.name != o.type) {
-            throw Error("Wrong JSON object");
+            throw new Error("Wrong JSON object");
         }
 
         this.isPressed.value = o.isPressed;
         this.loadMovablesFormJSON(o);
+    }
+
+    get vueComponentName(): string {
+        return "CircleView";
     }
 
 }

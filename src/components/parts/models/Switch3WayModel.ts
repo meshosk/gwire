@@ -51,6 +51,10 @@ export class Switch3WayModel extends CircuitPart {
         return {};
     }
 
+    get vueComponentName(): string {
+        return "";
+    }
+
 
 
 }

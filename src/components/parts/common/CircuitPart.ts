@@ -26,9 +26,7 @@ export abstract class CircuitPart {
 
     abstract readonly circuitPartName :string;
 
-    public get vueComponentName(): string {
-        return this.constructor.name.replace("Model", "View");
-    }
+    public abstract get vueComponentName(): string;
 
     protected constructor(pinsNames : string[]|number[]) {
         this._id = CircuitPart.getId();
