@@ -1,5 +1,4 @@
 import { ConnectPoint, Movable} from "./index";
-import Ref from "vue";
 
 
 export class DraggableOver extends Movable {

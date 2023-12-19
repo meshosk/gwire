@@ -106,7 +106,7 @@ export class SerializationService {
                     let reader = new FileReader();
                     reader.onload =  () => {
                         // Display the file's contents
-                        resolve(reader.result instanceof String ? <string>reader.result : "");
+                        resolve(typeof reader.result == "string" ? <string>reader.result : "");
                     };
                     reader.readAsText(file);
                 }
