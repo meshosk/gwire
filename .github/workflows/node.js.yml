@@ -2,10 +2,12 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Publish GH pages
+run-name: Publish GH pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
     build-deploy:
