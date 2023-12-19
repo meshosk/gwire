@@ -1,5 +1,6 @@
-import {ref, inject} from 'vue'
+import {ref, inject, toRaw} from 'vue'
 import {DraggableOver, Movable, Clickable} from "@/components/parts/common";
+import {EditorService} from "@/components/services/EditorService";
 
 export class MouseService {
 
@@ -58,24 +59,13 @@ export class MouseService {
      */
     private getDragUnderMouse(mouseX :number, mouseY :number) :DraggableOver|null {
         // get list of elements
-        let elements = document.elementsFromPoint(mouseX, mouseY);
-        for (let x of elements) {
-            // check if is vue marked HTMLElement
-            if (x.hasOwnProperty("__vueParentComponent")) {
-                // @ts-ignore
-                for (const property in x.__vueParentComponent.devtoolsRawSetupState) {
-                    // @ts-ignore
-                    let obj = x.__vueParentComponent.devtoolsRawSetupState[property];
-                    // get vue props that inherits from DraggableOver
-                    if (obj instanceof DraggableOver && obj != this._dragSource) {
-                        // Check if is position in valid hit-box for item
-                        if ((obj as DraggableOver).isIn(mouseX, mouseY)) {
-                            return obj;
-                        }
-                    }
+        for (let part of EditorService.inject().parts.value) {
+            for (let pin of part.internalPins) {
+                if (pin.draggable.isIn(mouseX, mouseY)) {
+                    return <DraggableOver>(<any>toRaw(pin.draggable))
                 }
             }
-        };
+        }
         return null;
     }
     onMouseDown(e: MouseEvent) {

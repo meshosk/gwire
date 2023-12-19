@@ -43,7 +43,7 @@ const makeOnTop = (make : boolean) => {
     <g
         @mousedown="makeOnTop(true)"
         @blur ="makeOnTop(false)"
-        :class="() => HighlightType[model.highlight.value]">
+        :class="HighlightType[model.highlight.value]">
       <line
           :x1="model.c1.draggable.x.value" :y1="model.c1.draggable.y.value"
           :x2="model.c2.draggable.x.value" :y2="model.c2.draggable.y.value"

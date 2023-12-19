@@ -41,7 +41,7 @@ m.onDraggingOverAction = (source) => {
     color.value = "green"
 }
 onMounted(() => {
-  m.dropAreaElement = cele;
+ m.dropAreaElement = cele;
 })
 
 </script>

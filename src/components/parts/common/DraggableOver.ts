@@ -20,9 +20,9 @@ export class DraggableOver extends Movable {
     }
 
     isIn(x:number, y:number):boolean{
-        if (this._dropAreaElement.value == undefined) return false;
+        if (this._dropAreaElement == undefined) return false;
 
-        let boundary = (this._dropAreaElement.value as HTMLElement).getBoundingClientRect()
+        let boundary = (this._dropAreaElement as HTMLElement).getBoundingClientRect()
 
         return x >= boundary.x  && x <= boundary.x + boundary.width
         && y >= boundary.y && y <= boundary.y + boundary.height
@@ -90,5 +90,4 @@ export class DraggableOver extends Movable {
         }
         this._canStartDrag = value;
     }
-
 }
