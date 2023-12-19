@@ -9,25 +9,37 @@ on:
     branches:
       - main
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-    build-deploy:
-        runs-on: ubuntu-latest
+    deploy:
+      environment:
+        name: github-pages
+        url: ${{ steps.deployment.outputs.page_url }}
+      runs-on: ubuntu-latest
+      steps:
+        - name: Repo checkout
+          uses: actions/checkout@v4
 
-        steps:
-            - name: Repo checkout
-              uses: actions/checkout@v3
+        - name: Install node clean install
+          run: npm ci
 
-            - name: Install node clean install
-              run: npm ci
+        - name: run build
+          run: npm run build
+          env:
+            NODE_ENV: production
 
-            - name: run build
-              run: npm run build
-              env:
-                NODE_ENV: production
-
-            - name: Deploy to GH Pages
-              if: ${{ github.event_name != 'pull_request' }}
-              uses: peaceiris/actions-gh-pages@v3
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: dist
+        - name: Upload artifact
+          uses: actions/upload-pages-artifact@v2
+          with:
+            path: '.'
+        - name: Deploy to GitHub Pages
+          id: deployment
+          uses: actions/deploy-pages@v3
