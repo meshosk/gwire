@@ -1,0 +1,31 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Publish GH pages
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+    build-deploy:
+        runs-on: node:latest
+
+        steps:
+            - name: Repo checkout
+              uses: actions/checkout@v3
+
+            - name: Install node clean install
+              run: npm ci
+
+            - name: run build
+              run: npm run build
+              env:
+                NODE_ENV: production
+
+            - name: Deploy to GH Pages
+              if: ${{ github.event_name != 'pull_request' }}
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: dist
