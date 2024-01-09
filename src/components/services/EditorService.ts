@@ -5,7 +5,7 @@ import {CircuitPart, ConnectPoint, HighlightType} from "@/components/parts/commo
 import {InputJackModel} from "@/components/parts/models";
 import {BaseService} from "@/components/services/BaseService";
 
-export class EditorService extends BaseService<EditorService>{
+export class EditorService extends BaseService<EditorService>() {
 
     private readonly _parts  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>>;
 

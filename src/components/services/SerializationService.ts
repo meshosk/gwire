@@ -3,7 +3,8 @@ import {CircuitPart, ConnectionLockService, ConnectPoint} from "@/components/par
 import {EditorService} from "@/components/services/EditorService";
 import {CableModel} from "@/components/parts/models";
 import {BaseService} from "@/components/services/BaseService";
-export class SerializationService extends BaseService<SerializationService>{
+
+export class SerializationService extends BaseService<SerializationService>() {
     
 
     public saveToFile(parts :CircuitPart[]) {

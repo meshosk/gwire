@@ -3,7 +3,7 @@ import {DraggableOver, Movable, Clickable} from "@/components/parts/common";
 import {EditorService} from "@/components/services/EditorService";
 import {BaseService} from "@/components/services/BaseService";
 
-export class MouseService extends BaseService<MouseService>{
+export class MouseService extends BaseService<MouseService>() {
 
     /**
      * List of all dragged items - for future
