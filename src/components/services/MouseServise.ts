@@ -1,8 +1,9 @@
 import {ref, inject, toRaw} from 'vue'
 import {DraggableOver, Movable, Clickable} from "@/components/parts/common";
 import {EditorService} from "@/components/services/EditorService";
+import {BaseService} from "@/components/services/BaseService";
 
-export class MouseService {
+export class MouseService extends BaseService<MouseService>{
 
     /**
      * List of all dragged items - for future
@@ -37,18 +38,6 @@ export class MouseService {
      * @private
      */
     private _isDown = false;
-
-    private static _service :MouseService;
-    /**
-     * Static method for easy injection
-     */
-    static inject() : MouseService {
-        return this._service;
-    }
-
-    constructor() {
-        MouseService._service =  this;
-    }
 
     /**
      * Using shady-around-vue-play to get over which draggable component is set position. Dragged

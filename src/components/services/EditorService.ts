@@ -3,8 +3,9 @@ import {ref, inject, toRaw} from "vue";
 import  * as Vue from "@vue/reactivity"
 import {CircuitPart, ConnectPoint, HighlightType} from "@/components/parts/common";
 import {InputJackModel} from "@/components/parts/models";
+import {BaseService} from "@/components/services/BaseService";
 
-export class EditorService {
+export class EditorService extends BaseService<EditorService>{
 
     private readonly _parts  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>>;
 
@@ -12,18 +13,9 @@ export class EditorService {
     private readonly _partsPrioritized  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>> =  ref([])
 
     constructor() {
+        super();
         this._parts = ref([]);
-        EditorService._service =  this;
     }
-
-    private static _service :EditorService;
-    /**
-     * Static method for easy injection
-     */
-    static inject() : EditorService {
-        return this._service;
-    }
-
     public addPart(partName :string){
         // @ts-ignore
         let instance = new modelRef[partName]();

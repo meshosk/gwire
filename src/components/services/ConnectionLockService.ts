@@ -1,20 +1,9 @@
 import {watch, inject} from "vue";
 import type {DraggableOver} from "@/components/parts/common/DraggableOver";
-export class ConnectionLockService {
+import {BaseService} from "@/components/services/BaseService";
+export class ConnectionLockService extends BaseService<ConnectionLockService>{
 
     private readonly _watchers: Map<MapKey, WatcherItem> = new Map<MapKey, WatcherItem>();
-
-    private static _service :ConnectionLockService;
-    /**
-     * Static method for easy injection
-     */
-    static inject() : ConnectionLockService {
-        return this._service;
-    }
-
-    constructor() {
-        ConnectionLockService._service = this;
-    }
 
     lock( a: DraggableOver, b: DraggableOver) {
         this.cleanInactiveLocks();

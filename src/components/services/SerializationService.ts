@@ -2,21 +2,9 @@ import {getCurrentInstance, inject} from 'vue'
 import {CircuitPart, ConnectionLockService, ConnectPoint} from "@/components/parts/common";
 import {EditorService} from "@/components/services/EditorService";
 import {CableModel} from "@/components/parts/models";
-export class SerializationService {
-
-
-    private static _service :SerializationService
-    /**
-     * Static method for easy injection
-     */
-    static inject() : SerializationService {
-        return this._service;
-    }
-
-
-    constructor() {
-        SerializationService._service =  this;
-    }
+import {BaseService} from "@/components/services/BaseService";
+export class SerializationService extends BaseService<SerializationService>{
+    
 
     public saveToFile(parts :CircuitPart[]) {
 
