@@ -44,6 +44,10 @@ const contextMenu = [
     new ContextMenuItem("red", "", () => color.value = "red"),
     new ContextMenuItem("blue", "", () => color.value = "blue"),
     new ContextMenuItem("green", "", () => color.value = "green"),
+      new ContextMenuItem("more colors", "", [
+        new ContextMenuItem("orange", "", () => color.value = "orange"),
+        new ContextMenuItem("yellow", "", () => color.value = "yellow"),
+      ])
   ]),
   new ContextMenuItem("test","", null)
 ];

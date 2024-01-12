@@ -41,7 +41,7 @@ function getComponent (comp: any) {
 
   <main>
     <context-menu-view  />
-    <div class="menu">
+    <div class="menuu">
         <button @click='save'>Save</button>
         <button @click='load'>Load</button>
         <button @click='showRoute'>Show route</button>
@@ -64,7 +64,7 @@ main {
   display: flex;
   align-items: stretch;
 
-  & > .menu {
+  & > .menuu {
     width: 280px;
   }
 

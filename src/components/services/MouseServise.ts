@@ -2,6 +2,7 @@ import {ref, inject, toRaw} from 'vue'
 import {DraggableOver, Movable, Clickable} from "@/components/parts/common";
 import {EditorService} from "@/components/services/EditorService";
 import {BaseService} from "@/components/services/BaseService";
+import {ContextMenuService} from "@/components/services/ContextMenuService";
 
 export class MouseService extends BaseService<MouseService>() {
 
@@ -61,6 +62,7 @@ export class MouseService extends BaseService<MouseService>() {
         this._isDown = true;
         this._mouseX = e.clientX;
         this._mouseY = e.clientY;
+        ContextMenuService.inject().closeMenu();
     }
 
     onMouseUp(e: MouseEvent) {

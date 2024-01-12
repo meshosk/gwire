@@ -2,6 +2,7 @@
 
 import {ContextMenuService} from "@/components/services/ContextMenuService";
 import MenuView from "@/components/parts/views/MenuView.vue";
+import {toRaw} from "vue";
 
 const cms = ContextMenuService.inject();
 
@@ -11,7 +12,7 @@ const cms = ContextMenuService.inject();
 <div v-if="cms.menuIsOpen.value" id="context-menu"
      :style="`left: ${cms.x.value}px; top: ${cms.y.value}px`"
      @onblur="cms.closeMenu">
-     <menu-view :items="cms.menuItems" />
+     <menu-view :items="toRaw(cms.menuItems.value)" />
 </div>
 
 </template>
@@ -20,9 +21,5 @@ const cms = ContextMenuService.inject();
 #context-menu {
   position: absolute;
   z-index: 9999;
-  border: 1px solid black;
-  background-color: blue;
-  width: 300px;
-  height: 100px;
 }
 </style>

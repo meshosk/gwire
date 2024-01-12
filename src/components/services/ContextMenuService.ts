@@ -3,7 +3,7 @@ import {ref} from "vue";
 export class ContextMenuService extends BaseService<ContextMenuService>() {
 
     private _menuIsOpen = ref(false);
-    private _menuItems = Array;
+    private _menuItems = ref([]);
 
     private _x = ref(0);
     private _y = ref(0);
@@ -13,15 +13,26 @@ export class ContextMenuService extends BaseService<ContextMenuService>() {
     }
 
     public openMenu(x :number, y :number, menuItems :any) {
-        this._menuItems = menuItems;
+        this.hideSubMenu(menuItems);
+        this._menuItems.value = menuItems;
         this._menuIsOpen.value = true;
         this._x.value = x;
         this._y.value = y;
     }
 
+
+    private  hideSubMenu(items){
+        for (const item of items) {
+            item.subMenuIsOpen.value = false
+            if (item.subMenu && Array.isArray(item.subMenu) == true) {
+                this.hideSubMenu(item.subMenu);
+            }
+        }
+    }
+
     public closeMenu() {
         this._menuIsOpen.value = false;
-        this._menuItems = [];
+        this._menuItems.value =[];
     }
 
     get menuItems() {
