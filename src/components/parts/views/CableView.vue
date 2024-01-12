@@ -4,11 +4,15 @@ import {ConnectionLockService, DraggableOver, HighlightType, Movable} from "@/co
 import Connector from "@/components/parts/views/ConnectorView.vue";
 import {CableModel} from "@/components/parts/models";
 import {EditorService} from "@/components/services/EditorService";
-import {toRaw} from "vue";
+import {ref, toRaw} from "vue";
+import {ContextMenuService} from "@/components/services/ContextMenuService";
+import {ContextMenuItem} from "@/components/parts/common/ContextMenuItem";
 
 // model prop contains background ref to Circuit part, vue comp is used as view only
 // for this reason it only react on model change
 const props = defineProps(['model'])
+const cms =  ContextMenuService.inject();
+
 const model :CableModel = toRaw(props.model); // wrapped in proxy
 if (props.model == null) {
     throw new Error("Model not defined");
@@ -16,7 +20,7 @@ if (props.model == null) {
 
 const connectionLock =  ConnectionLockService.inject();
 const editorService = EditorService.inject();
-
+const color = ref("black");
 
 const onDragStart = (item :DraggableOver) => {
     connectionLock.releaseAllLockFor(item);
@@ -35,19 +39,27 @@ const makeOnTop = (make : boolean) => {
   editorService.makeOnTop(model);
 }
 
-
+const contextMenu = [
+  new ContextMenuItem("Color", "", [
+    new ContextMenuItem("red", "", () => color.value = "red"),
+    new ContextMenuItem("blue", "", () => color.value = "blue"),
+    new ContextMenuItem("green", "", () => color.value = "green"),
+  ]),
+  new ContextMenuItem("test","", null)
+];
 
 </script>
 
 <template>
     <g
+        @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"
         @mousedown="makeOnTop(true)"
         @blur ="makeOnTop(false)"
         :class="HighlightType[model.highlight.value]">
       <line
           :x1="model.c1.draggable.x.value" :y1="model.c1.draggable.y.value"
           :x2="model.c2.draggable.x.value" :y2="model.c2.draggable.y.value"
-          stroke="black" stroke-width="4"
+          :stroke="color" stroke-width="4"
       />
       <Connector
          :onDraggedOver="onDragOver"
