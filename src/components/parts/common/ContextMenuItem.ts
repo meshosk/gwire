@@ -14,7 +14,13 @@ export class ContextMenuItem {
     private _subMenu = [];
     private _subMenuIsOpen = ref(false);
 
-    constructor(text, iconView, subMenu:any) {
+    /**
+     *
+     * @param text Text shown in menu
+     * @param iconView HTML of icon to be shown
+     * @param subMenu ContextMenuItem[]|function Other sub menu items or function to be preformed onclick
+     */
+    constructor(text :String, iconView :String, subMenu:any) {
         this._id = ContextMenuItem.getId();
         this._text = text;
         this._iconView = iconView;

@@ -4,6 +4,19 @@ __IN DEVELOPMENT__
 
 This web app will provide possibility of creating custom guitar wiring, showing active parts in circuit, coils polarity, export diagram into PDF.
 
+___The TODO___:
+- [ ] Undo/Redo
+- [ ] Scheme snapshot
+- [ ] PDF export
+- [ ] Scheme library
+- [ ] Add more parts
+- [ ] Better ui design
+- [ ] Create tutorial/manual wiki
+- [x] Option to set wires colors
+- [ ] Text/note component
+- [ ] Pinpoint route validation
+- [ ] Drag&Drop parts from menu
+
 ## Github pages
 
 App is running live here [https://meshosk.github.io/gwire/](https://meshosk.github.io/gwire/)

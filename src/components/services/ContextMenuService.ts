@@ -20,8 +20,12 @@ export class ContextMenuService extends BaseService<ContextMenuService>() {
         this._y.value = y;
     }
 
-
-    private  hideSubMenu(items){
+    /**
+     *
+     * @param items hides menu items recursively
+     * @private
+     */
+    private  hideSubMenu(items:any){
         for (const item of items) {
             item.subMenuIsOpen.value = false
             if (item.subMenu && Array.isArray(item.subMenu) == true) {
