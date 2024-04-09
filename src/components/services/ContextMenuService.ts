@@ -36,7 +36,7 @@ export class ContextMenuService extends BaseService<ContextMenuService>() {
 
     public closeMenu() {
         this._menuIsOpen.value = false;
-        this._menuItems.value =[];
+        this._menuItems.value = [];
     }
 
     get menuItems() {

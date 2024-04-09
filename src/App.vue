@@ -6,21 +6,13 @@ import {SerializationService} from "@/components/services/SerializationService";
 import {onMounted, ref, toRaw} from "vue";
 import ContextMenuView from "@/components/parts/views/ContextMenuView.vue";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
+import RouterLinkButton from "@/components/common/RouterLinkButton.vue";
+import MenuSpacer from "@/components/common/MenuSpacer.vue";
 
 
-
-var mouseService = MouseService.inject();
 var editorService = EditorService.inject();
 var serializationService = SerializationService.inject();
-var cms = ContextMenuService.inject();
 
-function add(type :string) {
-  editorService.addPart(type);
-}
-
-function showRoute(){
-  editorService.showRoute();
-}
 
 function save() {
   let parts = editorService.parts.value.map(x  => toRaw(x));
@@ -31,47 +23,43 @@ function save() {
 function load() {
   serializationService.load();
 }
-function getComponent (comp: any) {
-  // @ts-ignore
-  return  vueComps[comp.vueComponentName];
-}
+
 </script>
 
 <template>
-
   <main>
-    <context-menu-view  />
-    <div class="menuu">
-        <button @click='save'>Save</button>
-        <button @click='load'>Load</button>
-        <button @click='showRoute'>Show route</button>
-        <button @click='add("CableModel")'>Add cable</button>
-        <button @click='add("CircleModel")'>Add circle</button>
-        <button @click='add("InputJackModel")'>Add input jack</button>
-    </div>
-    <svg
-        @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
-        <component v-for="comp in editorService.normalParts.value"  :is="getComponent(comp)" :model="comp" :key="comp.id"/>
-        <component v-for="comp in editorService.prioritizedParts.value"  :is="getComponent(comp)" :model="comp" :key="comp.id"/>
-    </svg>
+    <nav id="main-menu">
+      <div>
+        GWire
+      </div>
+      <button @click='save'>Save</button>
+      <button @click='load'>Load</button>
+      <MenuSpacer/>
+      <RouterLinkButton to="/">
+        Editor
+      </RouterLinkButton>
+      <RouterLinkButton to="/about">
+        About
+      </RouterLinkButton>
+    </nav>
+    <RouterView />
   </main>
 </template>
 <style scoped lang="scss">
-
 main {
   width: 100vw;
   height: 100vh;
   display: flex;
-  align-items: stretch;
-
-  & > .menuu {
-    width: 280px;
-  }
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
-
+  align-items: center;
+  justify-content: start;
+  flex-direction: column;
 }
+#main-menu {
+  width: 100%;
+  display: flex;
+  align-items: start;
+  flex-direction: row;
+  background-color: darkgrey;
+}
+
 </style>
