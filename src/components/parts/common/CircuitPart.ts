@@ -1,5 +1,6 @@
 import {ConnectPoint, Movable} from "@/components/parts/common";
 import {ref, watch} from "vue";
+import {Serializable} from "@/components/parts/models/Serializable";
 
 
 export  enum HighlightType {
@@ -8,7 +9,7 @@ export  enum HighlightType {
     ROUTE
 }
 
-export abstract class CircuitPart {
+export abstract class CircuitPart extends Serializable {
 
     private static  idCount = 0;
     private static getId() {
@@ -30,6 +31,7 @@ export abstract class CircuitPart {
     public abstract get nonMinifiedClassName(): string;
 
     protected constructor(pinsNames : string[]|number[]) {
+        super();
         this._id = CircuitPart.getId();
         this._highlight = ref(HighlightType.NONE);
         for (let i = 0; i < pinsNames.length; i++) {
@@ -78,8 +80,6 @@ export abstract class CircuitPart {
                 }
             });
     }
-
-    public abstract get JSONObject() :object;
 
     public loadMovablesFormJSON(o :any){
         for (let propName of this.getGetters()){

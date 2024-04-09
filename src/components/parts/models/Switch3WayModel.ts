@@ -59,6 +59,9 @@ export class Switch3WayModel extends CircuitPart {
         return "";
     }
 
+    setFromJSON(o: any) {
+    }
+
 
 
 }
