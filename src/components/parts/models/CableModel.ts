@@ -7,6 +7,8 @@ export class CableModel extends CircuitPart {
 
     readonly circuitPartName: string = "cable";
 
+    private _color :string = "#000000";
+
     public drawPriority : boolean = true;
     constructor() {
         super(["c1","c2"]);
@@ -17,6 +19,15 @@ export class CableModel extends CircuitPart {
         this.c2.draggable.y.value = 100;
 
         this.pins[0].connect(this.pins[1]);
+    }
+
+
+    get color(): string {
+        return this._color;
+    }
+
+    set color(value: string) {
+        this._color = value;
     }
 
     get c1(): ConnectPoint {
@@ -32,7 +43,8 @@ export class CableModel extends CircuitPart {
             id : this.id,
             type: this.nonMinifiedClassName,
             c1 : this.c1.JSONObject,
-            c2 : this.c2.JSONObject
+            c2 : this.c2.JSONObject,
+            color: this.color
         };
     }
 
@@ -40,7 +52,10 @@ export class CableModel extends CircuitPart {
         if(this.nonMinifiedClassName != o.type) {
             throw new Error("Wrong JSON object");
         }
-       this.loadMovablesFormJSON(o);
+
+        this.color = o.color;
+
+        this.loadMovablesFormJSON(o);
     }
 
     get vueComponentName(): string {

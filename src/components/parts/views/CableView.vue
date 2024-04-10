@@ -4,7 +4,7 @@ import {ConnectionLockService, DraggableOver, HighlightType, Movable} from "@/co
 import Connector from "@/components/parts/views/ConnectorView.vue";
 import {CableModel} from "@/components/parts/models";
 import {EditorService} from "@/components/services/EditorService";
-import {ref, toRaw} from "vue";
+import {ref, toRaw, watch} from "vue";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
 import {ContextMenuItem} from "@/components/parts/common/ContextMenuItem";
 
@@ -20,7 +20,7 @@ if (props.model == null) {
 
 const connectionLock =  ConnectionLockService.inject();
 const editorService = EditorService.inject();
-const color = ref("black");
+const color = ref(model.color);
 
 const onDragStart = (item :DraggableOver) => {
     connectionLock.releaseAllLockFor(item);
@@ -38,6 +38,10 @@ const makeOnTop = (make : boolean) => {
   model.highlight.value = make ? HighlightType.SELECTED : HighlightType.NONE;
   editorService.makeOnTop(model);
 }
+
+watch(color, () => {
+  model.color = color.value;
+})
 
 const contextMenu = [
   new ContextMenuItem("Color", "", [

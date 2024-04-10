@@ -9,7 +9,6 @@ import {ContextMenuService} from "@/components/services/ContextMenuService";
 import RouterLinkButton from "@/components/common/RouterLinkButton.vue";
 import MenuSpacer from "@/components/common/MenuSpacer.vue";
 
-
 var editorService = EditorService.inject();
 var serializationService = SerializationService.inject();
 
@@ -23,43 +22,57 @@ function save() {
 function load() {
   serializationService.load();
 }
-
 </script>
 
 <template>
   <main>
-    <nav id="main-menu">
-      <div>
-        GWire
+    <nav class="navbar navbar-expand navbar-dark bg-dark" aria-label="Second navbar example">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">GWire</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample02" aria-controls="navbarsExample02" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExample02">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <router-link to="/" class="nav-link">
+                  Editor
+              </router-link>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" @click='save'><i class="bi bi-floppy"></i> Save</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Load
+              </a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" @click='load'><i class="bi bi-cloud-arrow-up"></i> Load from file</a></li>
+                <li><a class="dropdown-item disabled" href="#" disabled>Load from url</a></li>
+                <li><hr class="dropdown-divider" ></li>
+                <li><a class="dropdown-item disabled" href="#" disabled>Load from library</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled" href="#" disabled>PDF</a>
+            </li>
+            <li class="nav-item">
+              <router-link to="/about" class="nav-link">
+                About
+              </router-link>
+            </li>
+          </ul>
+          <div>
+            a
+          </div>
+        </div>
       </div>
-      <button @click='save'>Save</button>
-      <button @click='load'>Load</button>
-      <MenuSpacer/>
-      <RouterLinkButton to="/">
-        Editor
-      </RouterLinkButton>
-      <RouterLinkButton to="/about">
-        About
-      </RouterLinkButton>
     </nav>
     <RouterView />
   </main>
 </template>
 <style scoped lang="scss">
-main {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: start;
-  flex-direction: column;
-}
-#main-menu {
-  width: 100%;
-  display: flex;
-  align-items: start;
-  flex-direction: row;
-  background-color: darkgrey;
-}
+
 
 </style>
