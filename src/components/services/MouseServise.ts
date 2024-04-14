@@ -151,7 +151,7 @@ export class MouseService extends BaseService<MouseService>() {
             // check if item is draggable
             if (this.movingItem != null && this.movingItem instanceof Draggable && this.movingItem.canStartDrag === true) {
                     // if it is draggable and it is only one start dragging
-                   this.movingItem.onDraggingStartAction();
+                   this.movingItem.onDraggingStartAction(this.movingItem);
             }
         }
     }

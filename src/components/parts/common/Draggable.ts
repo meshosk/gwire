@@ -9,7 +9,7 @@ export class Draggable extends Movable {
     private _onDropAction: (droppedItem: Draggable) => void = (droppedItem :Draggable) => {}
     private _onDraggingOverAction: (droppedItem: Draggable, droppedOVer: Draggable) => void = (droppedItem :Draggable, droppedOVer: Draggable) => {}
     private _onDraggingOverEndAction: () => void = () => {}
-    private _onDraggingStartAction: () => void = () => {}
+    private _onDraggingStartAction: (item: Draggable) => void = () => {}
     private _onDraggingEndAction: () => void = () => {}
 
     private readonly _connectPoint: ConnectPoint;
@@ -60,11 +60,11 @@ export class Draggable extends Movable {
         this._onDraggingOverAction = value;
     }
 
-    get onDraggingStartAction(): () => void {
+    get onDraggingStartAction(): (item: Draggable) => void {
         return this._onDraggingStartAction;
     }
 
-    set onDraggingStartAction(value: (item :Draggable) => void) {
+    set onDraggingStartAction(value: (item: Draggable) => void) {
         this._onDraggingStartAction = value;
     }
 
