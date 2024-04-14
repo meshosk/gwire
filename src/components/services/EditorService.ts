@@ -2,7 +2,7 @@ import * as modelRef from "@/components/parts/models";
 import {ref, inject, toRaw} from "vue";
 import  * as Vue from "@vue/reactivity"
 import {CircuitPart, ConnectPoint, HighlightType} from "@/components/parts/common";
-import {InputJackModel} from "@/components/parts/models";
+import {CircleModel, InputJackModel} from "@/components/parts/models";
 import {BaseService} from "@/components/services/BaseService";
 
 export class EditorService extends BaseService<EditorService>() {
@@ -16,7 +16,7 @@ export class EditorService extends BaseService<EditorService>() {
         super();
         this._parts = ref([]);
     }
-    public addPart(partName :string){
+    public addPart(partName :string) : CircleModel{
         // @ts-ignore
         let instance = new modelRef[partName]();
          if (instance == null) {
@@ -26,7 +26,6 @@ export class EditorService extends BaseService<EditorService>() {
         this.reloadTempCollections();
         return instance;
     }
-
     public clearParts(){
         this._parts.value = [];
         this.reloadTempCollections();

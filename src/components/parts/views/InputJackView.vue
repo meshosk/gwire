@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ConnectorView from "@/components/parts/views/ConnectorView.vue";
-import {DraggableOver, Movable} from "@/components/parts/common";
+import {Draggable, Movable} from "@/components/parts/common";
 import {InputJackModel} from "@/components/parts/models";
 import Connector from "@/components/parts/views/ConnectorView.vue";
 import {toRaw} from "vue";
@@ -8,7 +8,7 @@ import {toRaw} from "vue";
 const props = defineProps(['model'])
 const model :InputJackModel = toRaw(props.model); // wrapped in proxy
 
-function onDragOver(source :DraggableOver, target :DraggableOver) {
+function onDragOver(source :Draggable, target :Draggable) {
   source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
 }

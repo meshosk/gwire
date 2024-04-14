@@ -1,15 +1,15 @@
 import { ConnectPoint, Movable} from "./index";
 
 
-export class DraggableOver extends Movable {
+export class Draggable extends Movable {
 
     private _dropAreaElement: any;
     private _canStartDrag = true;
-    private _onDraggedOverAction: (source: DraggableOver, target: DraggableOver) => void = (source, target) => {}
-    private _onDropAction: (droppedItem: DraggableOver) => void = (droppedItem :DraggableOver) => {}
-    private _onDraggingOverAction: (droppedItem: DraggableOver, droppedOVer: DraggableOver) => void = (droppedItem :DraggableOver, droppedOVer: DraggableOver) => {}
+    private _onDraggedOverAction: (source: Draggable, target: Draggable) => void = (source, target) => {}
+    private _onDropAction: (droppedItem: Draggable) => void = (droppedItem :Draggable) => {}
+    private _onDraggingOverAction: (droppedItem: Draggable, droppedOVer: Draggable) => void = (droppedItem :Draggable, droppedOVer: Draggable) => {}
     private _onDraggingOverEndAction: () => void = () => {}
-    private _onDraggingStartAction: (item :DraggableOver) => void = (x) => {}
+    private _onDraggingStartAction: () => void = () => {}
     private _onDraggingEndAction: () => void = () => {}
 
     private readonly _connectPoint: ConnectPoint;
@@ -52,31 +52,31 @@ export class DraggableOver extends Movable {
         this._onDraggingOverEndAction = value;
     }
 
-    get onDraggingOverAction(): (droppedItem: DraggableOver, droppedOVer: DraggableOver) => void {
+    get onDraggingOverAction(): (droppedItem: Draggable, droppedOVer: Draggable) => void {
         return this._onDraggingOverAction;
     }
 
-    set onDraggingOverAction(value: (droppedItem: DraggableOver, droppedOVer: DraggableOver) => void) {
+    set onDraggingOverAction(value: (droppedItem: Draggable, droppedOVer: Draggable) => void) {
         this._onDraggingOverAction = value;
     }
 
-    get onDraggingStartAction(): (item :DraggableOver) => void {
+    get onDraggingStartAction(): () => void {
         return this._onDraggingStartAction;
     }
 
-    set onDraggingStartAction(value: (item :DraggableOver) => void) {
+    set onDraggingStartAction(value: (item :Draggable) => void) {
         this._onDraggingStartAction = value;
     }
 
-    get onDraggedOverAction(): (source: DraggableOver, target: DraggableOver) => void {
+    get onDraggedOverAction(): (source: Draggable, target: Draggable) => void {
         return this._onDraggedOverAction;
     }
 
-    set onDraggedOverAction(value: (source: DraggableOver, target: DraggableOver)  => void) {
+    set onDraggedOverAction(value: (source: Draggable, target: Draggable)  => void) {
         this._onDraggedOverAction = value;
     }
 
-    set onDropAction(value: (droppedItem: DraggableOver) => void) {
+    set onDropAction(value: (droppedItem: Draggable) => void) {
         this._onDropAction = value;
     }
 

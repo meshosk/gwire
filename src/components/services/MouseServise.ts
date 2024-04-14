@@ -1,5 +1,5 @@
 import {ref, inject, toRaw} from 'vue'
-import {DraggableOver, Movable, Clickable} from "@/components/parts/common";
+import {Draggable, Movable, Clickable} from "@/components/parts/common";
 import {EditorService} from "@/components/services/EditorService";
 import {BaseService} from "@/components/services/BaseService";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
@@ -10,18 +10,7 @@ export class MouseService extends BaseService<MouseService>() {
      * List of all dragged items - for future
      * @private
      */
-    private _draggedItems :Object[] = [];
-
-    /**
-     * Item that is dragged - drag starter
-     * @private
-     */
-    private _dragSource :DraggableOver|null = null;
-    /**
-     * Ref to dragged over item. This item may not be the final destination
-     * @private
-     */
-    private _dragOverTMP :DraggableOver|null = null;
+    private _movingItems :Movable[] = [];
 
     /**
      * Previous x mouse position, for delta calculation
@@ -39,20 +28,24 @@ export class MouseService extends BaseService<MouseService>() {
      * @private
      */
     private _isDown = false;
+    /**
+     * TMP var, so ondragover event is not fired multiple times when hovering on the same item
+     * @private
+     */
+    private _lastDragOver: Draggable | null = null;
 
     /**
-     * Using shady-around-vue-play to get over which draggable component is set position. Dragged
-     * item is ignored. This should be changed to use Vue API in future.
+     * Get first item under cursor for drag over
      * @param mouseX
      * @param mouseY
      * @private
      */
-    private getDragUnderMouse(mouseX :number, mouseY :number) :DraggableOver|null {
+    private getDragOverItemUnderMouse(mouseX :number, mouseY :number) :Draggable|null {
         // get list of elements
         for (let part of EditorService.inject().parts.value) {
             for (let pin of part.internalPins) {
                 if (pin.draggable.isIn(mouseX, mouseY)) {
-                    return <DraggableOver>(<any>toRaw(pin.draggable))
+                    return <Draggable>(<any>toRaw(pin.draggable))
                 }
             }
         }
@@ -65,110 +58,109 @@ export class MouseService extends BaseService<MouseService>() {
         ContextMenuService.inject().closeMenu();
     }
 
+
+    private  get movingItem() :Movable|null {
+        // return value onlu if only one item si moved
+        if (this._movingItems.length == 1 && this._movingItems[0] instanceof Movable) {
+            return (this._movingItems[0] as Movable);
+        }
+        return null;
+    }
     onMouseUp(e: MouseEvent) {
+
         this._isDown = false;
 
-        let dragTarget = this.getDragUnderMouse(e.clientX, e.clientY);
-        let sourceTarget = this._dragSource;
+        // on mouse release find item that is first under cursor and is tno drag start
+        let dragOverTarget = this.getDragOverItemUnderMouse(e.clientX, e.clientY);
 
+        let sourceTarget = this.movingItem;
+        // got all, so clear all moving items
         this.clearRegistered();
 
-        if (sourceTarget != null) {
-            if (dragTarget != null) {
-                dragTarget.onDraggedOverAction(sourceTarget, dragTarget);
-                sourceTarget.onDraggedOverAction(sourceTarget, dragTarget);
+        // next check if is possible to drag over
+        if (sourceTarget != null && sourceTarget instanceof Draggable) {
+            if (dragOverTarget != null) {
+                // if so, hit evvents
+                dragOverTarget.onDraggedOverAction(sourceTarget, dragOverTarget);
+                sourceTarget.onDraggedOverAction(sourceTarget, dragOverTarget);
             }
             sourceTarget.onDraggingEndAction();
         }
-
     }
 
     onMouseMove(e: MouseEvent) {
-        if (this._isDown) {
-
+        // if there are item to drag, then drag them
+        if (this._movingItems.length > 0) {
+            // ge mouse deltas
             let deltaX = e.clientX - this._mouseX;
             let deltaY = e.clientY - this._mouseY;
 
-            this._draggedItems.forEach((m) => {
+            // move all moving items
+            this._movingItems.forEach((m) => {
+                // do not move by mouse draggable items that cannot be dragged
+                if (m instanceof Draggable && m.canStartDrag == false) {
+                    return;
+                }
                 if (m instanceof Movable) {
-                    (m as Movable).mouseMoved(deltaX, deltaY);
+                    (m as Movable).moveByDelta(deltaX, deltaY);
                 }
             });
+            //store actual mouse position for next move delta
             this._mouseX = e.clientX;
             this._mouseY = e.clientY;
         }
 
-        if (this._dragSource != null) {
-            let under = this.getDragUnderMouse(e.clientX, e.clientY);
-            if (this._dragOverTMP != under) {
-                this._dragOverTMP?.onDraggingOverEndAction();
-            }
-            if (under != null) {
-                under.onDraggingOverAction(under, this._dragSource);
-                this._dragOverTMP = under;
-            }
-        }
-    }
-
-    register(instance: Movable) {
-
-        if (instance instanceof DraggableOver) {
-            let drg =  (instance as DraggableOver)
-            if (drg.canStartDrag === false) {
+        // if there is item directly dragged to drop
+        if (this.movingItem != null && this.movingItem instanceof Draggable) {
+            if (this.movingItem.canStartDrag === false) {
                 return;
             }
-            this.registerDragSource(drg);
+            // get first item that is under mouse and it is not dragged
+            let under = this.getDragOverItemUnderMouse(e.clientX, e.clientY);
+            // check if dragged over item is not the same as last time
+            if (under != null && this._lastDragOver != under) {
+                // hit drag over event on not moved item
+                this._lastDragOver?.onDraggingOverEndAction();
+                // hit drag over event on dragged item
+                under.onDraggingOverAction(under, this.movingItem);
+                // store last item that is dragged over
+                this._lastDragOver = under;
+            }
         }
-
-        this._draggedItems.push(instance);
-        instance.startMovingAction();
     }
 
-    unregister(instance: Movable){
-        let index = this._draggedItems.indexOf(instance);
-        if (index>0) {
-            this._draggedItems.splice(index,1);
+
+    public register(items: Movable|Array<Movable>) {
+
+        let i = []
+        // if there is draggable convert it to array
+        if (items instanceof Movable) {
+            i.push(items);
+        } else {
+            i = (items as Array<Movable>);
+        }
+
+        for (let item of i) {
+            // first put in moving items
+            let instance = item as Movable;
+            if (instance == null) continue;
+
+            this._movingItems.push(instance);
+            instance.startMovingAction();
+
+            // check if item is draggable
+            if (this.movingItem != null && this.movingItem instanceof Draggable && this.movingItem.canStartDrag === true) {
+                    // if it is draggable and it is only one start dragging
+                   this.movingItem.onDraggingStartAction();
+            }
         }
     }
 
     clearRegistered(){
-        this._dragSource = null;
-        this._draggedItems.forEach((m) => {
-            if (m instanceof Movable) {
-                (m as Movable).stopMovingAction();
-            }
-
-            if (m instanceof Clickable) {
-                (m as Clickable).mouseReleased();
-            }
+        this._movingItems.forEach((m) => {
+            (m as Movable).stopMovingAction();
+            (m as Clickable).mouseReleased();
         });
-        this._draggedItems = [];
-    }
-
-    get isDown(): boolean {
-        return this._isDown;
-    }
-
-    checkForDraggingOver(item : DraggableOver|null) {
-        if (this._dragSource !== null) {
-            if (item != null && item != this._dragSource) {
-                item.onDraggingOverAction(item, this._dragSource);
-            }
-        }
-    }
-    registerDragSource(item : DraggableOver) {
-        if (!this._dragSource){
-            this._dragSource = item;
-            this._dragSource?.onDraggingStartAction(item);
-        }
-    }
-
-
-    get mouseX(): number {
-        return this._mouseX;
-    }
-
-    get mouseY(): number {
-        return this._mouseY;
+        this._movingItems = [];
     }
 }

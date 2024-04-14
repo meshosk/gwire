@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted, ref, watch} from "vue";
-import {ConnectPoint, DraggableOver, HighlightType} from "@/components/parts/common";
+import {ConnectPoint, Draggable, HighlightType} from "@/components/parts/common";
 
 const props = defineProps(['onDragStart','onDraggedOver', "isDraggable", 'connection', 'xShift', 'yShift'])
 

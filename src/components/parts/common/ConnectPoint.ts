@@ -1,4 +1,4 @@
-import {CircuitPart, DraggableOver, HighlightType, Movable} from "@/components/parts/common";
+import {CircuitPart, Draggable, HighlightType, Movable} from "@/components/parts/common";
 import {ref} from "vue";
 
 /**
@@ -12,7 +12,7 @@ export class ConnectPoint {
     private _connectedTo :ConnectPoint[] = [];
     private readonly _name: string;
 
-    private readonly _draggable :DraggableOver = new DraggableOver(this);
+    private readonly _draggable :Draggable = new Draggable(this);
 
     constructor(part: CircuitPart, name :string) {
         this._part = part;
@@ -54,7 +54,7 @@ export class ConnectPoint {
     }
 
 
-    get draggable(): DraggableOver {
+    get draggable(): Draggable {
         return this._draggable;
     }
 

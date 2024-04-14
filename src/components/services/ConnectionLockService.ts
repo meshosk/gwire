@@ -1,12 +1,12 @@
 import {watch, inject} from "vue";
-import type {DraggableOver} from "@/components/parts/common/DraggableOver";
+import type {Draggable} from "@/components/parts/common/Draggable";
 import {BaseService} from "@/components/services/BaseService";
 
 export class ConnectionLockService extends BaseService<ConnectionLockService>() {
 
     private readonly _watchers: Map<MapKey, WatcherItem> = new Map<MapKey, WatcherItem>();
 
-    lock( a: DraggableOver, b: DraggableOver) {
+    lock(a: Draggable, b: Draggable) {
         this.cleanInactiveLocks();
         let key = this.findWatcherKey( a, b);
         if (key == null) {
@@ -18,7 +18,7 @@ export class ConnectionLockService extends BaseService<ConnectionLockService>() 
         }
     }
 
-    private findWatcherKey(a: DraggableOver, b: DraggableOver){
+    private findWatcherKey(a: Draggable, b: Draggable){
         for (let key  of this._watchers.keys()) {
             if (key.has(a, b)) {
                 return key;
@@ -26,7 +26,7 @@ export class ConnectionLockService extends BaseService<ConnectionLockService>() 
         }
     }
 
-    public releaseLock(a: DraggableOver, b: DraggableOver) {
+    public releaseLock(a: Draggable, b: Draggable) {
         let key =  this.findWatcherKey(a,b);
         if (key != null) {
             let watcher = this._watchers.get(key);
@@ -42,7 +42,7 @@ export class ConnectionLockService extends BaseService<ConnectionLockService>() 
         this._watchers.clear();
     }
 
-    public releaseAllLockFor(a: DraggableOver){
+    public releaseAllLockFor(a: Draggable){
         let keys = [];
         for (let key  of this._watchers.keys()) {
             if (key.isInKey(a)) {
@@ -69,18 +69,18 @@ export class ConnectionLockService extends BaseService<ConnectionLockService>() 
 }
 
 class MapKey {
-    private readonly a :DraggableOver;
-    private readonly b :DraggableOver;
-    constructor(a: DraggableOver, b: DraggableOver) {
+    private readonly a :Draggable;
+    private readonly b :Draggable;
+    constructor(a: Draggable, b: Draggable) {
         this.a = a;
         this.b = b;
     }
 
-    public has(a :DraggableOver, b :DraggableOver) :boolean{
+    public has(a :Draggable, b :Draggable) :boolean{
         return this.a == a && this.b == b || this.a == b && this.b == a;
     }
 
-    public isInKey(a :DraggableOver){
+    public isInKey(a :Draggable){
         return this.a == a || this.b == a;
     }
 }
@@ -88,11 +88,11 @@ class MapKey {
 class WatcherItem {
     private readonly _watcher;
     private readonly _releaseAction;
-    private readonly _a: DraggableOver;
-    private readonly _b: DraggableOver;
+    private readonly _a: Draggable;
+    private readonly _b: Draggable;
     private _isActive = true;
 
-    constructor(a :DraggableOver, b :DraggableOver) {
+    constructor(a :Draggable, b :Draggable) {
         this._a = a;
         this._b = b;
         a.connectPoint.connect(b.connectPoint);
@@ -122,11 +122,11 @@ class WatcherItem {
         return this._isActive;
     }
 
-    get a(): DraggableOver {
+    get a(): Draggable {
         return this._a;
     }
 
-    get b(): DraggableOver {
+    get b(): Draggable {
         return this._b;
     }
 }

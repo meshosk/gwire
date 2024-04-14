@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ConnectionLockService, DraggableOver, HighlightType, Movable} from "@/components/parts/common";
+import {ConnectionLockService, Draggable, HighlightType, Movable} from "@/components/parts/common";
 import Connector from "@/components/parts/views/ConnectorView.vue";
 import {CableModel} from "@/components/parts/models";
 import {EditorService} from "@/components/services/EditorService";
@@ -22,11 +22,11 @@ const connectionLock =  ConnectionLockService.inject();
 const editorService = EditorService.inject();
 const color = ref(model.color);
 
-const onDragStart = (item :DraggableOver) => {
+const onDragStart = (item :Draggable) => {
     connectionLock.releaseAllLockFor(item);
 }
 
-function onDragOver(source :DraggableOver, target :DraggableOver) {
+function onDragOver(source :Draggable, target :Draggable) {
   connectionLock.lock(source, target);
 
   // position correction, when cable is connected on cable

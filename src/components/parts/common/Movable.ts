@@ -28,7 +28,7 @@ export class Movable extends Clickable {
 
     constructor() {
         super();
-        this._mouseService =  MouseService.inject();
+        this._mouseService =  (MouseService.inject() as MouseService);
         // computed need to be initialized in constructor
         this._xShifted = computed(() => {
             return this._x.value + this._xShift.value;
@@ -39,12 +39,12 @@ export class Movable extends Clickable {
 
     }
 
-    onMouseDown(e: MouseEvent) {
+    onMouseDown(e: MouseEvent|null) {
         this.mousePressed()
         this.mouseService.register(this);
     }
 
-    mouseMoved(deltaX :number, deltaY :number) {
+    moveByDelta(deltaX :number, deltaY :number) {
         if (this.mouseIsDown.value) {
             if (this.isDragged.value != true) {
                 this.isDragged.value = true;

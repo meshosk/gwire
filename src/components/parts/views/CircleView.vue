@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, toRaw, watch} from 'vue'
-import {Movable, DraggableOver,} from "@/components/parts/common";
+import {Movable, Draggable,} from "@/components/parts/common";
 import ConnectorView from "@/components/parts/views/ConnectorView.vue";
 import {CircleModel} from "@/components/parts/models";
 
@@ -16,7 +16,7 @@ watch(model.m.mouseIsDown, async() => {
   }
 })
 
-function onDragOver(source :DraggableOver, target :DraggableOver) {
+function onDragOver(source :Draggable, target :Draggable) {
   source.x.value = target.xShifted.value;
   source.y.value = target.yShifted.value;
 }

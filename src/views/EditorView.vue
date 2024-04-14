@@ -2,20 +2,13 @@
 import {MouseService} from "@/components/services/MouseServise";
 import {EditorService} from "@/components/services/EditorService";
 import *  as vueComps from "@/components/parts/views";
-import {SerializationService} from "@/components/services/SerializationService";
-import {onMounted, ref, toRaw} from "vue";
 import ContextMenuView from "@/components/parts/views/ContextMenuView.vue";
-import {ContextMenuService} from "@/components/services/ContextMenuService";
-
-
 
 var mouseService = MouseService.inject();
 var editorService = EditorService.inject();
-var serializationService = SerializationService.inject();
-var cms = ContextMenuService.inject();
-
 function add(type :string) {
-  editorService.addPart(type);
+  let part = editorService.addPart(type);
+  part.m.onMouseDown(null);
 }
 
 function showRoute(){
