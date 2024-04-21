@@ -23,6 +23,19 @@ export abstract class CircuitPart extends Serializable {
 
     public drawPriority : boolean = false;
 
+    /**
+     * this is the main movable used when item is moved by mouse
+     * @private
+     */
+    private readonly _m :Movable;
+    /**
+     * Main movable
+     */
+    public get m(): Movable {
+        return this._m;
+    }
+
+
     public onPartChangeState :(circlePart: CircuitPart) => void = (circlePart) =>{};
 
     abstract readonly circuitPartName :string;
@@ -30,8 +43,20 @@ export abstract class CircuitPart extends Serializable {
     public abstract get vueComponentName(): string;
     public abstract get nonMinifiedClassName(): string;
 
+    /**
+     * Used only to set up position for first time
+     * @param x
+     * @param y
+     */
+    public initPosition(x:number,y:number): void {
+        this.m.x.value = x;
+        this.m.y.value = y;
+    }
+
+
     protected constructor(pinsNames : string[]|number[]) {
         super();
+        this._m = new Movable();
         this._id = CircuitPart.getId();
         this._highlight = ref(HighlightType.NONE);
         for (let i = 0; i < pinsNames.length; i++) {

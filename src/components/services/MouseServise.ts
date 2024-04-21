@@ -1,8 +1,9 @@
 import {ref, inject, toRaw} from 'vue'
-import {Draggable, Movable, Clickable} from "@/components/parts/common";
+import {Draggable, Movable, Clickable, CircuitPart} from "@/components/parts/common";
 import {EditorService} from "@/components/services/EditorService";
 import {BaseService} from "@/components/services/BaseService";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
+import {CircleModel} from "@/components/parts/models";
 
 export class MouseService extends BaseService<MouseService>() {
 
@@ -89,22 +90,30 @@ export class MouseService extends BaseService<MouseService>() {
     }
 
     onMouseMove(e: MouseEvent) {
+
         // if there are item to drag, then drag them
         if (this._movingItems.length > 0) {
-            // ge mouse deltas
-            let deltaX = e.clientX - this._mouseX;
-            let deltaY = e.clientY - this._mouseY;
+
+
+            //else {
+
+                // ge mouse deltas
+                let deltaX = e.clientX - this._mouseX;
+                let deltaY = e.clientY - this._mouseY;
+
+                this._movingItems.forEach((m) => {
+                    // do not move by mouse draggable items that cannot be dragged
+                    if (m instanceof Draggable && m.canStartDrag == false) {
+                        return;
+                    }
+                    if (m instanceof Movable) {
+                        (m as Movable).moveByDelta(deltaX, deltaY);
+                    }
+                });
+          //  }
 
             // move all moving items
-            this._movingItems.forEach((m) => {
-                // do not move by mouse draggable items that cannot be dragged
-                if (m instanceof Draggable && m.canStartDrag == false) {
-                    return;
-                }
-                if (m instanceof Movable) {
-                    (m as Movable).moveByDelta(deltaX, deltaY);
-                }
-            });
+
             //store actual mouse position for next move delta
             this._mouseX = e.clientX;
             this._mouseY = e.clientY;
@@ -163,4 +172,5 @@ export class MouseService extends BaseService<MouseService>() {
         });
         this._movingItems = [];
     }
+
 }

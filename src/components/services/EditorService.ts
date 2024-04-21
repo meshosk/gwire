@@ -16,9 +16,9 @@ export class EditorService extends BaseService<EditorService>() {
         super();
         this._parts = ref([]);
     }
-    public addPart(partName :string) : CircleModel{
+    public addPart(partName :string) : CircleModel {
         // @ts-ignore
-        let instance = new modelRef[partName]();
+        let instance = (new modelRef[partName]() as CircleModel);
          if (instance == null) {
              throw new Error(`Model for '${partName}' was not found`);
          }

@@ -13,12 +13,16 @@ export class CableModel extends CircuitPart {
     constructor() {
         super(["c1","c2"]);
 
-        this.c1.draggable.x.value = 100;
-        this.c1.draggable.y.value = 100;
-        this.c2.draggable.x.value = 300;
-        this.c2.draggable.y.value = 100;
+
 
         this.pins[0].connect(this.pins[1]);
+    }
+
+    override initPosition(x: number, y: number) {
+        this.c1.draggable.x.value = x - 100;
+        this.c1.draggable.y.value = y;
+        this.c2.draggable.x.value = x + 100;
+        this.c2.draggable.y.value = y;
     }
 
 

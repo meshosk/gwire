@@ -1,5 +1,7 @@
 import {ConnectPoint, CircuitPart, Movable, Draggable} from "@/components/parts/common";
 import {ref, watch} from "vue";
+import {types} from "sass";
+import Error = types.Error;
 
 /**
  * Just cable that can connect two points
@@ -8,15 +10,12 @@ export class CircleModel extends CircuitPart {
 
     readonly circuitPartName: string = "cable";
 
-    private readonly _m :Movable;
-
     private _isPressed = ref(false);
 
     constructor() {
         super(["s1", "s2"]);
-        this._m = new Movable();
 
-        this.makeAllPinsFollow(this._m);
+        this.makeAllPinsFollow(this.m);
 
         watch(() => this.isPressed.value, (n) => {
 
@@ -35,10 +34,6 @@ export class CircleModel extends CircuitPart {
 
     get s2(): ConnectPoint {
         return this.pins[1];
-    }
-
-    get m(): Movable {
-        return this._m;
     }
 
     get isPressed(){
