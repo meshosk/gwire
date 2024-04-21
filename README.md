@@ -15,7 +15,11 @@ ___The TODO___:
 - [x] Option to set wires colors
 - [ ] Text/note component
 - [ ] Pinpoint route validation
-- [ ] Drag&Drop parts from menu
+- [X] ~~Drag&Drop parts from menu~~ RMB context menu for add parts (I'm lazy, this works)
+- [ ] Make it PWA
+- [ ] Add more real world parts
+- [ ] Add part search add option
+- [ ] Change part variation
 
 ## Github pages
 
