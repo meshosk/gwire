@@ -1,4 +1,7 @@
 export function BaseService<T>() {
+    /**
+     * Little construct to get generic access to services as easy single instance service
+     */
     class BaseService {
 
         // yeah, neat workaround, TS do not handle generics+static well
@@ -8,7 +11,8 @@ export function BaseService<T>() {
             BaseService._services.set(this.constructor.name, this);
         }
         /**
-         * Static method for easy injection
+         * Static method for easy injection. It sucks, because Idea cannot handle right type
+         * on return... need to cast in the method call place...
          */
         static inject() :T   {
             return <T>this._services.get(this.name);

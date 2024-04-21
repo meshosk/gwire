@@ -52,6 +52,11 @@ export class MouseService extends BaseService<MouseService>() {
         }
         return null;
     }
+
+    /**
+     * Just regisister mouse down
+     * @param e
+     */
     onMouseDown(e: MouseEvent) {
         this._isDown = true;
         this._mouseX = e.clientX;

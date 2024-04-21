@@ -63,10 +63,6 @@ export class ConnectPoint {
         return this._highlight;
     }
 
-    set highlight(value) {
-        this._highlight = value;
-    }
-
 
     public get JSONObject() {
         let o = this.baseJSONObject;

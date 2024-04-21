@@ -7,10 +7,10 @@ import {BaseService} from "@/components/services/BaseService";
 
 export class EditorService extends BaseService<EditorService>() {
 
-    private readonly _parts  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>>;
+    private readonly _parts  :Vue.Ref<CircuitPart[]>;
 
-    private readonly _partsNormal  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>> =  ref([])
-    private readonly _partsPrioritized  :Vue.Ref<Vue.UnwrapRef<CircuitPart[]>> =  ref([])
+    private readonly _partsNormal  :Vue.Ref<CircuitPart[]> =  ref([])
+    private readonly _partsPrioritized  :Vue.Ref<CircuitPart[]> =  ref([])
 
     constructor() {
         super();
@@ -60,9 +60,11 @@ export class EditorService extends BaseService<EditorService>() {
     public showRoute(){
 
         for (let part of this._parts.value) {
-            part.highlight = HighlightType.NONE;
+            // @ts-ignore
+            part.highlight = HighlightType.NONE; // this retuns proxy, but is not in view mode, cannot get correct types for clean build
             for (let pin of part.pins) {
-                pin.highlight = HighlightType.NONE;
+                // @ts-ignore
+                pin.highlight = HighlightType.NONE; // this retuns proxy, but is not in view mode, cannot get correct types for clean build
             }
         }
 
