@@ -1,7 +1,5 @@
 import {ConnectPoint, CircuitPart, Movable, Draggable} from "@/components/parts/common";
 import {ref, watch} from "vue";
-import {types} from "sass";
-import Error = types.Error;
 
 /**
  * Just cable that can connect two points

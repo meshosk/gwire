@@ -1,8 +1,9 @@
-
-
+/**
+ * Simple class presenting color with extra methods
+ */
 export class Color {
 
-    private readonly _color = "#000000";
+    private readonly _color;
 
     constructor(color: string) {
         this._color = color;
@@ -35,7 +36,7 @@ export class Color {
         let mixedB = Math.round((1 - percentage) * rgb1.b + percentage * rgb2.b);
 
         // Convert mixed RGB values back to hexadecimal color string
-        let mixedColor = this.rgbToHex(mixedR, mixedG, mixedB);
+        let mixedColor = this.rgbToHex(new RGBColor(mixedR, mixedG, mixedB));
 
         return mixedColor;
     }
@@ -45,16 +46,16 @@ export class Color {
      * @param hex
      * @private
      */
-     private hexToRgb(hex) {
+     private hexToRgb(hex :string) :RGBColor {
         // Remove '#' if present
         hex = hex.replace('#', '');
 
         // Convert hexadecimal to RGB
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
+        let r = parseInt(hex.substring(0, 2), 16);
+        let g = parseInt(hex.substring(2, 4), 16);
+        let b = parseInt(hex.substring(4, 6), 16);
 
-        return { r, g, b };
+        return new RGBColor(r,g,b);
     }
 
     /**
@@ -64,12 +65,25 @@ export class Color {
      * @param b
      * @private
      */
-    private rgbToHex(r, g, b) {
+    private rgbToHex(rgbColor :RGBColor) {
         // Convert RGB to hexadecimal
-        const componentToHex = (c) => {
+        let componentToHex = (c :number) => {
             const hex = c.toString(16);
             return hex.length == 1 ? '0' + hex : hex;
         };
-        return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
+        return '#' + componentToHex(rgbColor.r) + componentToHex(rgbColor.g) + componentToHex(rgbColor.b);
     }
+}
+
+ class RGBColor {
+
+     constructor(r: number, g: number, b: number) {
+         this.r = r;
+         this.g = g;
+         this.b = b;
+     }
+
+     public r : number = 0;
+    public g : number = 0;
+    public b : number = 0;
 }
