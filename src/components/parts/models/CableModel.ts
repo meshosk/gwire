@@ -1,4 +1,5 @@
 import {ConnectPoint, CircuitPart, Movable} from "@/components/parts/common";
+import {Color} from "@/components/parts/common/Color";
 
 /**
  * Just cable that can connect two points
@@ -7,7 +8,7 @@ export class CableModel extends CircuitPart {
 
     readonly circuitPartName: string = "cable";
 
-    private _color :string = "#000000";
+    private _color :Color = new Color("#000000");
 
     public drawPriority : boolean = true;
     constructor() {
@@ -27,11 +28,11 @@ export class CableModel extends CircuitPart {
 
 
     get color(): string {
-        return this._color;
+        return this._color.color;
     }
 
     set color(value: string) {
-        this._color = value;
+        this._color = new Color(value);
     }
 
     get c1(): ConnectPoint {
