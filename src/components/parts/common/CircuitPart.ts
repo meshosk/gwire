@@ -11,9 +11,6 @@ export  enum HighlightType {
 
 export abstract class CircuitPart extends Serializable {
 
-
-
-
     private static  idCount = 0;
     private static getId() {
         return CircuitPart.idCount++;

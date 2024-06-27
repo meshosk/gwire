@@ -2,7 +2,7 @@ import {computed, ref} from 'vue'
 
 import {MouseService} from "@/components/services/MouseServise";
 import {Clickable} from "./index";
-
+import * as Vue from "@vue/reactivity";
 
 export class Movable extends Clickable {
 
@@ -118,5 +118,12 @@ export class Movable extends Clickable {
        this.y.value = o.y;
        this.xShift.value = o.xShift;
        this.yShift.value = o.yShift;
+    }
+
+    public get XYString() {
+        if (Vue.isProxy(this)) {
+            return this.x + "," + this.y;
+        }
+        return this.x.value + "," + this.y.value;
     }
 }

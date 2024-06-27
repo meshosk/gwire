@@ -19,6 +19,10 @@ function showRoute(){
   editorService.showRoute();
 }
 
+function clearActive(){
+  editorService.clearActive();
+}
+
 function getComponent (comp: any) {
   // @ts-ignore
   return  vueComps[comp.vueComponentName];
@@ -31,7 +35,8 @@ const contextMenu = [
     new ContextMenuItem("Input jack","", () => add("InputJackModel")),
   ]),
   new ContextMenuItem("Add cable","", () => add("CableModel")),
-  new ContextMenuItem("Show route","", () => showRoute()),
+  new ContextMenuItem("Show active","", () => showRoute()),
+  new ContextMenuItem("Clear active","", () => clearActive()),
 ];
 </script>
 
@@ -39,8 +44,10 @@ const contextMenu = [
   <context-menu-view  />
   <div class="editor">
     <svg
-        @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"
         @mousemove="mouseService.onMouseMove" @mousedown="mouseService.onMouseDown"  @mouseup="mouseService.onMouseUp">
+      <rect
+          @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"
+          fill="white" width="100%" height="100%"/>
       <component v-for="comp in editorService.normalParts.value"  :is="getComponent(comp)" :model="comp" :key="comp.id"/>
       <component v-for="comp in editorService.prioritizedParts.value"  :is="getComponent(comp)" :model="comp" :key="comp.id"/>
     </svg>

@@ -59,14 +59,7 @@ export class EditorService extends BaseService<EditorService>() {
 
     public showRoute(){
 
-        for (let part of this._parts.value) {
-            // @ts-ignore
-            part.highlight = HighlightType.NONE; // this retuns proxy, but is not in view mode, cannot get correct types for clean build
-            for (let pin of part.pins) {
-                // @ts-ignore
-                pin.highlight = HighlightType.NONE; // this retuns proxy, but is not in view mode, cannot get correct types for clean build
-            }
-        }
+       this.clearActive();
 
         // find input jack
         let jacks = this._parts.value.filter( x => x instanceof InputJackModel);
@@ -78,6 +71,18 @@ export class EditorService extends BaseService<EditorService>() {
 
             this.recursiveRoute(<any>toRaw(startingPin), pinBag);
         }
+    }
+
+    public clearActive() {
+        for (let part of this._parts.value) {
+            // @ts-ignore
+            part.highlight = HighlightType.NONE; // this retuns proxy, but is not in view mode, cannot get correct types for clean build
+            for (let pin of part.pins) {
+                // @ts-ignore
+                pin.highlight = HighlightType.NONE; // this retuns proxy, but is not in view mode, cannot get correct types for clean build
+            }
+        }
+
     }
 
     private recursiveRoute(homePin :ConnectPoint, pinBag: ConnectPoint[]) {

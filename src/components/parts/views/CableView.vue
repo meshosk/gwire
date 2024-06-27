@@ -4,7 +4,7 @@ import {ConnectionLockService, Draggable, HighlightType, Movable} from "@/compon
 import Connector from "@/components/parts/views/ConnectorView.vue";
 import {CableModel} from "@/components/parts/models";
 import {EditorService} from "@/components/services/EditorService";
-import {ref, toRaw, watch} from "vue";
+import {ref, toRaw, watch, isProxy} from "vue";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
 import {ContextMenuItem} from "@/components/parts/common/ContextMenuItem";
 
@@ -43,6 +43,10 @@ watch(color, () => {
   model.color = color.value;
 })
 
+const callOnProxyonMouseDown = ( mmm : Movable) => {
+   isProxy(mmm) ? toRaw(mmm).onMouseDown(null) : mmm.onMouseDown(null);
+}
+
 const contextMenu = [
   new ContextMenuItem("Color", "", [
     new ContextMenuItem("red", "", () => color.value = "red"),
@@ -53,21 +57,59 @@ const contextMenu = [
         new ContextMenuItem("yellow", "", () => color.value = "yellow"),
       ])
   ]),
-  new ContextMenuItem("test","", null)
+  new ContextMenuItem("split","", () => model.addSplit(cms.x.value, cms.y.value))
 ];
 
 </script>
 
 <template>
     <g
-        @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"
         @mousedown="makeOnTop(true)"
         @blur ="makeOnTop(false)"
         :class="HighlightType[model.highlight.value]">
+
+<!--      <template v-for="n in model.splits.value.length" v-if="model.splits.value.length > 0">-->
+<!--        <line-->
+<!--            v-if="n == 1"-->
+<!--            @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"-->
+<!--            :x1="model.c1.draggable.x.value" :y1="model.c1.draggable.y.value"-->
+<!--            :x2="model.splits.value[0].x" :y2="model.splits.value[0].y"-->
+<!--            :stroke="color" stroke-width="4"-->
+<!--        />-->
+<!--        <line-->
+<!--            v-if="n == model.splits.value.length"-->
+<!--            @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"-->
+<!--            :x2="model.c2.draggable.x.value" :y2="model.c2.draggable.y.value"-->
+<!--            :x1="model.splits.value[model.splits.value.length-1].x" :y1="model.splits.value[model.splits.value.length-1].y"-->
+<!--            :stroke="color" stroke-width="4"-->
+<!--        />-->
+<!--        <line-->
+<!--            v-if="n != 1 && n != model.splits.value.length"-->
+<!--            @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"-->
+<!--            :x1="model.splits.value[n-1].x" :y1="model.splits.value[n-1].y"-->
+<!--            :x2="model.splits.value[n].x" :y2="model.splits.value[n].y"-->
+<!--            :stroke="color" stroke-width="4"-->
+<!--        />-->
+<!--      </template>-->
       <line
+          v-if="model.splits.value.length == 0"
+          @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"
           :x1="model.c1.draggable.x.value" :y1="model.c1.draggable.y.value"
           :x2="model.c2.draggable.x.value" :y2="model.c2.draggable.y.value"
           :stroke="color" stroke-width="4"
+      />
+
+      <polyline
+          @contextmenu.prevent="e => cms.openMenu(e.clientX, e.clientY, contextMenu)"
+          :points="model.polyLinePointsString"
+          :stroke="color" stroke-width="4"
+          fill="none"
+      />
+
+      <circle
+          v-for="split in toRaw(model.splits.value)"
+          :cx="split.x.value" :cy="split.y.value" r="10" stroke="black" stroke-width="3" :fill="color"
+          @mousedown="() => callOnProxyonMouseDown(split)"
       />
       <Connector
          :onDraggedOver="onDragOver"
