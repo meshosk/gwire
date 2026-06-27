@@ -1,4 +1,6 @@
-import {CircuitPart, Draggable, HighlightType, Movable} from "@/components/parts/common";
+import {CircuitPart} from "./CircuitPart";
+import {Draggable} from "./Draggable";
+import {HighlightType} from "./Highlight";
 import {ref} from "vue";
 
 /**

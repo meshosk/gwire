@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {ContextMenuService} from "@/components/services/ContextMenuService";
-import MenuView from "@/components/parts/views/MenuView.vue";
+import MenuView from "@/components/parts/menu/MenuView.vue";
 import {toRaw} from "vue";
 
 const cms = ContextMenuService.inject();

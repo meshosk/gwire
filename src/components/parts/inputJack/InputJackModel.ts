@@ -1,4 +1,4 @@
-import {CircuitPart, Movable} from "@/components/parts/common";
+import {CircuitPart, Movable} from "@/components/parts/base";
 
 export class InputJackModel extends CircuitPart {
 

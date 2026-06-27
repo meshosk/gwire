@@ -1,9 +1,17 @@
-import * as modelRef from "@/components/parts/models";
+import {CircuitPart, ConnectPoint, HighlightType} from "@/components/parts/base";
+import {CircleModel} from "@/components/parts/circle/CircleModel";
+import {InputJackModel} from "@/components/parts/inputJack/InputJackModel";
+import {CableModel} from "@/components/parts/cable/CableModel";
+import {DynamicComponentModel} from "@/components/parts/dynamicComponent/DynamicComponentModel";
 import {ref, inject, toRaw} from "vue";
 import  * as Vue from "@vue/reactivity"
-import {CircuitPart, ConnectPoint, HighlightType} from "@/components/parts/common";
-import {CircleModel, InputJackModel} from "@/components/parts/models";
 import {BaseService} from "@/components/services/BaseService";
+
+const partConstructors: Record<string, new () => CircuitPart> = {
+    CircleModel,
+    InputJackModel,
+    CableModel,
+};
 
 export class EditorService extends BaseService<EditorService>() {
 
@@ -16,12 +24,12 @@ export class EditorService extends BaseService<EditorService>() {
         super();
         this._parts = ref([]);
     }
-    public addPart(partName :string) : CircleModel {
-        // @ts-ignore
-        let instance = (new modelRef[partName]() as CircleModel);
-         if (instance == null) {
+    public addPart(partName :string) : CircuitPart {
+        const Constructor = partConstructors[partName];
+        if (!Constructor) {
              throw new Error(`Model for '${partName}' was not found`);
          }
+        let instance = (new Constructor() as CircuitPart);
         this._parts.value.push(instance);
         this.reloadTempCollections();
         return instance;

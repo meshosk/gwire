@@ -1,7 +1,7 @@
-import { CircuitPart, ConnectPoint, HighlightType } from "@/components/parts/common";
+import { CircuitPart, ConnectPoint, HighlightType } from "@/components/parts/base";
 import { ref, watch, type Ref } from "vue";
-import { ComponentTemplate } from "./ComponentTemplate";
-import { ComponentState } from "./ComponentState";
+import { ComponentTemplate } from "@/components/parts/dynamicComponent/ComponentTemplate";
+import { ComponentState } from "@/components/parts/dynamicComponent/ComponentState";
 import * as Vue from "@vue/reactivity";
 
 /**

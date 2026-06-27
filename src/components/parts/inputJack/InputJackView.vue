@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import ConnectorView from "@/components/parts/views/ConnectorView.vue";
-import {Draggable, Movable} from "@/components/parts/common";
-import {InputJackModel} from "@/components/parts/models";
-import Connector from "@/components/parts/views/ConnectorView.vue";
+import ConnectorView from "@/components/parts/common/ConnectorView.vue";
+import {Draggable, Movable} from "@/components/parts/base";
+import {InputJackModel} from "@/components/parts/inputJack/InputJackModel";
+import Connector from "@/components/parts/common/ConnectorView.vue";
 import {toRaw} from "vue";
 
 const props = defineProps(['model'])

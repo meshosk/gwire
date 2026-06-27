@@ -1,4 +1,5 @@
-import { ConnectPoint, Movable} from "./index";
+import { ConnectPoint} from "./ConnectPoint";
+import { Movable} from "./Movable";
 
 
 export class Draggable extends Movable {
@@ -68,7 +69,7 @@ export class Draggable extends Movable {
         this._onDraggingStartAction = value;
     }
 
-    get onDraggedOverAction(): (source: Draggable, target: Draggable) => void {
+    get onDraggedOverAction(): (source: Draggable, target: Draggable)  => void {
         return this._onDraggedOverAction;
     }
 

@@ -1,7 +1,10 @@
 import {getCurrentInstance, inject} from 'vue'
-import {CircuitPart, ConnectionLockService, ConnectPoint} from "@/components/parts/common";
+import {CircuitPart, ConnectPoint} from "@/components/parts/base";
+import {ConnectionLockService} from "@/components/services/ConnectionLockService";
 import {EditorService} from "@/components/services/EditorService";
-import {CableModel, DynamicComponentModel, ComponentTemplate} from "@/components/parts/models";
+import {CableModel} from "@/components/parts/cable/CableModel";
+import {DynamicComponentModel} from "@/components/parts/dynamicComponent/DynamicComponentModel";
+import {ComponentTemplate} from "@/components/parts/dynamicComponent/ComponentTemplate";
 import {BaseService} from "@/components/services/BaseService";
 
 export class SerializationService extends BaseService<SerializationService>() {

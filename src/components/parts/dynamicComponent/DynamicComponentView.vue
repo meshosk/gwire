@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, toRaw, watch } from 'vue';
-import { Movable, Draggable, HighlightType } from "@/components/parts/common";
-import ConnectorView from "@/components/parts/views/ConnectorView.vue";
-import { DynamicComponentModel } from "@/components/parts/models";
+import { Movable, Draggable, HighlightType } from "@/components/parts/base";
+import ConnectorView from "@/components/parts/common/ConnectorView.vue";
+import { DynamicComponentModel } from "@/components/parts/dynamicComponent/DynamicComponentModel";
 import { EditorService } from "@/components/services/EditorService";
 import { ContextMenuService } from "@/components/services/ContextMenuService";
 import { ContextMenuItem } from "@/components/parts/common/ContextMenuItem";

@@ -1,4 +1,4 @@
-import {ConnectPoint, CircuitPart, Movable, Draggable} from "@/components/parts/common";
+import {ConnectPoint, CircuitPart, Movable, Draggable} from "@/components/parts/base";
 import {Color} from "@/components/parts/common/color/Color";
 import {ref} from "vue";
 import * as Vue from "@vue/reactivity";

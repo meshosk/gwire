@@ -1,7 +1,6 @@
 import {computed, ref} from 'vue'
 
-import {MouseService} from "@/components/services/MouseServise";
-import {Clickable} from "./index";
+import {Clickable} from "./Clickable";
 import * as Vue from "@vue/reactivity";
 
 export class Movable extends Clickable {
@@ -23,12 +22,19 @@ export class Movable extends Clickable {
      */
     private _isDragged = ref(false);
 
-    private _mouseService: MouseService;
+    private _mouseService: MouseService | undefined;
 
+    private get mouseService(): MouseService {
+        if (!this._mouseService) {
+            // Lazy resolution — breaks circular dependency: base → services → base
+            // By the time this is called (at runtime), all modules are fully loaded
+            this._mouseService = (import("@/components/services/MouseServise") as any).then(m => m.MouseService.inject()) as any;
+        }
+        return this._mouseService;
+    }
 
     constructor() {
         super();
-        this._mouseService =  (MouseService.inject() as MouseService);
         // computed need to be initialized in constructor
         this._xShifted = computed(() => {
             return this._x.value + this._xShift.value;
@@ -41,7 +47,7 @@ export class Movable extends Clickable {
 
     onMouseDown(e: MouseEvent|null) {
         this.mousePressed()
-        this.mouseService.register(this);
+        this.mouseService.then((service: MouseService) => service.register(this));
     }
 
     moveByDelta(deltaX :number, deltaY :number) {
@@ -99,10 +105,6 @@ export class Movable extends Clickable {
 
     get y() {
         return this._y;
-    }
-
-    get mouseService(): MouseService {
-        return this._mouseService;
     }
 
     public get JSONObject() {

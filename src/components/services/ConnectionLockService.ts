@@ -1,5 +1,5 @@
 import {watch, inject} from "vue";
-import type {Draggable} from "@/components/parts/common/Draggable";
+import type {Draggable} from "@/components/parts/base/Draggable";
 import {BaseService} from "@/components/services/BaseService";
 
 export class ConnectionLockService extends BaseService<ConnectionLockService>() {

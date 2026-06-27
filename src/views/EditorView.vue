@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import {MouseService} from "@/components/services/MouseServise";
 import {EditorService} from "@/components/services/EditorService";
-import *  as vueComps from "@/components/parts/views";
-import ContextMenuView from "@/components/parts/views/ContextMenuView.vue";
-import {ContextMenuItem} from "@/components/parts/common/ContextMenuItem";
+import CableView from "@/components/parts/cable/CableView.vue";
+import CircleView from "@/components/parts/circle/CircleView.vue";
+import InputJackView from "@/components/parts/inputJack/InputJackView.vue";
+import DynamicComponentView from "@/components/parts/dynamicComponent/DynamicComponentView.vue";
+import ContextMenuView from "@/components/parts/contextMenu/ContextMenuView.vue";
+import {ContextMenuItem} from "@/components/parts/common";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
+
+const vueComponentMap: Record<string, any> = {
+    CableView,
+    CircleView,
+    InputJackView,
+    DynamicComponentView,
+};
 
 const cms =  (ContextMenuService.inject() as ContextMenuService);
 
@@ -24,8 +34,7 @@ function clearActive(){
 }
 
 function getComponent (comp: any) {
-  // @ts-ignore
-  return  vueComps[comp.vueComponentName];
+  return  vueComponentMap[comp.vueComponentName];
 }
 
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {ref, toRaw, watch} from 'vue'
-import {Movable, Draggable,} from "@/components/parts/common";
-import ConnectorView from "@/components/parts/views/ConnectorView.vue";
-import {CircleModel} from "@/components/parts/models";
+import {Movable, Draggable,} from "@/components/parts/base";
+import ConnectorView from "@/components/parts/common/ConnectorView.vue";
+import {CircleModel} from "@/components/parts/circle/CircleModel";
 
 const color = ref("blue");
 const props = defineProps(['model'])

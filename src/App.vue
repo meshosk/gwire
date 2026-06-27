@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import {MouseService} from "@/components/services/MouseServise";
 import {EditorService} from "@/components/services/EditorService";
-import *  as vueComps from "@/components/parts/views";
 import {SerializationService} from "@/components/services/SerializationService";
 import {onMounted, ref, toRaw} from "vue";
-import ContextMenuView from "@/components/parts/views/ContextMenuView.vue";
+import ContextMenuView from "@/components/parts/contextMenu/ContextMenuView.vue";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
 import RouterLinkButton from "@/components/common/RouterLinkButton.vue";
 import MenuSpacer from "@/components/common/MenuSpacer.vue";

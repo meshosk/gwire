@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, type Ref } from 'vue';
-import { ComponentTemplate, ComponentState, TemplateConnectPoint, DynamicComponentModel } from "@/components/parts/models";
+import { ComponentTemplate } from "@/components/parts/dynamicComponent/ComponentTemplate";
+import { ComponentState } from "@/components/parts/dynamicComponent/ComponentState";
+import { TemplateConnectPoint } from "@/components/parts/dynamicComponent/TemplateConnectPoint";
+import { DynamicComponentModel } from "@/components/parts/dynamicComponent/DynamicComponentModel";
 import { EditorService } from "@/components/services/EditorService";
 import { SerializationService } from "@/components/services/SerializationService";
 

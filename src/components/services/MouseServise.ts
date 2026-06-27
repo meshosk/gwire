@@ -1,9 +1,9 @@
 import {ref, inject, toRaw} from 'vue'
-import {Draggable, Movable, Clickable, CircuitPart} from "@/components/parts/common";
+import {Draggable, Movable, Clickable, CircuitPart} from "@/components/parts/base";
 import {EditorService} from "@/components/services/EditorService";
 import {BaseService} from "@/components/services/BaseService";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
-import {CircleModel} from "@/components/parts/models";
+import {CircleModel} from "@/components/parts/circle/CircleModel";
 
 export class MouseService extends BaseService<MouseService>() {
 

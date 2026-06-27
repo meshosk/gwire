@@ -1,13 +1,8 @@
-import {ConnectPoint, Movable} from "@/components/parts/common";
+import {ConnectPoint} from "./ConnectPoint";
+import {Movable} from "./Movable";
 import {ref, watch} from "vue";
-import {Serializable} from "@/components/parts/models/Serializable";
-
-
-export  enum HighlightType {
-    NONE,
-    SELECTED,
-    ROUTE
-}
+import {Serializable} from "./Serializable";
+import {HighlightType} from "./Highlight";
 
 export abstract class CircuitPart extends Serializable {
 

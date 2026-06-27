@@ -1,8 +1,9 @@
 <script setup lang="ts">
 
-import {ConnectionLockService, Draggable, HighlightType, Movable} from "@/components/parts/common";
-import Connector from "@/components/parts/views/ConnectorView.vue";
-import {CableModel} from "@/components/parts/models";
+import {ConnectionLockService} from "@/components/services/ConnectionLockService";
+import {Draggable, HighlightType, Movable} from "@/components/parts/base";
+import Connector from "@/components/parts/common/ConnectorView.vue";
+import {CableModel} from "@/components/parts/cable/CableModel";
 import {EditorService} from "@/components/services/EditorService";
 import {ref, toRaw, watch, isProxy} from "vue";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
