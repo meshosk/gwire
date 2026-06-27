@@ -57,6 +57,11 @@ function load() {
               <a class="nav-link disabled" href="#" disabled>PDF</a>
             </li>
             <li class="nav-item">
+              <router-link to="/component-editor" class="nav-link">
+                <i class="bi bi-gear"></i> Component Editor
+              </router-link>
+            </li>
+            <li class="nav-item">
               <router-link to="/about" class="nav-link">
                 About
               </router-link>
