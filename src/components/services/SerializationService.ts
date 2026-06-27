@@ -3,56 +3,16 @@ import {CircuitPart, ConnectPoint} from "@/components/parts/base";
 import {ConnectionLockService} from "@/components/services/ConnectionLockService";
 import {EditorService} from "@/components/services/EditorService";
 import {CableModel} from "@/components/parts/cable/CableModel";
-import {DynamicComponentModel} from "@/components/parts/dynamicComponent/DynamicComponentModel";
-import {ComponentTemplate} from "@/components/parts/dynamicComponent/ComponentTemplate";
 import {BaseService} from "@/components/services/BaseService";
 
 export class SerializationService extends BaseService<SerializationService>() {
-    
-    // Store loaded templates for dynamic component creation
-    private _templates: Map<string, ComponentTemplate> = new Map();
-
-    /**
-     * Get loaded templates
-     */
-    get templates(): Map<string, ComponentTemplate> {
-        return this._templates;
-    }
-
-    /**
-     * Register a template for dynamic component creation
-     */
-    registerTemplate(template: ComponentTemplate): void {
-        this._templates.set(template.name, template);
-    }
-
-    /**
-     * Unregister a template
-     */
-    unregisterTemplate(name: string): void {
-        this._templates.delete(name);
-    }
 
     public saveToFile(parts :CircuitPart[]) {
 
        let jsonObjets = [];
-       let templatesSet = new Set<string>();
 
         for (let part of parts) {
             jsonObjets.push(part.JSONObject);
-            // Track template names used by dynamic components
-            if (part instanceof DynamicComponentModel) {
-                templatesSet.add(part.templateName);
-            }
-        }
-
-        // Collect unique templates
-        let templates = [];
-        for (let tplName of templatesSet) {
-            const tpl = this._templates.get(tplName);
-            if (tpl) {
-                templates.push(tpl.toJSON());
-            }
         }
 
         let o = {
@@ -62,7 +22,6 @@ export class SerializationService extends BaseService<SerializationService>() {
             name : "My custom scheme",
             repo : "https://github.com/meshosk/gwire/",
             www : "https://meshosk.github.io/gwire/",
-            templates : templates,
             parts : jsonObjets
         };
 
@@ -84,14 +43,6 @@ export class SerializationService extends BaseService<SerializationService>() {
         let addedParts = new Map<string, CircuitPart>();
         //TODO check version
 
-        // Load templates first if present
-        if (JSONObject.templates) {
-            for (let tplObj of JSONObject.templates) {
-                const tpl = ComponentTemplate.fromJSON(tplObj);
-                this._templates.set(tpl.name, tpl);
-            }
-        }
-
         // release all locks
         connectionLockService.releaseAllLock();
         //clean existing parts
@@ -99,20 +50,7 @@ export class SerializationService extends BaseService<SerializationService>() {
 
         // add parts
         for (let obj of JSONObject.parts) {
-           let created: CircuitPart;
-           
-           if (obj.type === "DynamicComponentModel") {
-               // Create dynamic component from registered template
-               const tpl = this._templates.get(obj.templateName);
-               if (!tpl) {
-                   console.error(`Template '${obj.templateName}' not found for part ${obj.id}`);
-                   continue;
-               }
-               created = new DynamicComponentModel(tpl);
-           } else {
-               created = editorService.addPart(obj.type);
-           }
-           
+           let created = editorService.addPart(obj.type);
            created.setFromJSON(obj);
            addedParts.set(obj.id, created);
         }

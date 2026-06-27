@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, type Ref } from 'vue';
-import { ComponentTemplate } from "@/components/parts/dynamicComponent/ComponentTemplate";
-import { ComponentState } from "@/components/parts/dynamicComponent/ComponentState";
-import { TemplateConnectPoint } from "@/components/parts/dynamicComponent/TemplateConnectPoint";
+import { DynamicComponentState } from "@/components/parts/dynamicComponent/DynamicComponentState";
 import { DynamicComponentModel } from "@/components/parts/dynamicComponent/DynamicComponentModel";
 import { EditorService } from "@/components/services/EditorService";
 import { SerializationService } from "@/components/services/SerializationService";
 
-// State
-const template = ref<ComponentTemplate | null>(null);
+const componentName = ref("newComponent");
+const displayName = ref("New Component");
+const states = ref<DynamicComponentState[]>([]);
+const pins = ref<{ id: string; label: string; x: number; y: number }[]>([]);
 const selectedStateId = ref<string>("");
 const selectedPinId = ref<string>("");
 const isDraggingPin = ref(false);
@@ -17,45 +17,39 @@ const dragOffset = ref({ x: 0, y: 0 });
 const editorService = EditorService.inject();
 const serializationService = SerializationService.inject();
 
-// Initialize with empty template
-if (!template.value) {
-    template.value = new ComponentTemplate(
-        "newComponent",
-        "New Component",
-        "",
-        [],
-        [new ComponentState("state1", [])],
-        "state1"
-    );
+const newStateId = () => "state" + (states.value.length + 1);
+
+if (states.value.length === 0) {
+    states.value.push(new DynamicComponentState("state1", "", []));
     selectedStateId.value = "state1";
 }
 
-// Computed
-const states = computed(() => template.value?.states || []);
-const pins = computed(() => template.value?.pins || []);
 const currentState = computed(() => {
-    if (!template.value || !selectedStateId.value) return null;
-    return template.value.getStateById(selectedStateId.value) || null;
+    if (!selectedStateId.value) return null;
+    return states.value.find(s => s.id === selectedStateId.value) || null;
 });
 
 const svgWidth = ref(400);
 const svgHeight = ref(300);
 
-// Save/Load template file
-const saveTemplate = () => {
-    if (!template.value) return;
-    const json = JSON.stringify(template.value.toJSON(), null, 2);
+const saveComponent = () => {
+    const json = JSON.stringify({
+        name: componentName.value,
+        displayName: displayName.value,
+        states: states.value.map(s => s.toJSON()),
+        pinNames: pins.value.map(p => p.id),
+        pinPositions: pins.value.map(p => ({ id: p.id, x: p.x, y: p.y }))
+    }, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${template.value.name}.json`;
+    a.download = `${componentName.value}.json`;
     a.click();
     URL.revokeObjectURL(url);
 };
 
-const loadTemplate = async () => {
-    // Use native file input for loading templates
+const loadComponent = async () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -65,129 +59,144 @@ const loadTemplate = async () => {
             try {
                 const jsonStr = await file.text();
                 const jsonObj = JSON.parse(jsonStr);
-                template.value = ComponentTemplate.fromJSON(jsonObj);
-                selectedStateId.value = template.value.defaultState;
+                componentName.value = jsonObj.name || "loadedComponent";
+                displayName.value = jsonObj.displayName || jsonObj.name || "Loaded Component";
+                states.value = (jsonObj.states || []).map((s: any) => DynamicComponentState.fromJSON(s));
+                pins.value = (jsonObj.pinPositions || []).map((p: any) => ({
+                    id: p.id,
+                    label: p.id,
+                    x: p.x,
+                    y: p.y
+                }));
+                selectedStateId.value = states.value[0]?.id || "";
                 selectedPinId.value = "";
             } catch (err) {
-                console.error("Failed to load template:", err);
+                console.error("Failed to load component:", err);
             }
         }
     };
     input.click();
 };
 
-// Add new template
 const createNewTemplate = () => {
-    template.value = new ComponentTemplate(
-        "newComponent_" + Date.now(),
-        "New Component",
-        "",
-        [],
-        [new ComponentState("state1", [])],
-        "state1"
-    );
+    componentName.value = "newComponent_" + Date.now();
+    displayName.value = "New Component";
+    states.value = [new DynamicComponentState("state1", "", [])];
+    pins.value = [];
     selectedStateId.value = "state1";
     selectedPinId.value = "";
 };
 
-// State management
 const addState = () => {
-    if (!template.value) return;
-    const stateId = "state" + (template.value.states.length + 1);
-    const newState = new ComponentState(stateId, []);
-    template.value.states.push(newState);
+    const stateId = newStateId();
+    states.value.push(new DynamicComponentState(stateId, "", []));
     selectedStateId.value = stateId;
 };
 
 const removeState = (stateId: string) => {
-    if (!template.value) return;
-    if (template.value.states.length <= 1) {
+    if (states.value.length <= 1) {
         alert("Must have at least one state");
         return;
     }
-    template.value.states = template.value.states.filter(s => s.id !== stateId);
+    states.value = states.value.filter(s => s.id !== stateId);
     if (selectedStateId.value === stateId) {
-        selectedStateId.value = template.value.states[0]?.id || "";
+        selectedStateId.value = states.value[0]?.id || "";
     }
 };
 
-// Pin management
 const addPin = () => {
-    if (!template.value) return;
-    const pinId = "pin" + (template.value.pins.length + 1);
-    const newPin = new TemplateConnectPoint(
-        pinId,
-        pinId,
-        50 + template.value.pins.length * 30,
-        50 + template.value.pins.length * 30
-    );
-    template.value.pins.push(newPin);
+    const pinId = "pin" + (pins.value.length + 1);
+    pins.value.push({
+        id: pinId,
+        label: pinId,
+        x: 50 + pins.value.length * 30,
+        y: 50 + pins.value.length * 30
+    });
     selectedPinId.value = pinId;
 };
 
 const removePin = (pinId: string) => {
-    if (!template.value) return;
-    template.value.pins = template.value.pins.filter(p => p.id !== pinId);
+    pins.value = pins.value.filter(p => p.id !== pinId);
     if (selectedPinId.value === pinId) {
         selectedPinId.value = "";
     }
-    // Remove pin from all connections
-    for (const state of template.value.states) {
-        for (let i = 0; i < state.connections.length; i++) {
-            state.connections[i] = state.connections[i].filter(p => p !== pinId);
-            if (state.connections[i].length === 0) {
-                state.connections.splice(i, 1);
+    for (const state of states.value) {
+        for (let i = 0; i < state.connectionGroups.length; i++) {
+            state.connectionGroups[i] = state.connectionGroups[i].filter(p => p !== pinId);
+            if (state.connectionGroups[i].length === 0) {
+                state.connectionGroups.splice(i, 1);
                 i--;
             }
         }
     }
 };
 
-// Connection management
 const addConnectionGroup = () => {
     if (!currentState.value) return;
-    currentState.value.connections.push([]);
+    currentState.value.connectionGroups.push([]);
 };
 
 const removeConnectionGroup = (index: number) => {
     if (!currentState.value) return;
-    currentState.value.connections.splice(index, 1);
+    currentState.value.connectionGroups.splice(index, 1);
 };
 
 const addPinToConnection = (groupIndex: number) => {
     if (!currentState.value) return;
-    // Add a placeholder that user can edit
-    currentState.value.connections[groupIndex].push("pin" + Date.now());
+    currentState.value.connectionGroups[groupIndex].push("pin" + Date.now());
 };
 
 const removePinFromConnection = (groupIndex: number, pinIndex: number) => {
     if (!currentState.value) return;
-    currentState.value.connections[groupIndex].splice(pinIndex, 1);
+    currentState.value.connectionGroups[groupIndex].splice(pinIndex, 1);
 };
 
-// SVG management
-const updateSvg = (svg: string) => {
-    if (!template.value) return;
-    template.value.svg = svg;
+const updateStateSvg = (stateId: string, svg: string) => {
+    const state = states.value.find(s => s.id === stateId);
+    if (state) {
+        state.svg = svg;
+    }
 };
 
-// Add component to editor
+const updateStateId = (stateId: string, newId: string) => {
+    const state = states.value.find(s => s.id === stateId);
+    if (state) {
+        const oldId = state.id;
+        state.id = newId;
+        if (selectedStateId.value === oldId) {
+            selectedStateId.value = newId;
+        }
+        for (const group of state.connectionGroups) {
+            for (let i = 0; i < group.length; i++) {
+                if (group[i] === oldId) {
+                    group[i] = newId;
+                }
+            }
+        }
+    }
+};
+
 const addToEditor = () => {
-    if (!template.value || !template.value.isValid()) {
-        alert("Template is not valid. Add SVG and at least one pin.");
+    if (pins.value.length === 0) {
+        alert("Component must have at least one pin.");
         return;
     }
-    const dynamicModel = new DynamicComponentModel(template.value);
+    const pinNames = pins.value.map(p => p.id);
+    const pinPositions = pins.value.map(p => ({ id: p.id, x: p.x, y: p.y }));
+    const dynamicModel = new DynamicComponentModel(
+        componentName.value,
+        states.value,
+        pinNames,
+        pinPositions,
+        "",
+        new Date()
+    );
     dynamicModel.initPosition(200, 200);
-    // Add the dynamic model directly to the parts list
     const parts = editorService.parts.value;
-    dynamicModel.initPosition(200, 200);
     parts.push(dynamicModel);
 };
 
-// Pin dragging on canvas
-const onPinMouseDown = (pin: TemplateConnectPoint, e: MouseEvent) => {
-    if (!template.value) return;
+const onPinMouseDown = (pin: { id: string; x: number; y: number }, e: MouseEvent) => {
     isDraggingPin.value = true;
     selectedPinId.value = pin.id;
     const svgEl = document.querySelector('svg.editor-canvas');
@@ -201,14 +210,14 @@ const onPinMouseDown = (pin: TemplateConnectPoint, e: MouseEvent) => {
 };
 
 const onCanvasMouseMove = (e: MouseEvent) => {
-    if (!isDraggingPin.value || !template.value) return;
+    if (!isDraggingPin.value) return;
     const svgEl = document.querySelector('svg.editor-canvas');
     if (svgEl) {
         const rect = svgEl.getBoundingClientRect();
         const x = (e.clientX - rect.left - dragOffset.value.x) * (400 / rect.width);
         const y = (e.clientY - rect.top - dragOffset.value.y) * (300 / rect.height);
         
-        const pin = template.value.getPinById(selectedPinId.value);
+        const pin = pins.value.find(p => p.id === selectedPinId.value);
         if (pin) {
             pin.x = Math.max(0, Math.min(400, x));
             pin.y = Math.max(0, Math.min(300, y));
@@ -220,30 +229,32 @@ const onCanvasMouseUp = () => {
     isDraggingPin.value = false;
 };
 
-// Preview component in editor
-const previewModel = ref<DynamicComponentModel | null>(null);
-
-// No preview needed - component is shown in canvas via pins
+const updatePinPosition = (pinId: string, x: number, y: number) => {
+    const pin = pins.value.find(p => p.id === pinId);
+    if (pin) {
+        pin.x = x;
+        pin.y = y;
+    }
+};
 </script>
 
 <template>
     <div class="component-editor">
-        <!-- Left Panel - Templates & States -->
         <div class="panel left-panel">
-            <h3>Template</h3>
+            <h3>Component</h3>
             <div class="form-group">
                 <label>Name:</label>
-                <input v-model="template!.name" type="text" />
+                <input v-model="componentName" type="text" />
             </div>
             <div class="form-group">
                 <label>Display Name:</label>
-                <input v-model="template!.displayName" type="text" />
+                <input v-model="displayName" type="text" />
             </div>
             
             <div class="actions">
                 <button @click="createNewTemplate">New</button>
-                <button @click="loadTemplate">Load</button>
-                <button @click="saveTemplate">Save</button>
+                <button @click="loadComponent">Load</button>
+                <button @click="saveComponent">Save</button>
                 <button @click="addToEditor" class="primary">Add to Editor</button>
             </div>
 
@@ -267,29 +278,24 @@ const previewModel = ref<DynamicComponentModel | null>(null);
             </div>
         </div>
 
-        <!-- Center Panel - Canvas -->
         <div class="panel center-panel">
             <h3>Component Canvas</h3>
             <svg class="editor-canvas" viewBox="0 0 400 300"
                  @mousemove="onCanvasMouseMove" @mouseup="onCanvasMouseUp">
-                <!-- Background -->
                 <rect width="400" height="300" fill="#f0f0f0" />
                 
-                <!-- Template SVG preview -->
-                <g v-if="template?.svg" transform="translate(10, 10)">
-                    <g v-html="template.svg" />
+                <g v-if="currentState?.svg" transform="translate(10, 10)">
+                    <g v-html="currentState.svg" />
                 </g>
                 
-                <!-- Empty state placeholder -->
                 <text v-else x="200" y="150" text-anchor="middle" fill="#999">
-                    Enter SVG graphics
+                    Enter SVG graphics in state properties
                 </text>
                 
-                <!-- Pins -->
                 <g v-for="pin in pins" :key="pin.id">
                     <circle
-                        :cx="pin.x / 400 * 400"
-                        :cy="pin.y / 300 * 300"
+                        :cx="pin.x"
+                        :cy="pin.y"
                         r="12"
                         fill="none"
                         stroke="#3e68ff"
@@ -298,8 +304,8 @@ const previewModel = ref<DynamicComponentModel | null>(null);
                         class="pin-circle"
                     />
                     <text
-                        :x="pin.x / 400 * 400"
-                        :y="pin.y / 300 * 300 + 4"
+                        :x="pin.x"
+                        :y="pin.y + 4"
                         text-anchor="middle"
                         fill="#333"
                         font-size="10"
@@ -309,17 +315,21 @@ const previewModel = ref<DynamicComponentModel | null>(null);
             </svg>
         </div>
 
-        <!-- Right Panel - Properties -->
         <div class="panel right-panel">
-            <h3>SVG Graphics</h3>
-            <div class="form-group">
-                <label>SVG (inline):</label>
-                <textarea v-model="template!.svg" rows="8" placeholder="<svg>...</svg>"></textarea>
-            </div>
-
-            <h3>Connections ({{ currentState?.id }})</h3>
+            <h3>State Properties</h3>
             <div v-if="currentState">
-                <div v-for="(group, gIndex) in currentState.connections" :key="gIndex" class="connection-group">
+                <div class="form-group">
+                    <label>State ID:</label>
+                    <input :value="currentState.id" @input="updateStateId(currentState.id, ($event.target as HTMLInputElement).value)" type="text" />
+                </div>
+                
+                <h4>SVG Graphics</h4>
+                <div class="form-group">
+                    <textarea v-model="currentState.svg" rows="6" placeholder="<svg>...</svg>"></textarea>
+                </div>
+
+                <h4>Connections</h4>
+                <div v-for="(group, gIndex) in currentState.connectionGroups" :key="gIndex" class="connection-group">
                     <div class="group-header">
                         <span>Group {{ gIndex + 1 }}</span>
                         <button @click="removeConnectionGroup(gIndex)">×</button>
@@ -331,6 +341,9 @@ const previewModel = ref<DynamicComponentModel | null>(null);
                     <button @click="addPinToConnection(gIndex)">+ Add Pin</button>
                 </div>
                 <button @click="addConnectionGroup">+ Add Group</button>
+            </div>
+            <div v-else>
+                <p>Select a state to edit properties.</p>
             </div>
         </div>
     </div>
@@ -350,6 +363,12 @@ const previewModel = ref<DynamicComponentModel | null>(null);
             margin: 0 0 10px 0;
             font-size: 14px;
             color: #3e68ff;
+        }
+        
+        h4 {
+            margin: 10px 0 5px 0;
+            font-size: 12px;
+            color: #666;
         }
     }
 

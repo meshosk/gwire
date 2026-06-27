@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, toRaw, watch } from 'vue';
-import { Movable, Draggable, HighlightType } from "@/components/parts/base";
+import { HighlightType } from "@/components/parts/base";
 import ConnectorView from "@/components/parts/common/ConnectorView.vue";
 import { DynamicComponentModel } from "@/components/parts/dynamicComponent/DynamicComponentModel";
 import { EditorService } from "@/components/services/EditorService";
@@ -20,29 +20,19 @@ const makeOnTop = (make: boolean) => {
     }
 };
 
-const onDragStart = (item: Draggable) => {
-    // Could add connection lock logic here if needed
-};
-
-function onDragOver(source: Draggable, target: Draggable) {
+function onDragOver(source: any, target: any) {
     source.x.value = target.xShifted.value;
     source.y.value = target.yShifted.value;
 }
 
-// State switching context menu
 const getStateContextMenu = (): ContextMenuItem[] => {
     const items: ContextMenuItem[] = [];
-    for (const stateId of model.states) {
+    for (const stateId of model.stateIds) {
         items.push(new ContextMenuItem(stateId, "", () => {
             model.setState(stateId);
         }));
     }
     return items;
-};
-
-const callOnProxyonMouseDown = (mmm: Movable) => {
-    const isProxy = typeof mmm === 'object' && mmm !== null && '$' in mmm;
-    isProxy ? toRaw(mmm).onMouseDown(null) : mmm.onMouseDown(null);
 };
 </script>
 
@@ -52,19 +42,10 @@ const callOnProxyonMouseDown = (mmm: Movable) => {
         @blur="makeOnTop(false)"
         :class="HighlightType[model.highlight.value]">
         
-        <!-- Main SVG from template -->
         <g :transform="`translate(${model.m.x.value} ${model.m.y.value})`">
-            <!-- Render SVG content inline -->
-            <g v-html="model.svg" />
+            <g v-if="model.currentStateSVG.value" v-html="model.currentStateSVG.value" />
         </g>
         
-        <!-- Render SVG override if set (replaces template SVG) -->
-        <g v-if="model.svgOverride" 
-           :transform="`translate(${model.m.x.value} ${model.m.y.value})`">
-            <g v-html="model.svgOverride" />
-        </g>
-        
-        <!-- Connect points -->
         <template v-for="pin in model.internalPins" :key="pin.name">
             <ConnectorView
                 :xShift="pin.draggable.x.value - model.m.x.value"

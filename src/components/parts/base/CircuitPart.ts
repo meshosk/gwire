@@ -1,8 +1,9 @@
 import {ConnectPoint} from "./ConnectPoint";
 import {Movable} from "./Movable";
-import {ref, watch} from "vue";
 import {Serializable} from "./Serializable";
 import {HighlightType} from "./Highlight";
+import {ref, watch} from "vue";
+
 
 export abstract class CircuitPart extends Serializable {
 

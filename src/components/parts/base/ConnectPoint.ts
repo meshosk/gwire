@@ -1,6 +1,7 @@
-import {CircuitPart} from "./CircuitPart";
+import type {CircuitPart} from "./CircuitPart";
 import {Draggable} from "./Draggable";
 import {HighlightType} from "./Highlight";
+
 import {ref} from "vue";
 
 /**

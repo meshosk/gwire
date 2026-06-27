@@ -1,134 +1,92 @@
 import { CircuitPart, ConnectPoint, HighlightType } from "@/components/parts/base";
 import { ref, watch, type Ref } from "vue";
-import { ComponentTemplate } from "@/components/parts/dynamicComponent/ComponentTemplate";
-import { ComponentState } from "@/components/parts/dynamicComponent/ComponentState";
-import * as Vue from "@vue/reactivity";
+import { DynamicComponentState } from "@/components/parts/dynamicComponent/DynamicComponentState";
 
-/**
- * Runtime model created from a ComponentTemplate.
- * Extends CircuitPart to work with existing editor algorithms.
- * Creates ConnectPoint instances based on template pin definitions.
- * Handles state switching with internal connections.
- */
 export class DynamicComponentModel extends CircuitPart {
 
     readonly circuitPartName: string = "dynamicComponent";
 
-    private readonly _template: ComponentTemplate;
-    private readonly _templateName: string;
+    private readonly _name: string;
+    private readonly _creatorName: string;
+    private readonly _createdAt: Date;
+    private readonly _states: DynamicComponentState[];
+    private readonly _pinPositions: { id: string; x: number; y: number }[];
     
     private _currentState: Ref<string>;
-    
-    private _svgOverride: Ref<string>;
+    private _currentStateSVG: Ref<string>;
 
-    constructor(template: ComponentTemplate) {
-        // Create pin names from template
-        const pinNames = template.pins.map(p => p.id);
+    constructor(name: string, states: DynamicComponentState[], pinNames: string[], pinPositions: { id: string; x: number; y: number }[], creatorName: string = "", createdAt?: Date) {
         super(pinNames);
 
-        this._template = template;
-        this._templateName = template.name;
-        this._currentState = ref(template.defaultState);
-        this._svgOverride = ref("");
+        this._name = name;
+        this._creatorName = creatorName;
+        this._createdAt = createdAt || new Date();
+        this._states = states;
+        this._pinPositions = pinPositions;
+        this._currentState = ref(states[0]?.id || "");
+        this._currentStateSVG = ref(states[0]?.svg || "");
 
-        // Watch for state changes and update connections
         watch(() => this._currentState.value, (stateId) => {
             this.applyState(stateId);
             this.onPartChangeState(this);
+            const state = this._states.find(s => s.id === stateId);
+            this._currentStateSVG.value = state?.svg || this._states[0]?.svg || "";
         });
     }
 
-    /**
-     * Get the template this model was created from
-     */
-    get template(): ComponentTemplate {
-        return this._template;
+    get name(): string {
+        return this._name;
     }
 
-    /**
-     * Get the template name
-     */
-    get templateName(): string {
-        return this._templateName;
+    get creatorName(): string {
+        return this._creatorName;
     }
 
-    /**
-     * Get current state id
-     */
+    get createdAt(): Date {
+        return this._createdAt;
+    }
+
+    get states(): DynamicComponentState[] {
+        return this._states;
+    }
+
+    get stateIds(): string[] {
+        return this._states.map(s => s.id);
+    }
+
     get currentState(): Ref<string> {
         return this._currentState;
     }
 
-    /**
-     * Get current state object
-     */
-    get currentStateObj(): ComponentState | undefined {
-        return this._template.getStateById(this._currentState.value);
+    get currentStateObj(): DynamicComponentState | undefined {
+        return this._states.find(s => s.id === this._currentState.value);
     }
 
-    /**
-     * Get all available states
-     */
-    get states(): string[] {
-        return this._template.states.map(s => s.id);
+    get currentStateSVG(): Ref<string> {
+        return this._currentStateSVG;
     }
 
-    /**
-     * Get display name of current state
-     */
-    get currentStateDisplayName(): string {
-        const state = this.currentStateObj;
-        return state?.id || this._template.defaultState;
-    }
-
-    /**
-     * Get SVG from template
-     */
-    get svg(): string {
-        return this._template.svg;
-    }
-
-    /**
-     * Get SVG override (empty string means use template SVG)
-     */
-    get svgOverride(): Ref<string> {
-        return this._svgOverride;
-    }
-
-    /**
-     * Set the current state by id
-     */
     setState(stateId: string): void {
-        if (this._template.states.find(s => s.id === stateId)) {
+        if (this._states.find(s => s.id === stateId)) {
             this._currentState.value = stateId;
         }
     }
 
-    /**
-     * Cycle to next state
-     */
     nextState(): void {
-        const currentIndex = this._template.states.findIndex(s => s.id === this._currentState.value);
-        const nextIndex = (currentIndex + 1) % this._template.states.length;
-        this.setState(this._template.states[nextIndex].id);
+        const currentIndex = this._states.findIndex(s => s.id === this._currentState.value);
+        const nextIndex = (currentIndex + 1) % this._states.length;
+        this.setState(this._states[nextIndex].id);
     }
 
-    /**
-     * Apply state connections based on connection groups
-     * Each group in connections array contains pin ids that are connected together
-     */
     private applyState(stateId: string): void {
-        const state = this._template.getStateById(stateId);
+        const state = this._states.find(s => s.id === stateId);
         if (!state) return;
 
-        // Disconnect all internal connections first
         this.disconnectAllInternalConnections();
 
-        // Apply connections from each group
-        for (const connectionGroup of state.connections) {
+        for (const connectionGroup of state.connectionGroups) {
             if (connectionGroup.length < 2) continue;
 
-            // Get ConnectPoint instances for each pin in the group
             const connectPoints: ConnectPoint[] = [];
             for (const pinId of connectionGroup) {
                 const pin = this.pinByName(pinId);
@@ -137,7 +95,6 @@ export class DynamicComponentModel extends CircuitPart {
                 }
             }
 
-            // Connect all pins in the group to each other
             for (let i = 0; i < connectPoints.length; i++) {
                 for (let j = i + 1; j < connectPoints.length; j++) {
                     connectPoints[i].connect(connectPoints[j]);
@@ -146,15 +103,11 @@ export class DynamicComponentModel extends CircuitPart {
         }
     }
 
-    /**
-     * Override initPosition to position all pins relative to main movable
-     */
     override initPosition(x: number, y: number): void {
         this.m.x.value = x;
         this.m.y.value = y;
-        
-        // Position pins relative to the component origin based on template
-        for (const pinDef of this._template.pins) {
+
+        for (const pinDef of this._pinPositions) {
             const pin = this.pinByName(pinDef.id);
             if (pin) {
                 pin.draggable.x.value = x + pinDef.x;
@@ -163,46 +116,32 @@ export class DynamicComponentModel extends CircuitPart {
         }
     }
 
-    /**
-     * Get JSON object for serialization
-     */
     public get JSONObject(): object {
         return {
             id: this.id,
             type: this.nonMinifiedClassName,
-            templateName: this._templateName,
+            name: this._name,
+            creatorName: this._creatorName,
+            createdAt: this._createdAt.toISOString(),
             m: this.m.JSONObject,
             currentState: this._currentState.value,
-            svgOverride: this._svgOverride.value,
             pins: this.internalPins.map(pin => pin.JSONObject)
         };
     }
 
-    /**
-     * Load model from JSON object
-     */
     public setFromJSON(o: any): void {
         if (this.nonMinifiedClassName !== o.type) {
             throw new Error("Wrong JSON object type");
         }
 
-        // Load main position
         this.m.setFromJSON(o.m);
 
-        // Load state
-        if (o.currentState) {
+        if (o.currentState && this._states.find(s => s.id === o.currentState)) {
             this._currentState.value = o.currentState;
         }
 
-        // Load SVG override
-        if (o.svgOverride) {
-            this._svgOverride.value = o.svgOverride;
-        }
-
-        // Load pin positions and restore connections
         this.loadMovablesFormJSON(o);
 
-        // Re-apply connections based on current state
         this.applyState(this._currentState.value);
     }
 
@@ -214,12 +153,8 @@ export class DynamicComponentModel extends CircuitPart {
         return "DynamicComponentModel";
     }
 
-    /**
-     * Get pin positions relative to component origin (for editor)
-     */
     getPinRelativePositions(): { id: string; x: number; y: number }[] {
         return this.internalPins.map(pin => {
-            const pinDef = this._template.getPinById(pin.name);
             return {
                 id: pin.name,
                 x: pin.draggable.x.value - this.m.x.value,
@@ -228,9 +163,6 @@ export class DynamicComponentModel extends CircuitPart {
         });
     }
 
-    /**
-     * Update pin position relative to component origin
-     */
     setPinRelativePosition(pinId: string, x: number, y: number): void {
         const pin = this.pinByName(pinId);
         if (pin) {

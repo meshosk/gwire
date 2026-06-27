@@ -1,4 +1,5 @@
-import {ConnectPoint, CircuitPart, Movable, Draggable} from "@/components/parts/base";
+import {CircuitPart} from "@/components/parts/base";
+import type {ConnectPoint, Movable, Draggable} from "@/components/parts/base";
 import {ref, watch} from "vue";
 
 /**

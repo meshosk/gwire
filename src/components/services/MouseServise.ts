@@ -3,7 +3,6 @@ import {Draggable, Movable, Clickable, CircuitPart} from "@/components/parts/bas
 import {EditorService} from "@/components/services/EditorService";
 import {BaseService} from "@/components/services/BaseService";
 import {ContextMenuService} from "@/components/services/ContextMenuService";
-import {CircleModel} from "@/components/parts/circle/CircleModel";
 
 export class MouseService extends BaseService<MouseService>() {
 
