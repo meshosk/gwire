@@ -34,7 +34,9 @@ jobs:
         run: dotnet publish gwire.csproj --configuration Release --output publish
 
       - name: Set the GitHub Pages base path
-        run: sed -i 's|<base href="/" />|<base href="/${{ github.event.repository.name }}/" />|' publish/wwwroot/index.html
+        run: |
+          sed -i 's|<base href="/" />|<base href="/${{ github.event.repository.name }}/" />|' publish/wwwroot/index.html
+          sed -i 's|const base = "/";|const base = "/${{ github.event.repository.name }}/";|' publish/wwwroot/service-worker.js
 
       - name: Disable Jekyll
         run: touch publish/wwwroot/.nojekyll
