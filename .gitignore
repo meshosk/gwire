@@ -23,8 +23,14 @@ coverage
 !.vscode/tasks.json
 .kilo
 .idea
+.vs/
+
+# Visual Studio and .NET build artifacts
+[Bb]in/
+[Oo]bj/
+*.user
 *.suo
+*.sln.docstates
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
