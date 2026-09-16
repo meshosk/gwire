@@ -69,17 +69,6 @@ public partial class PartEditor : ComponentBase
         draggedPoint.LocalY = nextY;
     }
 
-    private void MoveSelectedPoint(double deltaX, double deltaY)
-    {
-        if (SelectedPoint is null)
-        {
-            return;
-        }
-
-        SelectedPoint.LocalX = Math.Clamp(SelectedPoint.LocalX + deltaX, 15, 785);
-        SelectedPoint.LocalY = Math.Clamp(SelectedPoint.LocalY + deltaY, 15, 435);
-    }
-
     #endregion
 
     private void AddPoint()
