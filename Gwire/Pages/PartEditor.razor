@@ -1,15 +1,31 @@
-﻿@page "/part-editor"
+@page "/part-editor"
 @using Gwire.Components.Tabs
 @using Gwire.Extensions
 @using Gwire.Models.Base
+@using Microsoft.AspNetCore.Components.Forms
 
-<PageTitle>Editor súčiastok assssa</PageTitle>
+<PageTitle>Gwire - The part editor</PageTitle>
 
 <div class="part-editor container-fluid py-4">
-    <div class="row g-4">
-        <aside class="col-12 col-xxl-5">
-            <div class="editor-controls">
+	<div class="row g-4">
+		<aside class="col-12 col-xxl-5">
+			<div class="editor-controls">
 	            <section class="card shadow-sm point-panel p-2">
+		            <div class="d-flex flex-wrap gap-2 mb-3">
+			            <label class="btn btn-outline-primary mb-0" for="part-import">
+				            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
+			            </label>
+			            <InputFile id="part-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportPartAsync" />
+			            <a class="btn btn-outline-primary" href="@ExportUri" download="@ExportFileName">
+				            <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
+			            </a>
+		            </div>
+
+		            @if (!string.IsNullOrEmpty(ImportMessage))
+		            {
+			            <div class="alert @ImportMessageClass mb-3" role="status">@ImportMessage</div>
+		            }
+
 		            <BootstrapTabs>
 			            <BootstrapTab Title="Part">
 				            <div class="mb-3">

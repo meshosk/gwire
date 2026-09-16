@@ -24,9 +24,9 @@ public abstract class CircuitPart
     /// <summary>
     /// List of connection points that can connect part into circuit.
     /// </summary>
-    public List<ConnectionPoint> Points { get; } = new();
+    public List<ConnectionPoint> Points { get; set; } = new();
     /// <summary>
     /// Defines states. Each state defines how points are interconnected. Active is only one.
     /// </summary>
-    public List<PartState> States { get; } = new();
+    public List<PartState> States { get; set; } = new();
 }

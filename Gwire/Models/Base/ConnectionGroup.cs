@@ -24,7 +24,7 @@ public class ConnectionGroup
     /// <summary>
     /// Interconnected points. Not all points of a part can be in the point group.
     /// </summary>
-    public List<ConnectionPoint> ConnectedPints { get; } = [];
+    public List<ConnectionPoint> ConnectedPints { get; set; } = [];
 
     public static string GetLineColor(int groupIndex)
     {

@@ -1,21 +1,39 @@
 using Gwire.Models;
 using Gwire.Models.Base;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Gwire.Pages;
 
 public partial class PartEditor : ComponentBase
 {
+    private const long MaxImportFileSize = 1024 * 1024;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        ReferenceHandler = ReferenceHandler.Preserve
+    };
+
     /// <summary>
     /// Currently edited part
     /// </summary>
-    public CustomPart Part { get; } = new(); 
+    public CustomPart Part { get; private set; } = new();
 
 
     private ConnectionPoint? SelectedPoint { get; set; }
     private PartState? ActiveState { get; set; }
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
+    private string? ImportMessage { get; set; }
+    private string ImportMessageClass { get; set; } = "alert-success";
+
+    private string ExportUri => $"data:application/json;charset=utf-8,{Uri.EscapeDataString(JsonSerializer.Serialize(Part, JsonOptions))}";
+    private string ExportFileName => CreateFileName(Part.Name);
 
 
     #region Drags
@@ -148,4 +166,69 @@ public partial class PartEditor : ComponentBase
             group.ConnectedPints.Add(selectedPoint);
         }
     }
+
+    private async Task ImportPartAsync(InputFileChangeEventArgs eventArgs)
+    {
+        try
+        {
+            var file = eventArgs.File;
+            if (file.Size > MaxImportFileSize)
+            {
+                throw new InvalidDataException("The JSON file must not be larger than 1 MB.");
+            }
+
+            await using var stream = file.OpenReadStream(MaxImportFileSize);
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            var json = await reader.ReadToEndAsync();
+            var importedPart = JsonSerializer.Deserialize<CustomPart>(json, JsonOptions)
+                ?? throw new InvalidDataException("The JSON file does not contain a part.");
+
+            ValidateImport(importedPart);
+            Part = importedPart;
+            SelectedPoint = null;
+            ActiveState = Part.States.FirstOrDefault();
+            ActiveConnectionGroup = null;
+            CancelPointDrag(new PointerEventArgs());
+            ImportMessage = "Part imported successfully.";
+            ImportMessageClass = "alert-success";
+        }
+        catch (JsonException)
+        {
+            ImportMessage = "The selected file is not valid part JSON.";
+            ImportMessageClass = "alert-danger";
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        {
+            ImportMessage = exception.Message;
+            ImportMessageClass = "alert-danger";
+        }
+    }
+
+    private static void ValidateImport(CustomPart importedPart)
+    {
+        foreach (var point in importedPart.Points)
+        {
+            if (double.IsNaN(point.LocalX) || double.IsInfinity(point.LocalX) || point.LocalX is < 15 or > 785 ||
+                double.IsNaN(point.LocalY) || double.IsInfinity(point.LocalY) || point.LocalY is < 15 or > 435)
+            {
+                throw new InvalidDataException("A point position is outside the editor bounds.");
+            }
+        }
+
+        var partPoints = importedPart.Points.ToHashSet();
+        foreach (var group in importedPart.States.SelectMany(state => state.ConnectionGroups))
+        {
+            if (group.ConnectedPints.Any(point => !partPoints.Contains(point)))
+            {
+                throw new InvalidDataException("A connection group references a point outside the part.");
+            }
+        }
+    }
+
+    private static string CreateFileName(string name)
+    {
+        var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
+        return string.IsNullOrWhiteSpace(safeName) ? "part.json" : $"{safeName}.part.json";
+    }
+
 }
