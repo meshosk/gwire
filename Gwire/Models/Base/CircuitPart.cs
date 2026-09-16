@@ -22,6 +22,17 @@ public abstract class CircuitPart
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
+    /// SVG markup used as the visual background of the part.
+    /// </summary>
+    public string SvgMarkup { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Top-left position of the SVG background in the part's local coordinate system.
+    /// </summary>
+    public double SvgLocalX { get; set; }
+    public double SvgLocalY { get; set; }
+
+    /// <summary>
     /// List of connection points that can connect part into circuit.
     /// </summary>
     public List<ConnectionPoint> Points { get; set; } = new();

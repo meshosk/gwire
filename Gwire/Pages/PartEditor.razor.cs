@@ -39,12 +39,14 @@ public partial class PartEditor : ComponentBase
     #region Drags
 
     private ConnectionPoint? draggedPoint;
+    private bool isSvgDragged;
     private double dragOffsetX;
     private double dragOffsetY;
     private bool pointWasDragged;
 
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
+        isSvgDragged = false;
         SelectedPoint = point;
         draggedPoint = point;
         dragOffsetX = eventArgs.OffsetX - point.LocalX;
@@ -68,23 +70,29 @@ public partial class PartEditor : ComponentBase
     private void CancelPointDrag(PointerEventArgs eventArgs)
     {
         draggedPoint = null;
+        isSvgDragged = false;
         dragOffsetX = 0;
         dragOffsetY = 0;
         pointWasDragged = false;
     }
 
-    private void MoveDraggedPoint(PointerEventArgs eventArgs)
+    private void MoveDraggedItem(PointerEventArgs eventArgs)
     {
-        if (draggedPoint is null)
+        if (draggedPoint is not null)
         {
+            var nextX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, 15, 785);
+            var nextY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, 15, 435);
+            pointWasDragged |= Math.Abs(nextX - draggedPoint.LocalX) > 2 || Math.Abs(nextY - draggedPoint.LocalY) > 2;
+            draggedPoint.LocalX = nextX;
+            draggedPoint.LocalY = nextY;
             return;
         }
 
-        var nextX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, 15, 785);
-        var nextY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, 15, 435);
-        pointWasDragged |= Math.Abs(nextX - draggedPoint.LocalX) > 2 || Math.Abs(nextY - draggedPoint.LocalY) > 2;
-        draggedPoint.LocalX = nextX;
-        draggedPoint.LocalY = nextY;
+        if (isSvgDragged)
+        {
+            Part.SvgLocalX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, -800, 800);
+            Part.SvgLocalY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, -450, 450);
+        }
     }
 
     #endregion
@@ -167,6 +175,16 @@ public partial class PartEditor : ComponentBase
         }
     }
 
+    private void StartSvgDrag(PointerEventArgs eventArgs)
+    {
+        SelectedPoint = null;
+        draggedPoint = null;
+        isSvgDragged = true;
+        dragOffsetX = eventArgs.OffsetX - Part.SvgLocalX;
+        dragOffsetY = eventArgs.OffsetY - Part.SvgLocalY;
+        pointWasDragged = false;
+    }
+
     private async Task ImportPartAsync(InputFileChangeEventArgs eventArgs)
     {
         try
@@ -204,6 +222,44 @@ public partial class PartEditor : ComponentBase
         }
     }
 
+    private async Task ImportSvgAsync(InputFileChangeEventArgs eventArgs)
+    {
+        try
+        {
+            var file = eventArgs.File;
+            if (file.Size > MaxImportFileSize)
+            {
+                throw new InvalidDataException("The SVG file must not be larger than 1 MB.");
+            }
+
+            await using var stream = file.OpenReadStream(MaxImportFileSize);
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            var svgMarkup = await reader.ReadToEndAsync();
+            if (!svgMarkup.Contains("<svg", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("The selected file does not contain an SVG image.");
+            }
+
+            Part.SvgMarkup = svgMarkup;
+            Part.SvgLocalX = 0;
+            Part.SvgLocalY = 0;
+            ImportMessage = "SVG background imported successfully.";
+            ImportMessageClass = "alert-success";
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        {
+            ImportMessage = exception.Message;
+            ImportMessageClass = "alert-danger";
+        }
+    }
+
+    private void RemoveSvg()
+    {
+        Part.SvgMarkup = string.Empty;
+        Part.SvgLocalX = 0;
+        Part.SvgLocalY = 0;
+    }
+
     private static void ValidateImport(CustomPart importedPart)
     {
         foreach (var point in importedPart.Points)
@@ -230,5 +286,9 @@ public partial class PartEditor : ComponentBase
         var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
         return string.IsNullOrWhiteSpace(safeName) ? "part.json" : $"{safeName}.part.json";
     }
+
+    private string? SvgImageSource => string.IsNullOrWhiteSpace(Part.SvgMarkup)
+        ? null
+        : $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(Part.SvgMarkup))}";
 
 }
