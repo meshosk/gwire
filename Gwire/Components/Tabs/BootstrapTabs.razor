@@ -1,0 +1,44 @@
+﻿<CascadingValue Value="this" IsFixed="true">
+    <div class="d-none" aria-hidden="true">
+        @ChildContent
+    </div>
+
+    @if (tabs.Count > 0)
+    {
+        <div class="@CssClass">
+            <ul class="nav nav-tabs" role="tablist">
+                @foreach (var tab in tabs)
+                {
+                    <li class="nav-item" role="presentation">
+                        <button type="button"
+                                class="@TabButtonClass(tab)"
+                                id="@tab.TabId"
+                                role="tab"
+                                aria-controls="@tab.PanelId"
+                                aria-selected="@IsActive(tab)"
+                                aria-disabled="@tab.Disabled"
+                                disabled="@tab.Disabled"
+                                @onclick="() => SelectTab(tab)">
+                            @tab.Title
+                        </button>
+                    </li>
+                }
+            </ul>
+
+            <div class="tab-content pt-3">
+                @foreach (var tab in tabs)
+                {
+                    @if (!tab.Disabled)
+                    {                    
+	                    <div class="@TabPanelClass(tab)"
+                                              id="@tab.PanelId"
+                                              role="tabpanel"
+                                              aria-labelledby="@tab.TabId">
+		                    @tab.ChildContent
+	                    </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</CascadingValue>

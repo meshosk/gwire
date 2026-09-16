@@ -1,6 +1,11 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path=".github/workflows/deploy-pages.yml" />
+    <File Path=".gitignore" />
+    <File Path="AGENTS.md" />
+    <File Path="README.md" />
   </Folder>
-  <Project Path="gwire.csproj" />
+  <Project Path="Server/Server.csproj" Id="fb3b01dc-3b4d-4f13-93c5-ddb962cbe50a" />
+  <Project Path="Gwire/Gwire.csproj" />
+
 </Solution>
