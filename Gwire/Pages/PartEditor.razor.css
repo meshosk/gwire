@@ -1,0 +1,84 @@
+.part-editor {
+    max-width: 1600px;
+}
+
+.part-name-input {
+    max-width: 22rem;
+}
+
+.point-panel,
+.state-panel {
+    min-width: 0;
+}
+
+.canvas-scroll {
+    overflow: auto;
+}
+
+.editor-canvas {
+    display: block;
+    min-width: 800px;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .5rem;
+    background: #fff;
+    touch-action: none;
+}
+
+.canvas-grid {
+    stroke: #e8edf3;
+    stroke-width: 1;
+}
+
+.part-outline {
+    fill: #f8f9fa;
+    stroke: #b8c3ce;
+    stroke-dasharray: 7 5;
+    stroke-width: 2;
+}
+
+.connection-line {
+    stroke: #3d647a;
+    stroke-linecap: round;
+    stroke-width: 4;
+    opacity: .40;
+    pointer-events: none;
+}
+
+.connection-point {
+    fill: #1677d2;
+    stroke: #fff;
+    stroke-width: 3;
+    cursor: grab;
+}
+
+.connection-point:active {
+    cursor: grabbing;
+}
+
+.connection-point:hover,
+.connection-point.is-selected {
+    fill: #0b4f91;
+}
+
+.connection-point.is-selected {
+    stroke: #f0ad00;
+    stroke-width: 4;
+}
+
+.point-label {
+    fill: #17324a;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+}
+
+.point-label:active {
+    cursor: grabbing;
+}
+
+@media (max-width: 767.98px) {
+    .editor-controls {
+        grid-template-columns: 1fr;
+    }
+}

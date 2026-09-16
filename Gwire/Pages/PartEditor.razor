@@ -1,0 +1,168 @@
+﻿@page "/part-editor"
+@using Gwire.Components.Tabs
+@using Gwire.Extensions
+@using Gwire.Models.Base
+
+<PageTitle>Editor súčiastok assssa</PageTitle>
+
+<div class="part-editor container-fluid py-4">
+    <div class="row g-4">
+        <aside class="col-12 col-xxl-5">
+            <div class="editor-controls">
+	            <section class="card shadow-sm point-panel p-2">
+		            <BootstrapTabs>
+			            <BootstrapTab Title="Part">
+				            <div class="mb-3">
+					            <label for="part-name" class="form-label">Title</label>
+					            <input class="form-control" id="part-name" @bind="@this.Part.Name" aria-label="Part name" />
+				            </div>                    
+				            <div  class="mb-3">
+					            <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
+					            <textarea class="form-control" @bind="@this.Part.Description" id="exampleFormControlTextarea1" rows="3"></textarea>
+				            </div>
+			            </BootstrapTab>
+			            <BootstrapTab Title="Points">
+				            <div class="mb-1">
+					            <div class="d-grid gap-2">
+						            <button type="button" class="btn btn-primary" @onclick="AddPoint">Add connection point</button>
+					            </div>
+				            </div>
+				           
+					            @if (SelectedPoint is not null)
+					            {
+						            <div class="mt-3">
+							            <label class="form-label" for="point-label">Point name</label>
+							            <input id="point-label" class="form-control mb-3" @bind="@this.SelectedPoint.Label"/>
+							            <div class="row g-2 mb-3">
+								            <div class="col-6">
+									            <label class="form-label" for="point-x">X</label>
+									            <input id="point-x" class="form-control" type="number" min="15" max="785" @bind="SelectedPoint.LocalX"/>
+								            </div>
+								            <div class="col-6">
+									            <label class="form-label" for="point-y">Y</label>
+									            <input id="point-y" class="form-control" type="number" min="15" max="435" @bind="SelectedPoint.LocalY"/>
+								            </div>
+							            </div>
+							            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="RemoveSelectedPoint">Delete selected Point</button>
+							            </div>
+					            }
+				           
+			            </BootstrapTab>
+			            <BootstrapTab Title="States" Disabled="@(!this.Part.Points.Any())">
+
+				            <div class="mb-1">
+					            <div class="d-grid gap-2">
+						            <button type="button" class="btn btn-primary" @onclick="AddState">Add state</button>
+								</div>
+				            </div>
+					            @if (Part.States.Count > 0) {
+						            <div class="mt-3 p-3">
+										<BootstrapTabs>
+							            @foreach (PartState state in this.Part.States)
+							            {
+								            <BootstrapTab Title="@state.Label"  OnClick="() =>this.ActiveState = state">
+									            <label class="form-label" for="state-label">State name</label>
+									            <input id="state-label" class="form-control mb-4" @bind="state.Label"/>
+
+									            <div class="d-grid gap-2">
+										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => AddConnectionGroup(state)">Add group</button>
+									            </div>
+
+									            @if (state.ConnectionGroups.Count > 0 ){
+										            <div class="p-3">
+											            <BootstrapTabs>
+															 
+												            @foreach (var group in state.ConnectionGroups.WithIndex())
+												            {
+																<BootstrapTab Title="@($"Group {group.Index}")">
+														            <div class="m-2">
+															            Connected: 
+															            @foreach (var connectedPin in group.Item.ConnectedPints)	
+															            {
+																            <span class="badge text-bg-secondary">@connectedPin.Label</span>
+															            }
+														            </div>
+														            <div class="d-flex flex-wrap gap-2">
+															            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => AddRemovePointToGroup(group.Item, SelectedPoint)">Selected point to group</button>
+															            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveActiveConnectionGroup(group.Item)">Remove group</button>
+														            </div>
+													            </BootstrapTab>
+												            }
+														
+											            </BootstrapTabs>
+										            </div>
+									            }
+								            </BootstrapTab>
+							            }
+						            </BootstrapTabs>
+						            </div>
+					            }
+			            </BootstrapTab>
+		            </BootstrapTabs>
+
+					
+
+		           
+	            </section>
+
+                
+            </div>
+        </aside>
+
+        <section class="col-12 col-xxl-7" aria-labelledby="canvas-title">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                    <h2 id="canvas-title" class="h5 mb-0">SVG scheme</h2>
+                </div>
+                <div class="card-body p-3 canvas-scroll">
+                    <svg class="editor-canvas"
+                         viewBox="0 0 800 450"
+                         width="800"
+                         height="450"
+                         role="img"
+                         aria-label="SVG scheme of the component"
+                         @onpointermove="MoveDraggedPoint"
+                         @onpointerup="EndPointDrag"
+                         @onpointercancel="CancelPointDrag"
+                         @onpointerleave="CancelPointDrag">
+                        <defs>
+                            <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+                                <path d="M 25 0 L 0 0 0 25" fill="none" class="canvas-grid" />
+                            </pattern>
+                        </defs>
+                        <rect width="800" height="450" fill="url(#grid)" />
+                        <rect x="1" y="1" width="798" height="448" rx="8" class="part-outline" />
+
+                        @if (ActiveState is { } state)
+                        {
+                            @foreach (var group in state.ConnectionGroups.WithIndex())
+                            {
+                                var points = group.Item.ConnectedPints;
+                                @for (var firstIndex = 0; firstIndex < points.Count - 1; firstIndex++)
+                                {
+                                    @for (var secondIndex = firstIndex + 1; secondIndex < points.Count; secondIndex++)
+                                    {
+                                        <line x1="@points[firstIndex].LocalX" y1="@points[firstIndex].LocalY" x2="@points[secondIndex].LocalX" y2="@points[secondIndex].LocalY" class="connection-line" style="stroke: @ConnectionGroup.GetLineColor(group.Index)" />
+                                    }
+                                }
+                            }
+                        }
+
+                        @foreach (var point in Part.Points)
+                        {
+                            <circle cx="@point.LocalX"
+                                    cy="@point.LocalY"
+                                    r="10"
+                                    class="@PointClass(point)"
+                                    @onpointerdown="(eventArgs) => StartPointDrag(point, eventArgs)" />
+                            <svg:text x="@(point.LocalX + 15)"
+                                      y="@(point.LocalY + 5)"
+                                      class="point-label"
+                                      @onpointerdown="(eventArgs) => StartPointDrag(point, eventArgs)">@point.Label</svg:text>
+                        }
+                    </svg>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

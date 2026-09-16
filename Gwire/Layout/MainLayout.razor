@@ -1,0 +1,17 @@
+﻿@inherits LayoutComponentBase
+<div class="app-shell">
+
+    <header class="app-toolbar navbar border-bottom bg-body-tertiary px-2" aria-label="Main toolbar">
+        <div class="d-flex gap-1">
+
+	        <a href="/part-editor" class="btn btn-outline-secondary toolbar-button" title="New" aria-label="New">
+		        Parts editor
+	        </a>
+	      
+        </div>
+    </header>
+     
+    <main class="workspace">
+        @Body
+    </main>
+</div>
