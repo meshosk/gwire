@@ -10,13 +10,7 @@ public partial class PartEditor : ComponentBase
     /// <summary>
     /// Currently edited part
     /// </summary>
-    public CustomPart Part { get; } = new();
-
-
-    private ConnectionPoint? draggedPoint;
-    private double dragOffsetX;
-    private double dragOffsetY;
-    private bool pointWasDragged;
+    public CustomPart Part { get; } = new(); 
 
 
     private ConnectionPoint? SelectedPoint { get; set; }
@@ -24,21 +18,12 @@ public partial class PartEditor : ComponentBase
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
 
 
-    private void AddPoint()
-    {
-        var count = Part.Points.Count;
-        var point = new ConnectionPoint
-        {
-            Label = $"Point {count + 1}",
-            LocalX = 120 + (count % 5) * 140,
-            LocalY = 120 + (count / 5) * 100
-        };
-
-        Part.Points.Add(point);
-        SelectedPoint = point;
-    }
-
     #region Drags
+
+    private ConnectionPoint? draggedPoint;
+    private double dragOffsetX;
+    private double dragOffsetY;
+    private bool pointWasDragged;
 
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
@@ -97,6 +82,19 @@ public partial class PartEditor : ComponentBase
 
     #endregion
 
+    private void AddPoint()
+    {
+        var count = Part.Points.Count;
+        var point = new ConnectionPoint
+        {
+            Label = $"Point {count + 1}",
+            LocalX = 120 + (count % 5) * 140,
+            LocalY = 120 + (count / 5) * 100
+        };
+
+        Part.Points.Add(point);
+        SelectedPoint = point;
+    }
 
     private void AddConnectionGroup(PartState state)
     {
@@ -106,7 +104,7 @@ public partial class PartEditor : ComponentBase
 
     private void AddState()
     {
-        var state = new PartState { Label = $"Stav {Part.States.Count + 1}" };
+        var state = new PartState { Label = $"State {Part.States.Count + 1}" };
         Part.States.Add(state);
         ActiveState = state;
         ActiveConnectionGroup = null;
@@ -147,13 +145,6 @@ public partial class PartEditor : ComponentBase
         ActiveConnectionGroup = null;
     }
 
-    private static T? TryGetByIndex<T>(IReadOnlyList<T> items, object? value) where T : class
-    {
-        return int.TryParse(value?.ToString(), out var index) && index >= 0 && index < items.Count
-            ? items[index]
-            : null;
-    }
-
     private string PointClass(ConnectionPoint point) =>
         ReferenceEquals(point, SelectedPoint) ? "connection-point is-selected" : "connection-point";
 
@@ -167,6 +158,5 @@ public partial class PartEditor : ComponentBase
         {
             group.ConnectedPints.Add(selectedPoint);
         }
-        StateHasChanged();
     }
 }
