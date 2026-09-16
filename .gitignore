@@ -10,9 +10,9 @@ lerna-debug.log*
 node_modules
 .DS_Store
 dist
-# Bootstrap static assets are published by the Blazor application.
-!wwwroot/lib/bootstrap/dist/
-!wwwroot/lib/bootstrap/dist/**
+# Static web assets are published by the Blazor application.
+!Gwire/wwwroot/
+!Gwire/wwwroot/**
 dist-ssr
 coverage
 *.local
