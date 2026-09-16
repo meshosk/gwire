@@ -97,24 +97,11 @@ public partial class PartEditor : ComponentBase
 
     #endregion
 
-    private void ChangeActiveState(ChangeEventArgs eventArgs)
-    {
-        ActiveState = TryGetByIndex(Part.States, eventArgs.Value);
-        ActiveConnectionGroup = null;
-    }
-
-    private void ChangeActiveConnectionGroup(ChangeEventArgs eventArgs)
-    {
-        ActiveConnectionGroup = ActiveState is null
-            ? null
-            : TryGetByIndex(ActiveState.ConnectionGroups, eventArgs.Value);
-    }
 
     private void AddConnectionGroup(PartState state)
     {
         var group = new ConnectionGroup();
         state.ConnectionGroups.Add(group);
-        StateHasChanged();
     }
 
     private void AddState()
