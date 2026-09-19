@@ -23,6 +23,7 @@ coverage
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
 !.vscode/tasks.json
 .kilo
 .idea

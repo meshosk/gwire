@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Gwire (Hot Reload)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "dotnet watch --project \"${workspaceFolder}/Server/Server.csproj\" run --launch-profile http"
+    }
+  ]
+}
