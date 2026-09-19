@@ -1,24 +1,17 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Serialization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Gwire.Pages;
 
 public partial class PartEditor : ComponentBase
 {
-    private const long MaxImportFileSize = 1024 * 1024;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-        ReferenceHandler = ReferenceHandler.Preserve
-    };
+    private readonly CustomPartJsonSerializer partSerializer = new();
 
     /// <summary>
     /// Currently edited part
@@ -32,7 +25,7 @@ public partial class PartEditor : ComponentBase
     private string? ImportMessage { get; set; }
     private string ImportMessageClass { get; set; } = "alert-success";
 
-    private string ExportUri => $"data:application/json;charset=utf-8,{Uri.EscapeDataString(JsonSerializer.Serialize(Part, JsonOptions))}";
+    private string ExportUri => $"data:application/json;charset=utf-8,{Uri.EscapeDataString(partSerializer.Serialize(Part))}";
     private string ExportFileName => CreateFileName(Part.Name);
 
 
@@ -190,15 +183,12 @@ public partial class PartEditor : ComponentBase
         try
         {
             var file = eventArgs.File;
-            if (file.Size > MaxImportFileSize)
-            {
-                throw new InvalidDataException("The JSON file must not be larger than 1 MB.");
-            }
 
-            await using var stream = file.OpenReadStream(MaxImportFileSize);
+
+            await using var stream = file.OpenReadStream();
             using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
             var json = await reader.ReadToEndAsync();
-            var importedPart = JsonSerializer.Deserialize<CustomPart>(json, JsonOptions)
+            var importedPart = partSerializer.Deserialize(json)
                 ?? throw new InvalidDataException("The JSON file does not contain a part.");
 
             ValidateImport(importedPart);
@@ -227,12 +217,8 @@ public partial class PartEditor : ComponentBase
         try
         {
             var file = eventArgs.File;
-            if (file.Size > MaxImportFileSize)
-            {
-                throw new InvalidDataException("The SVG file must not be larger than 1 MB.");
-            }
-
-            await using var stream = file.OpenReadStream(MaxImportFileSize);
+ 
+            await using var stream = file.OpenReadStream();
             using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
             var svgMarkup = await reader.ReadToEndAsync();
             if (!svgMarkup.Contains("<svg", StringComparison.OrdinalIgnoreCase))
