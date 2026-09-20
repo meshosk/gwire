@@ -5,14 +5,11 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using System.Text;
-using System.Text.Json;
 
 namespace Gwire.Pages;
 
 public partial class PartEditor : ComponentBase
 {
-    private readonly CustomPartJsonSerializer partSerializer = new();
-
     /// <summary>
     /// Currently edited part
     /// </summary>
@@ -25,7 +22,7 @@ public partial class PartEditor : ComponentBase
     private string? ImportMessage { get; set; }
     private string ImportMessageClass { get; set; } = "alert-success";
 
-    private string ExportUri => $"data:application/json;charset=utf-8,{Uri.EscapeDataString(partSerializer.Serialize(Part))}";
+    private string ExportUri => ObjectJsonSerializer.Export<CustomPart>(Part);
     private string ExportFileName => CreateFileName(Part.Name);
 
 
@@ -182,28 +179,13 @@ public partial class PartEditor : ComponentBase
     {
         try
         {
-            var file = eventArgs.File;
-
-
-            await using var stream = file.OpenReadStream();
-            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-            var json = await reader.ReadToEndAsync();
-            var importedPart = partSerializer.Deserialize(json)
-                ?? throw new InvalidDataException("The JSON file does not contain a part.");
-
-            ValidateImport(importedPart);
-            Part = importedPart;
+            Part = await ObjectJsonSerializer.ImportAsync<CustomPart>(eventArgs.File);
             SelectedPoint = null;
             ActiveState = Part.States.FirstOrDefault();
             ActiveConnectionGroup = null;
             CancelPointDrag(new PointerEventArgs());
             ImportMessage = "Part imported successfully.";
             ImportMessageClass = "alert-success";
-        }
-        catch (JsonException)
-        {
-            ImportMessage = "The selected file is not valid part JSON.";
-            ImportMessageClass = "alert-danger";
         }
         catch (Exception exception) when (exception is InvalidDataException or IOException)
         {
@@ -244,27 +226,6 @@ public partial class PartEditor : ComponentBase
         Part.SvgMarkup = string.Empty;
         Part.SvgLocalX = 0;
         Part.SvgLocalY = 0;
-    }
-
-    private static void ValidateImport(CustomPart importedPart)
-    {
-        foreach (var point in importedPart.Points)
-        {
-            if (double.IsNaN(point.LocalX) || double.IsInfinity(point.LocalX) || point.LocalX is < 15 or > 785 ||
-                double.IsNaN(point.LocalY) || double.IsInfinity(point.LocalY) || point.LocalY is < 15 or > 435)
-            {
-                throw new InvalidDataException("A point position is outside the editor bounds.");
-            }
-        }
-
-        var partPoints = importedPart.Points.ToHashSet();
-        foreach (var group in importedPart.States.SelectMany(state => state.ConnectionGroups))
-        {
-            if (group.ConnectedPints.Any(point => !partPoints.Contains(point)))
-            {
-                throw new InvalidDataException("A connection group references a point outside the part.");
-            }
-        }
     }
 
     private static string CreateFileName(string name)

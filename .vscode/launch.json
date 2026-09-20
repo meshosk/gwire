@@ -6,6 +6,29 @@
       "type": "node-terminal",
       "request": "launch",
       "command": "dotnet watch --project \"${workspaceFolder}/Server/Server.csproj\" run --launch-profile http"
+    },
+    {
+      "name": "Debug Gwire (C# Dev Kit)",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/Server/Server.csproj"
+    },
+    {
+      "name": "Attach Gwire WASM Debugger",
+      "type": "blazorwasm",
+      "request": "attach",
+      "url": "http://localhost:5188",
+      "timeout": 60000
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Gwire (Hot Reload + Debug)",
+      "configurations": [
+        "Run Gwire (Hot Reload)",
+        "Attach Gwire WASM Debugger"
+      ],
+      "stopAll": true
     }
   ]
 }
