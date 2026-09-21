@@ -13,12 +13,12 @@
 	            <section class="card shadow-sm point-panel p-2">
 		            <div class="d-flex flex-wrap gap-2 mb-3">
 			            <label class="btn btn-outline-primary mb-0" for="part-import">
-				            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
+				            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON 123
 			            </label>
 			            <InputFile id="part-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportPartAsync" />
-			            <a class="btn btn-outline-primary" href="@ExportUri" download="@ExportFileName">
-				            <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
-			            </a>
+			            <button type="button" class="btn btn-outline-primary" @onclick="ExportPartAsync">
+			                <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
+			            </button>
 		            </div>
 
 		            @if (!string.IsNullOrEmpty(ImportMessage))

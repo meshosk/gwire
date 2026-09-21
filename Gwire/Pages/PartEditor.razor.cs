@@ -4,12 +4,16 @@ using Gwire.Serialization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using System.Text;
 
 namespace Gwire.Pages;
 
 public partial class PartEditor : ComponentBase
 {
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
     /// <summary>
     /// Currently edited part
     /// </summary>
@@ -21,10 +25,6 @@ public partial class PartEditor : ComponentBase
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
     private string? ImportMessage { get; set; }
     private string ImportMessageClass { get; set; } = "alert-success";
-
-    private string ExportUri => ObjectJsonSerializer.Export<CustomPart>(Part);
-    private string ExportFileName => CreateFileName(Part.Name);
-
 
     #region Drags
 
@@ -192,6 +192,16 @@ public partial class PartEditor : ComponentBase
             ImportMessage = exception.Message;
             ImportMessageClass = "alert-danger";
         }
+    }
+
+    private async Task ExportPartAsync()
+    {
+        await using var stream = new MemoryStream();
+        await ObjectJsonSerializer.ExportAsync<CustomPart>(Part, stream);
+        stream.Position = 0;
+
+        using var streamReference = new DotNetStreamReference(stream);
+        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(Part.Name), streamReference);
     }
 
     private async Task ImportSvgAsync(InputFileChangeEventArgs eventArgs)

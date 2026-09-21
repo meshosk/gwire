@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components.Forms;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -17,18 +16,18 @@ public static class ObjectJsonSerializer
         ReferenceHandler = ReferenceHandler.Preserve
     };
 
-/// <summary>
-/// Creates a URI with data for direct download of the given object as JSON.
-/// </summary>
-/// <typeparam name="T"></typeparam>
-/// <param name="value"></param>
-/// <returns></returns>
-    public static string Export<T>(T value)
+    /// <summary>
+    /// Serializes the given object as JSON into the output stream.
+    /// </summary>
+    /// <typeparam name="T">The object type.</typeparam>
+    /// <param name="value">The object to serialize.</param>
+    /// <param name="output">The stream that receives the JSON data.</param>
+    public static async Task ExportAsync<T>(T value, Stream output)
     {
         ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(output);
 
-        var json = JsonSerializer.Serialize(value, Options);
-        return $"data:application/json;charset=utf-8,{Uri.EscapeDataString(json)}";
+        await JsonSerializer.SerializeAsync(output, value, Options);
     }
 /// <summary>
 /// Imports an object from a JSON file uploaded by user using file upload input.
@@ -44,9 +43,7 @@ public static class ObjectJsonSerializer
         try
         {
             await using var stream = file.OpenReadStream();
-            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-            var json = await reader.ReadToEndAsync();
-            var value = JsonSerializer.Deserialize<T>(json, Options)
+            var value = await JsonSerializer.DeserializeAsync<T>(stream, Options)
                 ?? throw new InvalidDataException("The JSON file does not contain a part.");
 
             return value;
