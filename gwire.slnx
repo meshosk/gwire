@@ -3,6 +3,7 @@
     <File Path=".github/workflows/deploy-pages.yml" />
     <File Path=".gitignore" />
     <File Path="AGENTS.md" />
+    <File Path="LICENCE.md" />
     <File Path="README.md" />
   </Folder>
   <Project Path="Server/Server.csproj" Id="fb3b01dc-3b4d-4f13-93c5-ddb962cbe50a" />
