@@ -36,6 +36,21 @@
     stroke-width: 2;
 }
 
+.part-svg-background {
+    cursor: grab;
+}
+
+.part-svg-background:active {
+    cursor: grabbing;
+}
+
+.connection-line-outline {
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-width: 6;
+    pointer-events: none;
+}
+
 .connection-line {
     stroke: #3d647a;
     stroke-linecap: round;
@@ -67,6 +82,9 @@
 
 .point-label {
     fill: #17324a;
+    stroke: #fff;
+    stroke-width: 3;
+    paint-order: stroke;
     font-size: 15px;
     font-weight: 600;
     cursor: grab;

@@ -1,47 +1,51 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Serialization;
+using Gwire.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
+using System.Text;
 
 namespace Gwire.Pages;
 
 public partial class PartEditor : ComponentBase
 {
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private GwireRepoService GwireRepo { get; set; } = default!;
+
     /// <summary>
     /// Currently edited part
     /// </summary>
-    public CustomPart Part { get; } = new();
-
-
-    private ConnectionPoint? draggedPoint;
-    private double dragOffsetX;
-    private double dragOffsetY;
-    private bool pointWasDragged;
+    public CustomPart Part { get; private set; } = new();
 
 
     private ConnectionPoint? SelectedPoint { get; set; }
     private PartState? ActiveState { get; set; }
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
+    private string? ImportMessage { get; set; }
+    private string ImportMessageClass { get; set; } = "alert-success";
+    private string selectedTag = string.Empty;
 
-
-    private void AddPoint()
-    {
-        var count = Part.Points.Count;
-        var point = new ConnectionPoint
-        {
-            Label = $"Point {count + 1}",
-            LocalX = 120 + (count % 5) * 140,
-            LocalY = 120 + (count / 5) * 100
-        };
-
-        Part.Points.Add(point);
-        SelectedPoint = point;
-    }
+    private IReadOnlyList<string> AvailableTags => GwireRepo.Tags
+        .Where(tag => !Part.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        .ToList();
 
     #region Drags
 
+    private ConnectionPoint? draggedPoint;
+    private bool isSvgDragged;
+    private double dragOffsetX;
+    private double dragOffsetY;
+    private bool pointWasDragged;
+
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
+        isSvgDragged = false;
         SelectedPoint = point;
         draggedPoint = point;
         dragOffsetX = eventArgs.OffsetX - point.LocalX;
@@ -65,64 +69,75 @@ public partial class PartEditor : ComponentBase
     private void CancelPointDrag(PointerEventArgs eventArgs)
     {
         draggedPoint = null;
+        isSvgDragged = false;
         dragOffsetX = 0;
         dragOffsetY = 0;
         pointWasDragged = false;
     }
 
-    private void MoveDraggedPoint(PointerEventArgs eventArgs)
+    private void MoveDraggedItem(PointerEventArgs eventArgs)
     {
-        if (draggedPoint is null)
+        if (draggedPoint is not null)
         {
+            var nextX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, 15, 785);
+            var nextY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, 15, 435);
+            pointWasDragged |= Math.Abs(nextX - draggedPoint.LocalX) > 2 || Math.Abs(nextY - draggedPoint.LocalY) > 2;
+            draggedPoint.LocalX = nextX;
+            draggedPoint.LocalY = nextY;
             return;
         }
 
-        var nextX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, 15, 785);
-        var nextY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, 15, 435);
-        pointWasDragged |= Math.Abs(nextX - draggedPoint.LocalX) > 2 || Math.Abs(nextY - draggedPoint.LocalY) > 2;
-        draggedPoint.LocalX = nextX;
-        draggedPoint.LocalY = nextY;
-    }
-
-    private void MoveSelectedPoint(double deltaX, double deltaY)
-    {
-        if (SelectedPoint is null)
+        if (isSvgDragged)
         {
-            return;
+            Part.SvgLocalX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, -800, 800);
+            Part.SvgLocalY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, -450, 450);
         }
-
-        SelectedPoint.LocalX = Math.Clamp(SelectedPoint.LocalX + deltaX, 15, 785);
-        SelectedPoint.LocalY = Math.Clamp(SelectedPoint.LocalY + deltaY, 15, 435);
     }
 
     #endregion
 
-    private void ChangeActiveState(ChangeEventArgs eventArgs)
+    private void AddPoint()
     {
-        ActiveState = TryGetByIndex(Part.States, eventArgs.Value);
-        ActiveConnectionGroup = null;
-    }
+        var count = Part.Points.Count;
+        var point = new ConnectionPoint
+        {
+            Label = $"Point {count + 1}",
+            LocalX = 120 + (count % 5) * 140,
+            LocalY = 120 + (count / 5) * 100
+        };
 
-    private void ChangeActiveConnectionGroup(ChangeEventArgs eventArgs)
-    {
-        ActiveConnectionGroup = ActiveState is null
-            ? null
-            : TryGetByIndex(ActiveState.ConnectionGroups, eventArgs.Value);
+        Part.Points.Add(point);
+        SelectedPoint = point;
     }
 
     private void AddConnectionGroup(PartState state)
     {
         var group = new ConnectionGroup();
         state.ConnectionGroups.Add(group);
-        StateHasChanged();
     }
 
     private void AddState()
     {
-        var state = new PartState { Label = $"Stav {Part.States.Count + 1}" };
+        var state = new PartState { Label = $"State {Part.States.Count + 1}" };
         Part.States.Add(state);
         ActiveState = state;
         ActiveConnectionGroup = null;
+    }
+
+    private void AddTag()
+    {
+        if (string.IsNullOrWhiteSpace(selectedTag) || !GwireRepo.Tags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        Part.Tags.Add(selectedTag);
+        selectedTag = string.Empty;
+    }
+
+    private void RemoveTag(string tag)
+    {
+        Part.Tags.Remove(tag);
     }
 
     private void RemoveSelectedPoint()
@@ -160,13 +175,6 @@ public partial class PartEditor : ComponentBase
         ActiveConnectionGroup = null;
     }
 
-    private static T? TryGetByIndex<T>(IReadOnlyList<T> items, object? value) where T : class
-    {
-        return int.TryParse(value?.ToString(), out var index) && index >= 0 && index < items.Count
-            ? items[index]
-            : null;
-    }
-
     private string PointClass(ConnectionPoint point) =>
         ReferenceEquals(point, SelectedPoint) ? "connection-point is-selected" : "connection-point";
 
@@ -180,6 +188,89 @@ public partial class PartEditor : ComponentBase
         {
             group.ConnectedPints.Add(selectedPoint);
         }
-        StateHasChanged();
     }
+
+    private void StartSvgDrag(PointerEventArgs eventArgs)
+    {
+        SelectedPoint = null;
+        draggedPoint = null;
+        isSvgDragged = true;
+        dragOffsetX = eventArgs.OffsetX - Part.SvgLocalX;
+        dragOffsetY = eventArgs.OffsetY - Part.SvgLocalY;
+        pointWasDragged = false;
+    }
+
+    private async Task ImportPartAsync(InputFileChangeEventArgs eventArgs)
+    {
+        try
+        {
+            Part = await ObjectJsonSerializer.ImportAsync<CustomPart>(eventArgs.File);
+            SelectedPoint = null;
+            ActiveState = Part.States.FirstOrDefault();
+            ActiveConnectionGroup = null;
+            CancelPointDrag(new PointerEventArgs());
+            ImportMessage = "Part imported successfully.";
+            ImportMessageClass = "alert-success";
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        {
+            ImportMessage = exception.Message;
+            ImportMessageClass = "alert-danger";
+        }
+    }
+
+    private async Task ExportPartAsync()
+    {
+        await using var stream = new MemoryStream();
+        await ObjectJsonSerializer.ExportAsync<CustomPart>(Part, stream);
+        stream.Position = 0;
+
+        using var streamReference = new DotNetStreamReference(stream);
+        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(Part.Name), streamReference);
+    }
+
+    private async Task ImportSvgAsync(InputFileChangeEventArgs eventArgs)
+    {
+        try
+        {
+            var file = eventArgs.File;
+ 
+            await using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            var svgMarkup = await reader.ReadToEndAsync();
+            if (!svgMarkup.Contains("<svg", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("The selected file does not contain an SVG image.");
+            }
+
+            Part.SvgMarkup = svgMarkup;
+            Part.SvgLocalX = 0;
+            Part.SvgLocalY = 0;
+            ImportMessage = "SVG background imported successfully.";
+            ImportMessageClass = "alert-success";
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        {
+            ImportMessage = exception.Message;
+            ImportMessageClass = "alert-danger";
+        }
+    }
+
+    private void RemoveSvg()
+    {
+        Part.SvgMarkup = string.Empty;
+        Part.SvgLocalX = 0;
+        Part.SvgLocalY = 0;
+    }
+
+    private static string CreateFileName(string name)
+    {
+        var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
+        return string.IsNullOrWhiteSpace(safeName) ? "part.json" : $"{safeName}.part.json";
+    }
+
+    private string? SvgImageSource => string.IsNullOrWhiteSpace(Part.SvgMarkup)
+        ? null
+        : $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(Part.SvgMarkup))}";
+
 }

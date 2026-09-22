@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Gwire WASM with Hot Reload",
+      "type": "blazorwasm",
+      "request": "attach",
+      "cwd": "${workspaceFolder}/Gwire",
+      "url": "http://localhost:5188",
+      "browser": "chrome",
+      "timeout": 120000,
+      "preLaunchTask": "Watch Gwire"
+    }
+  ]
+}

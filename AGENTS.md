@@ -9,5 +9,12 @@
   file is acceptable when a separate file would add unnecessary overhead.
 - Preserve CRLF line endings.
 - Verify changes with `dotnet build gwire.slnx --no-restore`.
+- Keep verification proportionate to the change. Do not run unrelated, redundant,
+  or low-value checks (for example, JSON linting when the requested configuration
+  is already straightforward) or repeat a command that has not produced a result
+  unless it is necessary to diagnose a concrete failure.
 - using css Boostrap v5.3.3 and Font Awesome Free 7.3.1
 - Use en.us for code, comments and UI
+- Do not restore intentionally removed code or behavior unless the user explicitly requests it.
+- Do not make assumptions that expand the requested change; do not alter related API contracts, generic constraints, or behavior unless explicitly requested.
+- Prefer existing platform, framework, and project solutions before creating custom implementations. Create custom code only when a concrete requirement cannot be met by an existing solution.

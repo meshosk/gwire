@@ -1,25 +1,92 @@
-﻿@page "/part-editor"
+@page "/part-editor"
 @using Gwire.Components.Tabs
 @using Gwire.Extensions
 @using Gwire.Models.Base
+@using Microsoft.AspNetCore.Components.Forms
 
-<PageTitle>Editor súčiastok assssa</PageTitle>
+<PageTitle>Gwire - The part editor</PageTitle>
 
 <div class="part-editor container-fluid py-4">
-    <div class="row g-4">
-        <aside class="col-12 col-xxl-5">
-            <div class="editor-controls">
+	<div class="row g-4">
+		<aside class="col-12 col-xxl-5">
+			<div class="editor-controls">
 	            <section class="card shadow-sm point-panel p-2">
+		            <div class="d-flex flex-wrap gap-2 mb-3">
+			            <label class="btn btn-outline-primary mb-0" for="part-import">
+				            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
+			            </label>
+			            <InputFile id="part-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportPartAsync" />
+			            <button type="button" class="btn btn-outline-primary" @onclick="ExportPartAsync">
+			                <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
+			            </button>
+		            </div>
+
+		            @if (!string.IsNullOrEmpty(ImportMessage))
+		            {
+			            <div class="alert @ImportMessageClass mb-3" role="status">@ImportMessage</div>
+		            }
+
 		            <BootstrapTabs>
 			            <BootstrapTab Title="Part">
 				            <div class="mb-3">
 					            <label for="part-name" class="form-label">Title</label>
 					            <input class="form-control" id="part-name" @bind="@this.Part.Name" aria-label="Part name" />
 				            </div>                    
-				            <div  class="mb-3">
-					            <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
-					            <textarea class="form-control" @bind="@this.Part.Description" id="exampleFormControlTextarea1" rows="3"></textarea>
-				            </div>
+			               <div class="mb-3">
+			                  <label for="part-description" class="form-label">Description</label>
+			                  <textarea class="form-control" @bind="@this.Part.Description" id="part-description" rows="3"></textarea>
+			               </div>
+			               <div class="mb-3">
+			                  <label for="part-tag" class="form-label">Tags</label>
+			                  <div class="input-group">
+			                     <select class="form-select" id="part-tag" @bind="selectedTag" disabled="@(AvailableTags.Count == 0)">
+			                        <option value="">Select a tag</option>
+			                        @foreach (var tag in AvailableTags)
+			                        {
+			                           <option value="@tag">@tag</option>
+			                        }
+			                     </select>
+			                     <button type="button" class="btn btn-outline-primary" @onclick="AddTag" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
+			                  </div>
+			                  @if (Part.Tags.Count > 0)
+			                  {
+			                     <div class="d-flex flex-wrap gap-2 mt-2">
+			                        @foreach (var tag in Part.Tags)
+			                        {
+			                           <span class="badge text-bg-secondary d-flex align-items-center gap-1">
+			                              @tag
+			                              <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => RemoveTag(tag)"></button>
+			                           </span>
+			                        }
+			                     </div>
+			                  }
+			               </div>
+			               <div class="mb-3">
+			                  <label class="form-label">SVG background</label>
+			                  <div class="d-flex flex-wrap gap-2">
+			                     <label class="btn btn-outline-primary mb-0" for="part-svg-import">
+			                        <i class="fa-solid fa-image me-1" aria-hidden="true"></i>Upload SVG
+			                     </label>
+			                     <InputFile id="part-svg-import" class="visually-hidden" accept="image/svg+xml,.svg" OnChange="ImportSvgAsync" />
+			                     @if (!string.IsNullOrWhiteSpace(Part.SvgMarkup))
+			                     {
+			                        <button type="button" class="btn btn-outline-danger" @onclick="RemoveSvg">Remove SVG</button>
+			                     }
+			                  </div>
+			               </div>
+			               @if (!string.IsNullOrWhiteSpace(Part.SvgMarkup))
+			               {
+			                  <div class="row g-2 mb-3">
+			                     <div class="col-6">
+			                        <label class="form-label" for="svg-x">SVG X</label>
+			                        <input id="svg-x" class="form-control" type="number" min="-800" max="800" @bind="Part.SvgLocalX" />
+			                     </div>
+			                     <div class="col-6">
+			                        <label class="form-label" for="svg-y">SVG Y</label>
+			                        <input id="svg-y" class="form-control" type="number" min="-450" max="450" @bind="Part.SvgLocalY" />
+			                     </div>
+			                  </div>
+			               }
 			            </BootstrapTab>
 			            <BootstrapTab Title="Points">
 				            <div class="mb-1">
@@ -121,7 +188,7 @@
                          height="450"
                          role="img"
                          aria-label="SVG scheme of the component"
-                         @onpointermove="MoveDraggedPoint"
+                         @onpointermove="MoveDraggedItem"
                          @onpointerup="EndPointDrag"
                          @onpointercancel="CancelPointDrag"
                          @onpointerleave="CancelPointDrag">
@@ -133,6 +200,18 @@
                         <rect width="800" height="450" fill="url(#grid)" />
                         <rect x="1" y="1" width="798" height="448" rx="8" class="part-outline" />
 
+                        @if (SvgImageSource is { } svgImageSource)
+                        {
+                            <image href="@svgImageSource"
+                                   x="@Part.SvgLocalX"
+                                   y="@Part.SvgLocalY"
+                                   width="800"
+                                   height="450"
+                                   preserveAspectRatio="xMidYMid meet"
+                                   class="part-svg-background"
+                                   @onpointerdown="StartSvgDrag" />
+                        }
+
                         @if (ActiveState is { } state)
                         {
                             @foreach (var group in state.ConnectionGroups.WithIndex())
@@ -142,6 +221,7 @@
                                 {
                                     @for (var secondIndex = firstIndex + 1; secondIndex < points.Count; secondIndex++)
                                     {
+                                        <line x1="@points[firstIndex].LocalX" y1="@points[firstIndex].LocalY" x2="@points[secondIndex].LocalX" y2="@points[secondIndex].LocalY" class="connection-line-outline" />
                                         <line x1="@points[firstIndex].LocalX" y1="@points[firstIndex].LocalY" x2="@points[secondIndex].LocalX" y2="@points[secondIndex].LocalY" class="connection-line" style="stroke: @ConnectionGroup.GetLineColor(group.Index)" />
                                     }
                                 }
