@@ -1,6 +1,7 @@
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
+using Gwire.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -14,6 +15,9 @@ public partial class PartEditor : ComponentBase
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
+    [Inject]
+    private GwireRepoService GwireRepo { get; set; } = default!;
+
     /// <summary>
     /// Currently edited part
     /// </summary>
@@ -25,6 +29,11 @@ public partial class PartEditor : ComponentBase
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
     private string? ImportMessage { get; set; }
     private string ImportMessageClass { get; set; } = "alert-success";
+    private string selectedTag = string.Empty;
+
+    private IReadOnlyList<string> AvailableTags => GwireRepo.Tags
+        .Where(tag => !Part.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        .ToList();
 
     #region Drags
 
@@ -113,6 +122,22 @@ public partial class PartEditor : ComponentBase
         Part.States.Add(state);
         ActiveState = state;
         ActiveConnectionGroup = null;
+    }
+
+    private void AddTag()
+    {
+        if (string.IsNullOrWhiteSpace(selectedTag) || !GwireRepo.Tags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        Part.Tags.Add(selectedTag);
+        selectedTag = string.Empty;
+    }
+
+    private void RemoveTag(string tag)
+    {
+        Part.Tags.Remove(tag);
     }
 
     private void RemoveSelectedPoint()

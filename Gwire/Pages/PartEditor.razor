@@ -32,9 +32,34 @@
 					            <label for="part-name" class="form-label">Title</label>
 					            <input class="form-control" id="part-name" @bind="@this.Part.Name" aria-label="Part name" />
 				            </div>                    
-			               <div  class="mb-3">
-			                  <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
-			                  <textarea class="form-control" @bind="@this.Part.Description" id="exampleFormControlTextarea1" rows="3"></textarea>
+			               <div class="mb-3">
+			                  <label for="part-description" class="form-label">Description</label>
+			                  <textarea class="form-control" @bind="@this.Part.Description" id="part-description" rows="3"></textarea>
+			               </div>
+			               <div class="mb-3">
+			                  <label for="part-tag" class="form-label">Tags</label>
+			                  <div class="input-group">
+			                     <select class="form-select" id="part-tag" @bind="selectedTag" disabled="@(AvailableTags.Count == 0)">
+			                        <option value="">Select a tag</option>
+			                        @foreach (var tag in AvailableTags)
+			                        {
+			                           <option value="@tag">@tag</option>
+			                        }
+			                     </select>
+			                     <button type="button" class="btn btn-outline-primary" @onclick="AddTag" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
+			                  </div>
+			                  @if (Part.Tags.Count > 0)
+			                  {
+			                     <div class="d-flex flex-wrap gap-2 mt-2">
+			                        @foreach (var tag in Part.Tags)
+			                        {
+			                           <span class="badge text-bg-secondary d-flex align-items-center gap-1">
+			                              @tag
+			                              <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => RemoveTag(tag)"></button>
+			                           </span>
+			                        }
+			                     </div>
+			                  }
 			               </div>
 			               <div class="mb-3">
 			                  <label class="form-label">SVG background</label>

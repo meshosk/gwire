@@ -21,6 +21,11 @@ public abstract class CircuitPart
     public string Description { get; set; } = string.Empty;
 
     /// <summary>
+    /// Tags used to search and filter parts in the catalog.
+    /// </summary>
+    public List<string> Tags { get; set; } = new();
+
+    /// <summary>
     /// SVG markup used as the visual background of the part.
     /// </summary>
     public string SvgMarkup { get; set; } = string.Empty;
@@ -54,4 +59,39 @@ public abstract class CircuitPart
     /// Defines which state is active.
     /// </summary>
     public PartState? ActiveState { get; internal set; } = null;
+
+    /// <summary>
+    /// Creates a deep clone while preserving the connections between cloned points and states.
+    /// </summary>
+    public CircuitPart Clone()
+    {
+        var clone = (CircuitPart)MemberwiseClone();
+        var clonedPoints = new Dictionary<ConnectionPoint, ConnectionPoint>();
+
+        clone.Points = Points.Select(point =>
+        {
+            var clonedPoint = new ConnectionPoint
+            {
+                Label = point.Label,
+                LocalX = point.LocalX,
+                LocalY = point.LocalY
+            };
+            clonedPoints.Add(point, clonedPoint);
+            return clonedPoint;
+        }).ToList();
+
+        clone.Tags = [.. Tags];
+        clone.States = States.Select(state => new PartState
+        {
+            Label = state.Label,
+            ConnectionGroups = state.ConnectionGroups.Select(group => new ConnectionGroup
+            {
+                ConnectedPints = group.ConnectedPints.Select(point => clonedPoints[point]).ToList()
+            }).ToList()
+        }).ToList();
+
+        var activeStateIndex = States.FindIndex(state => ReferenceEquals(state, ActiveState));
+        clone.ActiveState = activeStateIndex >= 0 ? clone.States[activeStateIndex] : null;
+        return clone;
+    }
 }
