@@ -1,0 +1,55 @@
+.scheme-editor {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.scheme-editor-toolbar {
+    flex: 0 0 auto;
+}
+
+.scheme-editor-canvas-container {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.scheme-editor-canvas {
+    display: block;
+    min-width: 1200px;
+    min-height: 700px;
+    background: #fff;
+    touch-action: none;
+}
+
+.scheme-grid {
+    stroke: #e8edf3;
+    stroke-width: 1;
+}
+
+.scheme-part-svg,
+.scheme-part-points {
+    cursor: grab;
+}
+
+.scheme-part-svg:active,
+.scheme-part-points:active,
+.cable-endpoint:active {
+    cursor: grabbing;
+}
+
+.cable-line {
+    stroke: #3d647a;
+    stroke-linecap: round;
+    stroke-width: 4;
+    pointer-events: none;
+}
+
+.scheme-connection-point {
+    fill: #1677d2;
+    stroke: #fff;
+    stroke-width: 3;
+}
+
+.cable-endpoint {
+    cursor: grab;
+}

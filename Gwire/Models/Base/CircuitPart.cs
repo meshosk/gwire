@@ -11,7 +11,6 @@ public abstract class CircuitPart
     /// ID - not sure if it is needed
     /// </summary>
     public Guid Id { get; init; } = Guid.NewGuid();
-
     /// <summary>
     /// Part name
     /// </summary>
@@ -33,6 +32,16 @@ public abstract class CircuitPart
     public double SvgLocalY { get; set; }
 
     /// <summary>
+    /// X position of the part in a circuit scheme.
+    /// </summary>
+    public double SchemeX { get; set; }
+
+    /// <summary>
+    /// Y position of the part in a circuit scheme.
+    /// </summary>
+    public double SchemeY { get; set; }
+
+    /// <summary>
     /// List of connection points that can connect part into circuit.
     /// </summary>
     public List<ConnectionPoint> Points { get; set; } = new();
@@ -40,4 +49,9 @@ public abstract class CircuitPart
     /// Defines states. Each state defines how points are interconnected. Active is only one.
     /// </summary>
     public List<PartState> States { get; set; } = new();
+
+    /// <summary>
+    /// Defines which state is active.
+    /// </summary>
+    public PartState? ActiveState { get; internal set; } = null;
 }

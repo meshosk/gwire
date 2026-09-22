@@ -13,4 +13,6 @@ public class PartState
     /// State can set interconnect of a points groups, so part line simple on//off state can be created. 
     /// </summary>
     public List<ConnectionGroup> ConnectionGroups { get; set; } = new();
+
 }
+
