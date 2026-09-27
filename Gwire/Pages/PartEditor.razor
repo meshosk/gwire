@@ -18,7 +18,20 @@
 			            <button type="button" class="btn btn-outline-primary" @onclick="ExportPartAsync">
 			                <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
 			            </button>
+			            <button type="button" class="btn btn-outline-primary" @onclick="SavePartToService">
+			                <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>Save to service
+			            </button>
 		            </div>
+			<div class="input-group mb-3">
+				<select class="form-select" aria-label="Part to edit" @bind="selectedPartId" disabled="@(!AvailableParts.Any())">
+					<option value="">Select a part to edit</option>
+					@foreach (var part in AvailableParts)
+					{
+						<option value="@part.Id">@part.Name</option>
+					}
+				</select>
+				<button type="button" class="btn btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">Load</button>
+			</div>
 
 		            @if (!string.IsNullOrEmpty(ImportMessage))
 		            {
@@ -197,6 +210,9 @@
                             <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
                                 <path d="M 25 0 L 0 0 0 25" fill="none" class="canvas-grid" />
                             </pattern>
+                            <clipPath id="part-background-clip">
+                                <rect x="0" y="0" width="@Part.Width" height="@Part.Height" />
+                            </clipPath>
                         </defs>
                         <rect width="100%" height="100%" fill="url(#grid)" />
 
@@ -208,6 +224,7 @@
                                    width="@Part.Width"
                                    height="@Part.Height"
                                    preserveAspectRatio="xMidYMid meet"
+                                   clip-path="url(#part-background-clip)"
                                    class="part-svg-background"
                                    @onpointerdown="StartSvgDrag" />
                         }
@@ -242,6 +259,16 @@
                                       class="point-label"
                                       @onpointerdown="(eventArgs) => StartPointDrag(point, eventArgs)">@point.Label</svg:text>
                         }
+
+                        <rect x="@(Part.Width - 6)" y="0" width="12" height="@Part.Height"
+                              class="part-resize-edge part-resize-right"
+                              @onpointerdown="(eventArgs) => StartResize(ResizeDirection.Right, eventArgs)" />
+                        <rect x="0" y="@(Part.Height - 6)" width="@Part.Width" height="12"
+                              class="part-resize-edge part-resize-bottom"
+                              @onpointerdown="(eventArgs) => StartResize(ResizeDirection.Bottom, eventArgs)" />
+                        <rect x="@(Part.Width - 9)" y="@(Part.Height - 9)" width="18" height="18"
+                              class="part-resize-corner"
+                              @onpointerdown="(eventArgs) => StartResize(ResizeDirection.Corner, eventArgs)" />
             </svg>
         </section>
     </div>

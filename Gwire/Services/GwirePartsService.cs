@@ -6,7 +6,11 @@ using System.Text.Json.Serialization;
 
 namespace Gwire.Services;
 
-public sealed class GwireRepoService(HttpClient httpClient)
+/// <summary>
+/// Service provides parts for scheme editor or for editing them in part editor
+/// </summary>
+/// <param name="httpClient"></param>
+public sealed class GwirePartsService(HttpClient httpClient)
 {
     private const string IndexUrl = "https://raw.githubusercontent.com/meshosk/gwire-parts-catalog/refs/heads/main/index.json";
     private static readonly JsonSerializerOptions PartJsonOptions = new(JsonSerializerDefaults.Web)
@@ -16,6 +20,22 @@ public sealed class GwireRepoService(HttpClient httpClient)
 
     public List<string> Tags { get; } = [];
     public List<BaseCircuitPart> Parts { get; } = [];
+
+    public void SavePart(CircuitPart part)
+    {
+        ArgumentNullException.ThrowIfNull(part);
+
+        var savedPart = part.Clone();
+        var index = Parts.FindIndex(existing => existing is CircuitPart && existing.Id == part.Id);
+        if (index >= 0)
+        {
+            Parts[index] = savedPart;
+        }
+        else
+        {
+            Parts.Add(savedPart);
+        }
+    }
 
     public async Task InitializeAsync()
     {

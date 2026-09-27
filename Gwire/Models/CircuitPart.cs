@@ -10,12 +10,12 @@ public sealed class CircuitPart : BaseCircuitPart
     /// <summary>
     /// Width of the part in pixels.
     /// </summary>
-    public int Width { get; set; }
+    public int Width { get; set; } = 500;
 
     /// <summary>
     /// Height of the part in pixels.
     /// </summary>
-    public int Height { get; set; }
+    public int Height { get; set; } = 500;
 
     /// <summary>
     /// SVG markup used as the visual background of the part.

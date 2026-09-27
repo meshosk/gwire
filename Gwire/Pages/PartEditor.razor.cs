@@ -16,7 +16,7 @@ public partial class PartEditor : ComponentBase
     private IJSRuntime JS { get; set; } = default!;
 
     [Inject]
-    private GwireRepoService GwireRepo { get; set; } = default!;
+    private GwirePartsService GwireParts { get; set; } = default!;
 
     /// <summary>
     /// Currently edited part
@@ -30,8 +30,11 @@ public partial class PartEditor : ComponentBase
     private string? ImportMessage { get; set; }
     private string ImportMessageClass { get; set; } = "alert-success";
     private string selectedTag = string.Empty;
+    private Guid? selectedPartId;
 
-    private IReadOnlyList<string> AvailableTags => GwireRepo.Tags
+    private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts.OfType<CircuitPart>();
+
+    private IReadOnlyList<string> AvailableTags => GwireParts.Tags
         .Where(tag => !Part.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
         .ToList();
 
@@ -39,13 +42,38 @@ public partial class PartEditor : ComponentBase
 
     private ConnectionPoint? draggedPoint;
     private bool isSvgDragged;
+    private ResizeDirection resizeDirection;
+    private double resizeStartClientX;
+    private double resizeStartClientY;
+    private int resizeStartWidth;
+    private int resizeStartHeight;
     private double dragOffsetX;
     private double dragOffsetY;
     private bool pointWasDragged;
 
+    private enum ResizeDirection
+    {
+        None,
+        Right,
+        Bottom,
+        Corner
+    }
+
+    private void StartResize(ResizeDirection direction, PointerEventArgs eventArgs)
+    {
+        draggedPoint = null;
+        isSvgDragged = false;
+        resizeDirection = direction;
+        resizeStartClientX = eventArgs.ClientX;
+        resizeStartClientY = eventArgs.ClientY;
+        resizeStartWidth = Part.Width;
+        resizeStartHeight = Part.Height;
+    }
+
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
         isSvgDragged = false;
+        resizeDirection = ResizeDirection.None;
         SelectedPoint = point;
         draggedPoint = point;
         dragOffsetX = eventArgs.OffsetX - point.LocalX;
@@ -70,6 +98,7 @@ public partial class PartEditor : ComponentBase
     {
         draggedPoint = null;
         isSvgDragged = false;
+        resizeDirection = ResizeDirection.None;
         dragOffsetX = 0;
         dragOffsetY = 0;
         pointWasDragged = false;
@@ -77,6 +106,21 @@ public partial class PartEditor : ComponentBase
 
     private void MoveDraggedItem(PointerEventArgs eventArgs)
     {
+        if (resizeDirection != ResizeDirection.None)
+        {
+            if (resizeDirection is ResizeDirection.Right or ResizeDirection.Corner)
+            {
+                Part.Width = Math.Max(1, resizeStartWidth + (int)Math.Round(eventArgs.ClientX - resizeStartClientX));
+            }
+
+            if (resizeDirection is ResizeDirection.Bottom or ResizeDirection.Corner)
+            {
+                Part.Height = Math.Max(1, resizeStartHeight + (int)Math.Round(eventArgs.ClientY - resizeStartClientY));
+            }
+
+            return;
+        }
+
         if (draggedPoint is not null)
         {
             var nextX = eventArgs.OffsetX - dragOffsetX;
@@ -132,7 +176,7 @@ public partial class PartEditor : ComponentBase
 
     private void AddTag()
     {
-        if (string.IsNullOrWhiteSpace(selectedTag) || !GwireRepo.Tags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(selectedTag) || !GwireParts.Tags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
         {
             return;
         }
@@ -200,24 +244,63 @@ public partial class PartEditor : ComponentBase
     {
         SelectedPoint = null;
         draggedPoint = null;
+        resizeDirection = ResizeDirection.None;
         isSvgDragged = true;
         dragOffsetX = eventArgs.OffsetX - Part.SvgLocalX;
         dragOffsetY = eventArgs.OffsetY - Part.SvgLocalY;
         pointWasDragged = false;
     }
 
+    private void SavePartToService()
+    {
+        GwireParts.SavePart(Part);
+        selectedPartId = Part.Id;
+        ImportMessage = "Part saved to the parts service.";
+        ImportMessageClass = "alert-success";
+    }
+
+    private void LoadSelectedPart()
+    {
+        var part = AvailableParts.FirstOrDefault(candidate => candidate.Id == selectedPartId);
+        if (part is null)
+        {
+            return;
+        }
+
+        SetEditedPart(part.Clone());
+        selectedPartId = part.Id;
+        ImportMessage = "Part loaded for editing.";
+        ImportMessageClass = "alert-success";
+    }
+
+    private void SetEditedPart(CircuitPart part)
+    {
+        Part = part;
+        if (Part.Width <= 0)
+        {
+            Part.Width = 500;
+        }
+
+        if (Part.Height <= 0)
+        {
+            Part.Height = 500;
+        }
+
+        SelectedPoint = null;
+        ActiveState = Part.ActiveState is { } activeState && Part.States.Contains(activeState)
+            ? activeState
+            : Part.States.FirstOrDefault();
+        Part.ActiveState = ActiveState;
+        ActiveConnectionGroup = null;
+        CancelPointDrag(new PointerEventArgs());
+    }
+
     private async Task ImportPartAsync(InputFileChangeEventArgs eventArgs)
     {
         try
         {
-            Part = await ObjectJsonSerializer.ImportAsync<CircuitPart>(eventArgs.File);
-            SelectedPoint = null;
-            ActiveState = Part.ActiveState is { } activeState && Part.States.Contains(activeState)
-                ? activeState
-                : Part.States.FirstOrDefault();
-            Part.ActiveState = ActiveState;
-            ActiveConnectionGroup = null;
-            CancelPointDrag(new PointerEventArgs());
+            SetEditedPart(await ObjectJsonSerializer.ImportAsync<CircuitPart>(eventArgs.File));
+            selectedPartId = null;
             ImportMessage = "Part imported successfully.";
             ImportMessageClass = "alert-success";
         }

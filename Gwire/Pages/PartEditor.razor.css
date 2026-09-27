@@ -53,6 +53,29 @@
     pointer-events: none;
 }
 
+.part-resize-edge {
+    fill: transparent;
+}
+
+.part-resize-edge:hover {
+    fill: rgba(22, 119, 210, .15);
+}
+
+.part-resize-right {
+    cursor: ew-resize;
+}
+
+.part-resize-bottom {
+    cursor: ns-resize;
+}
+
+.part-resize-corner {
+    fill: #fff;
+    stroke: #1677d2;
+    stroke-width: 2;
+    cursor: nwse-resize;
+}
+
 .part-svg-background {
     cursor: grab;
 }

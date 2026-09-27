@@ -32,12 +32,12 @@ public partial class SchemeEditor : ComponentBase
 
     private void AddSelectedPart()
     {
-        if (selectedPartIndex < 0 || selectedPartIndex >= GwireRepo.Parts.Count)
+        if (selectedPartIndex < 0 || selectedPartIndex >= GwireParts.Parts.Count)
         {
             return;
         }
 
-        if (GwireRepo.Parts[selectedPartIndex] is not CircuitPart selectedPart)
+        if (GwireParts.Parts[selectedPartIndex] is not CircuitPart selectedPart)
         {
             return;
         }
