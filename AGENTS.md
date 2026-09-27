@@ -21,3 +21,4 @@
 - Do not restore intentionally removed code or behavior unless the user explicitly requests it.
 - Do not make assumptions that expand the requested change; do not alter related API contracts, generic constraints, or behavior unless explicitly requested.
 - Prefer existing platform, framework, and project solutions before creating custom implementations. Create custom code only when a concrete requirement cannot be met by an existing solution.
+- Do not build app by yourselft. If you want, please ask for confirmation before building the app.

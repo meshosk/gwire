@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text;
+using PartSvgBackground = Gwire.Components.Enums.PartSvgBackground;
 
 namespace Gwire.Pages;
 
@@ -41,39 +42,12 @@ public partial class PartEditor : ComponentBase
     #region Drags
 
     private ConnectionPoint? draggedPoint;
-    private bool isSvgDragged;
-    private ResizeDirection resizeDirection;
-    private double resizeStartClientX;
-    private double resizeStartClientY;
-    private int resizeStartWidth;
-    private int resizeStartHeight;
     private double dragOffsetX;
     private double dragOffsetY;
     private bool pointWasDragged;
 
-    private enum ResizeDirection
-    {
-        None,
-        Right,
-        Bottom,
-        Corner
-    }
-
-    private void StartResize(ResizeDirection direction, PointerEventArgs eventArgs)
-    {
-        draggedPoint = null;
-        isSvgDragged = false;
-        resizeDirection = direction;
-        resizeStartClientX = eventArgs.ClientX;
-        resizeStartClientY = eventArgs.ClientY;
-        resizeStartWidth = Part.Width;
-        resizeStartHeight = Part.Height;
-    }
-
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
-        isSvgDragged = false;
-        resizeDirection = ResizeDirection.None;
         SelectedPoint = point;
         draggedPoint = point;
         dragOffsetX = eventArgs.OffsetX - point.LocalX;
@@ -97,8 +71,6 @@ public partial class PartEditor : ComponentBase
     private void CancelPointDrag(PointerEventArgs eventArgs)
     {
         draggedPoint = null;
-        isSvgDragged = false;
-        resizeDirection = ResizeDirection.None;
         dragOffsetX = 0;
         dragOffsetY = 0;
         pointWasDragged = false;
@@ -106,21 +78,6 @@ public partial class PartEditor : ComponentBase
 
     private void MoveDraggedItem(PointerEventArgs eventArgs)
     {
-        if (resizeDirection != ResizeDirection.None)
-        {
-            if (resizeDirection is ResizeDirection.Right or ResizeDirection.Corner)
-            {
-                Part.Width = Math.Max(1, resizeStartWidth + (int)Math.Round(eventArgs.ClientX - resizeStartClientX));
-            }
-
-            if (resizeDirection is ResizeDirection.Bottom or ResizeDirection.Corner)
-            {
-                Part.Height = Math.Max(1, resizeStartHeight + (int)Math.Round(eventArgs.ClientY - resizeStartClientY));
-            }
-
-            return;
-        }
-
         if (draggedPoint is not null)
         {
             var nextX = eventArgs.OffsetX - dragOffsetX;
@@ -129,12 +86,6 @@ public partial class PartEditor : ComponentBase
             draggedPoint.LocalX = nextX;
             draggedPoint.LocalY = nextY;
             return;
-        }
-
-        if (isSvgDragged)
-        {
-            Part.SvgLocalX = eventArgs.OffsetX - dragOffsetX;
-            Part.SvgLocalY = eventArgs.OffsetY - dragOffsetY;
         }
     }
 
@@ -240,17 +191,6 @@ public partial class PartEditor : ComponentBase
         }
     }
 
-    private void StartSvgDrag(PointerEventArgs eventArgs)
-    {
-        SelectedPoint = null;
-        draggedPoint = null;
-        resizeDirection = ResizeDirection.None;
-        isSvgDragged = true;
-        dragOffsetX = eventArgs.OffsetX - Part.SvgLocalX;
-        dragOffsetY = eventArgs.OffsetY - Part.SvgLocalY;
-        pointWasDragged = false;
-    }
-
     private void SavePartToService()
     {
         GwireParts.SavePart(Part);
@@ -325,9 +265,7 @@ public partial class PartEditor : ComponentBase
     {
         try
         {
-            var file = eventArgs.File;
- 
-            await using var stream = file.OpenReadStream();
+            await using var stream = eventArgs.File.OpenReadStream();
             using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
             var svgMarkup = await reader.ReadToEndAsync();
             if (!svgMarkup.Contains("<svg", StringComparison.OrdinalIgnoreCase))
@@ -360,9 +298,5 @@ public partial class PartEditor : ComponentBase
         var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
         return string.IsNullOrWhiteSpace(safeName) ? "part.json" : $"{safeName}.part.json";
     }
-
-    private string? SvgImageSource => string.IsNullOrWhiteSpace(Part.SvgMarkup)
-        ? null
-        : $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(Part.SvgMarkup))}";
 
 }

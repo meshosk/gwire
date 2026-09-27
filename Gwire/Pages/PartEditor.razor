@@ -1,4 +1,5 @@
 @page "/part-editor"
+
 @using Gwire.Components.Tabs
 @using Gwire.Extensions
 @using Gwire.Models.Base
@@ -198,38 +199,12 @@
             </div>
         </aside>
 
-        <section class="editor-canvas-panel" aria-label="SVG scheme">
-            <svg class="editor-canvas"
-                         role="img"
-                         aria-label="SVG scheme of the component"
-                         @onpointermove="MoveDraggedItem"
-                         @onpointerup="EndPointDrag"
-                         @onpointercancel="CancelPointDrag"
-                         @onpointerleave="CancelPointDrag">
-                        <defs>
-                            <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
-                                <path d="M 25 0 L 0 0 0 25" fill="none" class="canvas-grid" />
-                            </pattern>
-                            <clipPath id="part-background-clip">
-                                <rect x="0" y="0" width="@Part.Width" height="@Part.Height" />
-                            </clipPath>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#grid)" />
-
-                        @if (SvgImageSource is { } svgImageSource)
-                        {
-                            <image href="@svgImageSource"
-                                   x="@Part.SvgLocalX"
-                                   y="@Part.SvgLocalY"
-                                   width="@Part.Width"
-                                   height="@Part.Height"
-                                   preserveAspectRatio="xMidYMid meet"
-                                   clip-path="url(#part-background-clip)"
-                                   class="part-svg-background"
-                                   @onpointerdown="StartSvgDrag" />
-                        }
-
-                        <rect x="0" y="0" width="@Part.Width" height="@Part.Height" class="part-outline" />
+        <section class="editor-canvas-panel" aria-label="SVG scheme"
+                 @onpointermove="MoveDraggedItem"
+                 @onpointerup="EndPointDrag"
+                 @onpointercancel="CancelPointDrag"
+                 @onpointerleave="CancelPointDrag">
+            <Gwire.Components.PartSvgBackground @bind-Part="Part">
 
                         @if (ActiveState is { } state)
                         {
@@ -260,16 +235,7 @@
                                       @onpointerdown="(eventArgs) => StartPointDrag(point, eventArgs)">@point.Label</svg:text>
                         }
 
-                        <rect x="@(Part.Width - 6)" y="0" width="12" height="@Part.Height"
-                              class="part-resize-edge part-resize-right"
-                              @onpointerdown="(eventArgs) => StartResize(ResizeDirection.Right, eventArgs)" />
-                        <rect x="0" y="@(Part.Height - 6)" width="@Part.Width" height="12"
-                              class="part-resize-edge part-resize-bottom"
-                              @onpointerdown="(eventArgs) => StartResize(ResizeDirection.Bottom, eventArgs)" />
-                        <rect x="@(Part.Width - 9)" y="@(Part.Height - 9)" width="18" height="18"
-                              class="part-resize-corner"
-                              @onpointerdown="(eventArgs) => StartResize(ResizeDirection.Corner, eventArgs)" />
-            </svg>
+            </Gwire.Components.PartSvgBackground>
         </section>
     </div>
 </div>
