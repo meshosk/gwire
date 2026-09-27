@@ -79,8 +79,8 @@ public partial class PartEditor : ComponentBase
     {
         if (draggedPoint is not null)
         {
-            var nextX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, 15, 785);
-            var nextY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, 15, 435);
+            var nextX = eventArgs.OffsetX - dragOffsetX;
+            var nextY = eventArgs.OffsetY - dragOffsetY;
             pointWasDragged |= Math.Abs(nextX - draggedPoint.LocalX) > 2 || Math.Abs(nextY - draggedPoint.LocalY) > 2;
             draggedPoint.LocalX = nextX;
             draggedPoint.LocalY = nextY;
@@ -89,8 +89,8 @@ public partial class PartEditor : ComponentBase
 
         if (isSvgDragged)
         {
-            Part.SvgLocalX = Math.Clamp(eventArgs.OffsetX - dragOffsetX, -800, 800);
-            Part.SvgLocalY = Math.Clamp(eventArgs.OffsetY - dragOffsetY, -450, 450);
+            Part.SvgLocalX = eventArgs.OffsetX - dragOffsetX;
+            Part.SvgLocalY = eventArgs.OffsetY - dragOffsetY;
         }
     }
 
