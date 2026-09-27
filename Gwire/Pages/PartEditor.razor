@@ -127,7 +127,7 @@
 										<BootstrapTabs>
 							            @foreach (PartState state in this.Part.States)
 							            {
-								            <BootstrapTab Title="@state.Label"  OnClick="() =>this.ActiveState = state">
+							            <BootstrapTab Title="@state.Label" OnClick="() => SelectActiveState(state)">
 									            <label class="form-label" for="state-label">State name</label>
 									            <input id="state-label" class="form-control mb-4" @bind="state.Label"/>
 

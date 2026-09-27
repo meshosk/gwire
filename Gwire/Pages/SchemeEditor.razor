@@ -1,6 +1,7 @@
 ﻿@page "/scheme-editor"
 @using Gwire.Models
 @using Gwire.Models.Base
+@inject Gwire.Services.GwireRepoService GwireRepo
 
 <PageTitle>Gwire - The scheme editor</PageTitle>
 
@@ -9,6 +10,17 @@
         <button type="button" class="btn btn-primary" @onclick="AddCable">
             <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add cable
         </button>
+        <div class="input-group scheme-editor-part-picker">
+            <select class="form-select" aria-label="Part to add" @bind="selectedPartIndex" disabled="@(GwireRepo.Parts.Count == 0)">
+                <option value="-1">Select a part</option>
+                @for (var index = 0; index < GwireRepo.Parts.Count; index++)
+                {
+                    <option value="@index">@GwireRepo.Parts[index].Name</option>
+                }
+            </select>
+            <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartIndex < 0)">
+                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
+        </div>
     </div>
 
     <div class="scheme-editor-canvas-container">
@@ -36,7 +48,7 @@
                       class="cable-line" />
             }
 
-            @foreach (var part in Circuit.Parts.Where(part => part is not CablePart))
+            @foreach (var part in Circuit.Parts.OfType<CircuitPart>())
             {
                 <g transform="@PartTransform(part)" @onpointerdown="(eventArgs) => StartPartDrag(part, eventArgs)">
                     @if (SvgImageSource(part) is { } svgImageSource)
@@ -52,7 +64,7 @@
                 </g>
             }
 
-            @foreach (var part in Circuit.Parts.Where(part => part is not CablePart))
+            @foreach (var part in Circuit.Parts.OfType<CircuitPart>())
             {
                 <g transform="@PartTransform(part)" class="scheme-part-points" @onpointerdown="(eventArgs) => StartPartDrag(part, eventArgs)">
                     @foreach (var point in part.Points)

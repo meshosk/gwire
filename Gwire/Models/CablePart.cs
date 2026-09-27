@@ -5,7 +5,7 @@ namespace Gwire.Models;
 /// <summary>
 /// A cable joins exactly two independently movable connection points.
 /// </summary>
-public sealed class CablePart : CircuitPart
+public sealed class CablePart : BaseCircuitPart
 {
     public CablePart()
     {

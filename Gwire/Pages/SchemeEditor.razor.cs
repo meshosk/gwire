@@ -13,6 +13,7 @@ public partial class SchemeEditor : ComponentBase
     private ConnectionPoint? draggedCablePoint;
     private double dragOffsetX;
     private double dragOffsetY;
+    private int selectedPartIndex = -1;
 
     private void AddCable()
     {
@@ -27,6 +28,25 @@ public partial class SchemeEditor : ComponentBase
         cable.Points[1].LocalX = 500;
         cable.Points[1].LocalY = 300 + (cableNumber - 1) * 40;
         Circuit.Parts.Add(cable);
+    }
+
+    private void AddSelectedPart()
+    {
+        if (selectedPartIndex < 0 || selectedPartIndex >= GwireRepo.Parts.Count)
+        {
+            return;
+        }
+
+        if (GwireRepo.Parts[selectedPartIndex] is not CircuitPart selectedPart)
+        {
+            return;
+        }
+
+        var part = selectedPart.Clone();
+        var partNumber = Circuit.Parts.OfType<CircuitPart>().Count();
+        part.SchemeX = 150 + partNumber * 25;
+        part.SchemeY = 150 + partNumber * 25;
+        Circuit.Parts.Add(part);
     }
 
     private void StartPartDrag(CircuitPart part, PointerEventArgs eventArgs)

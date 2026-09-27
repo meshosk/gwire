@@ -21,7 +21,7 @@ public partial class PartEditor : ComponentBase
     /// <summary>
     /// Currently edited part
     /// </summary>
-    public CustomPart Part { get; private set; } = new();
+    public CircuitPart Part { get; private set; } = new();
 
 
     private ConnectionPoint? SelectedPoint { get; set; }
@@ -120,8 +120,14 @@ public partial class PartEditor : ComponentBase
     {
         var state = new PartState { Label = $"State {Part.States.Count + 1}" };
         Part.States.Add(state);
-        ActiveState = state;
+        SelectActiveState(state);
         ActiveConnectionGroup = null;
+    }
+
+    private void SelectActiveState(PartState state)
+    {
+        ActiveState = state;
+        Part.ActiveState = state;
     }
 
     private void AddTag()
@@ -204,9 +210,12 @@ public partial class PartEditor : ComponentBase
     {
         try
         {
-            Part = await ObjectJsonSerializer.ImportAsync<CustomPart>(eventArgs.File);
+            Part = await ObjectJsonSerializer.ImportAsync<CircuitPart>(eventArgs.File);
             SelectedPoint = null;
-            ActiveState = Part.States.FirstOrDefault();
+            ActiveState = Part.ActiveState is { } activeState && Part.States.Contains(activeState)
+                ? activeState
+                : Part.States.FirstOrDefault();
+            Part.ActiveState = ActiveState;
             ActiveConnectionGroup = null;
             CancelPointDrag(new PointerEventArgs());
             ImportMessage = "Part imported successfully.";
@@ -222,7 +231,7 @@ public partial class PartEditor : ComponentBase
     private async Task ExportPartAsync()
     {
         await using var stream = new MemoryStream();
-        await ObjectJsonSerializer.ExportAsync<CustomPart>(Part, stream);
+        await ObjectJsonSerializer.ExportAsync<CircuitPart>(Part, stream);
         stream.Position = 0;
 
         using var streamReference = new DotNetStreamReference(stream);

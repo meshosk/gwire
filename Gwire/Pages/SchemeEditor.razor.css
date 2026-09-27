@@ -8,6 +8,13 @@
     flex: 0 0 auto;
 }
 
+.scheme-editor-part-picker {
+    display: inline-flex;
+    margin-left: 0.5rem;
+    max-width: 24rem;
+    vertical-align: middle;
+}
+
 .scheme-editor-canvas-container {
     flex: 1 1 auto;
     overflow: auto;
