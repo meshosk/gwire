@@ -8,6 +8,16 @@ namespace Gwire.Models;
 public sealed class CircuitPart : BaseCircuitPart
 {
     /// <summary>
+    /// Width of the part in pixels.
+    /// </summary>
+    public int Width { get; set; }
+
+    /// <summary>
+    /// Height of the part in pixels.
+    /// </summary>
+    public int Height { get; set; }
+
+    /// <summary>
     /// SVG markup used as the visual background of the part.
     /// </summary>
     public string SvgMarkup { get; set; } = string.Empty;
@@ -33,11 +43,13 @@ public sealed class CircuitPart : BaseCircuitPart
     public List<string> Tags { get; set; } = new();
 
     /// <summary>
-    /// Clones the shared connection graph and the part's tags.
+    /// Clones the shared connection graph, dimensions, and the part's tags.
     /// </summary>
     public override CircuitPart Clone()
     {
         var clone = (CircuitPart)base.Clone();
+        clone.Width = Width;
+        clone.Height = Height;
         clone.Tags = [.. Tags];
         return clone;
     }

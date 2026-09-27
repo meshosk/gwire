@@ -2,6 +2,9 @@
 
 - .NET 10 Blazor WebAssembly app for guitar-wiring diagrams.
 - Keep changes scoped; do not edit `bin/` or `obj/`.
+- Keep changes within the requested scope. Include obvious follow-through needed for
+  the change to work, such as carrying new properties through an existing clone.
+  Ask before implementing optional related behavior or broader changes.
 - Use component-scoped `.razor.css` for page-specific styles and
   `wwwroot/css/app.css` for global styles.
 - Put Blazor component logic in a code-behind `.razor.cs` file. Keeping a few
