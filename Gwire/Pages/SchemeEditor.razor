@@ -15,7 +15,7 @@
                 <option value="-1">Select a part</option>
                 @for (var index = 0; index < GwireParts.Parts.Count; index++)
                 {
-                    <option value="@index">@GwireParts.Parts[index].Name</option>
+                    <option value="@index">@(GwireParts.Parts[index] is CircuitPart part ? part.DisplayName : GwireParts.Parts[index].Name)</option>
                 }
             </select>
             <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartIndex < 0)">

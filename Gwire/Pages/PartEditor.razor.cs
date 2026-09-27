@@ -193,9 +193,18 @@ public partial class PartEditor : ComponentBase
 
     private void SavePartToService()
     {
+        var savedAsCopy = Part.IsFromRepo || AvailableParts.Any(existing => existing.IsFromRepo && existing.Id == Part.Id);
+        if (savedAsCopy)
+        {
+            var copy = Part.Clone();
+            copy.Id = Guid.NewGuid();
+            copy.IsFromRepo = false;
+            SetEditedPart(copy);
+        }
+
         GwireParts.SavePart(Part);
         selectedPartId = Part.Id;
-        ImportMessage = "Part saved to the parts service.";
+        ImportMessage = savedAsCopy ? "Part saved as your own copy." : "Part saved to the parts service.";
         ImportMessageClass = "alert-success";
     }
 

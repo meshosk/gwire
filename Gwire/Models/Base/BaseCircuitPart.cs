@@ -18,10 +18,6 @@ public abstract class BaseCircuitPart
     public string ClassType { get; }
 
     /// <summary>
-    /// ID - not sure if it is needed
-    /// </summary>
-    public Guid Id { get; init; } = Guid.NewGuid();
-    /// <summary>
     /// Part name
     /// </summary>
     public string Name { get; set; } = string.Empty;

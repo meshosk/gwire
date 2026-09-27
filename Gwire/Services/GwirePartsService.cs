@@ -26,7 +26,7 @@ public sealed class GwirePartsService(HttpClient httpClient)
         ArgumentNullException.ThrowIfNull(part);
 
         var savedPart = part.Clone();
-        var index = Parts.FindIndex(existing => existing is CircuitPart && existing.Id == part.Id);
+        var index = Parts.FindIndex(existing => existing is CircuitPart existingPart && existingPart.Id == part.Id);
         if (index >= 0)
         {
             Parts[index] = savedPart;
@@ -79,8 +79,10 @@ public sealed class GwirePartsService(HttpClient httpClient)
         var parts = await Task.WhenAll(partFiles.Select(async partFile =>
         {
             var partUrl = new Uri(partsDirectoryUrl, partFile).AbsoluteUri;
-            return await httpClient.GetFromJsonAsync<CircuitPart>(partUrl, PartJsonOptions)
+            var part = await httpClient.GetFromJsonAsync<CircuitPart>(partUrl, PartJsonOptions)
                 ?? throw new InvalidDataException($"The Gwire parts catalog part '{partFile}' is empty.");
+            part.IsFromRepo = true;
+            return part;
         }));
 
         return [.. parts];

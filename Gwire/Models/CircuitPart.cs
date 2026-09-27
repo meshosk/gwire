@@ -1,4 +1,5 @@
 using Gwire.Models.Base;
+using System.Text.Json.Serialization;
 
 namespace Gwire.Models;
 
@@ -7,6 +8,20 @@ namespace Gwire.Models;
 /// </summary>
 public sealed class CircuitPart : BaseCircuitPart
 {
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    /// <summary>
+    /// if true part was loaded from repo
+    /// </summary>
+    [JsonIgnore]
+    public bool IsFromRepo { get; set; }
+
+    /// <summary>
+    /// Use this for gerring part name
+    /// </summary>
+    [JsonIgnore]
+    public string DisplayName => IsFromRepo ? $"*{Name}" : Name;
+
     /// <summary>
     /// Width of the part in pixels.
     /// </summary>

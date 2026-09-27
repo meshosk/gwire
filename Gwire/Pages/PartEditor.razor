@@ -20,7 +20,7 @@
 			                <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
 			            </button>
 			            <button type="button" class="btn btn-outline-primary" @onclick="SavePartToService">
-			                <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>Save to service
+			                <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>@(Part.IsFromRepo ? "Save as own copy" : "Save to service")
 			            </button>
 		            </div>
 			<div class="input-group mb-3">
@@ -28,7 +28,7 @@
 					<option value="">Select a part to edit</option>
 					@foreach (var part in AvailableParts)
 					{
-						<option value="@part.Id">@part.Name</option>
+						<option value="@part.Id">@part.DisplayName</option>
 					}
 				</select>
 				<button type="button" class="btn btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">Load</button>
