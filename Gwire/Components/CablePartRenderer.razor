@@ -1,0 +1,32 @@
+<g>
+    <line x1="@CablePart.Points[0].LocalX"
+          y1="@CablePart.Points[0].LocalY"
+          x2="@CablePart.Points[1].LocalX"
+          y2="@CablePart.Points[1].LocalY"
+          class="cable-line" />
+
+    @foreach (var point in CablePart.Points)
+    {
+        <circle cx="@point.LocalX"
+                cy="@point.LocalY"
+                r="10"
+                class="cable-connection-point cable-endpoint"
+                @onpointerdown="(eventArgs) => StartDrag(point, eventArgs)"
+                @onpointerdown:stopPropagation="true" />
+    }
+
+    @if (draggedPoint is not null)
+    {
+        <rect width="100%"
+              height="100%"
+              class="cable-drag-capture"
+              @onpointermove="MoveDraggedPoint"
+              @onpointerup="EndDrag"
+              @onpointercancel="CancelDrag"
+              @onpointerleave="CancelDrag"
+              @onpointermove:stopPropagation="true"
+              @onpointerup:stopPropagation="true"
+              @onpointercancel:stopPropagation="true"
+              @onpointerleave:stopPropagation="true" />
+    }
+</g>

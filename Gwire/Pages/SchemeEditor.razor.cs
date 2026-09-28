@@ -10,7 +10,6 @@ public partial class SchemeEditor : ComponentBase
 {
     private readonly Circuit Circuit = new();
     private CircuitPart? draggedPart;
-    private ConnectionPoint? draggedCablePoint;
     private double dragOffsetX;
     private double dragOffsetY;
     private int selectedPartIndex = -1;
@@ -51,18 +50,9 @@ public partial class SchemeEditor : ComponentBase
 
     private void StartPartDrag(CircuitPart part, PointerEventArgs eventArgs)
     {
-        draggedCablePoint = null;
         draggedPart = part;
         dragOffsetX = eventArgs.OffsetX - part.SchemeX;
         dragOffsetY = eventArgs.OffsetY - part.SchemeY;
-    }
-
-    private void StartCablePointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
-    {
-        draggedPart = null;
-        draggedCablePoint = point;
-        dragOffsetX = eventArgs.OffsetX - point.LocalX;
-        dragOffsetY = eventArgs.OffsetY - point.LocalY;
     }
 
     private void MoveDraggedItem(PointerEventArgs eventArgs)
@@ -74,11 +64,6 @@ public partial class SchemeEditor : ComponentBase
             return;
         }
 
-        if (draggedCablePoint is not null)
-        {
-            draggedCablePoint.LocalX = eventArgs.OffsetX - dragOffsetX;
-            draggedCablePoint.LocalY = eventArgs.OffsetY - dragOffsetY;
-        }
     }
 
     private void EndDrag(PointerEventArgs eventArgs) => CancelDrag(eventArgs);
@@ -86,7 +71,6 @@ public partial class SchemeEditor : ComponentBase
     private void CancelDrag(PointerEventArgs eventArgs)
     {
         draggedPart = null;
-        draggedCablePoint = null;
         dragOffsetX = 0;
         dragOffsetY = 0;
     }

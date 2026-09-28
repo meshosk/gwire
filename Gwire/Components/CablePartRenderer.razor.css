@@ -1,0 +1,25 @@
+.cable-line {
+    stroke: #3d647a;
+    stroke-linecap: round;
+    stroke-width: 4;
+    pointer-events: none;
+}
+
+.cable-connection-point {
+    fill: #1677d2;
+    stroke: #fff;
+    stroke-width: 3;
+}
+
+.cable-endpoint {
+    cursor: grab;
+}
+
+.cable-endpoint:active {
+    cursor: grabbing;
+}
+
+.cable-drag-capture {
+    fill: transparent;
+    pointer-events: all;
+}

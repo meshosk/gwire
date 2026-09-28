@@ -41,16 +41,8 @@
 }
 
 .scheme-part-svg:active,
-.scheme-part-points:active,
-.cable-endpoint:active {
+.scheme-part-points:active {
     cursor: grabbing;
-}
-
-.cable-line {
-    stroke: #3d647a;
-    stroke-linecap: round;
-    stroke-width: 4;
-    pointer-events: none;
 }
 
 .scheme-connection-point {
@@ -59,6 +51,3 @@
     stroke-width: 3;
 }
 
-.cable-endpoint {
-    cursor: grab;
-}
