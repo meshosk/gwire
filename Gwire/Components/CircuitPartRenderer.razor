@@ -1,4 +1,6 @@
-<g transform="@PartTransform">
+<g transform="@PartTransform"
+   @onpointerdown="DragStarted"
+   @onpointerdown:stopPropagation="true">
     @if (SvgImageSource is { } svgImageSource)
     {
         <svg x="0" y="0" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden">
@@ -8,9 +10,7 @@
                    width="@CircuitPart.Width"
                    height="@CircuitPart.Height"
                    preserveAspectRatio="xMidYMid meet"
-                   class="circuit-part-svg"
-                   @onpointerdown="StartDrag"
-                   @onpointerdown:stopPropagation="true" />
+                   class="circuit-part-svg" />
         </svg>
     }
 
@@ -20,26 +20,7 @@
             <circle cx="@point.LocalX"
                     cy="@point.LocalY"
                     r="10"
-                    class="circuit-connection-point"
-                    @onpointerdown="StartDrag"
-                    @onpointerdown:stopPropagation="true" />
+                    class="circuit-connection-point" />
         }
     </g>
-
-    @if (isDragging)
-    {
-        <rect x="@(-CircuitPart.SchemeX)"
-              y="@(-CircuitPart.SchemeY)"
-              width="100%"
-              height="100%"
-              class="circuit-part-drag-capture"
-              @onpointermove="MoveDraggedPart"
-              @onpointerup="EndDrag"
-              @onpointercancel="CancelDrag"
-              @onpointerleave="CancelDrag"
-              @onpointermove:stopPropagation="true"
-              @onpointerup:stopPropagation="true"
-              @onpointercancel:stopPropagation="true"
-              @onpointerleave:stopPropagation="true" />
-    }
 </g>

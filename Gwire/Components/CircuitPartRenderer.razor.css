@@ -14,7 +14,3 @@
     stroke-width: 3;
 }
 
-.circuit-part-drag-capture {
-    fill: transparent;
-    pointer-events: all;
-}
