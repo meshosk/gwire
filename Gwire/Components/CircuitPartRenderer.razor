@@ -1,0 +1,26 @@
+<g transform="@PartTransform"
+   @onpointerdown="DragStarted"
+   @onpointerdown:stopPropagation="true">
+    @if (SvgImageSource is { } svgImageSource)
+    {
+        <svg x="0" y="0" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden">
+            <image href="@svgImageSource"
+                   x="@CircuitPart.SvgLocalX"
+                   y="@CircuitPart.SvgLocalY"
+                   width="@CircuitPart.Width"
+                   height="@CircuitPart.Height"
+                   preserveAspectRatio="xMidYMid meet"
+                   class="circuit-part-svg" />
+        </svg>
+    }
+
+    <g class="circuit-part-points">
+        @foreach (var point in CircuitPart.Points)
+        {
+            <circle cx="@point.LocalX"
+                    cy="@point.LocalY"
+                    r="10"
+                    class="circuit-connection-point" />
+        }
+    </g>
+</g>

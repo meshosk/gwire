@@ -5,12 +5,18 @@ namespace Gwire.Models.Base;
 /// A wire and a user-defined part differ only in their specialised data, not
 /// in how their terminals and internal connections are represented.
 /// </summary>
-public abstract class CircuitPart
+public abstract class BaseCircuitPart
 {
+    protected BaseCircuitPart()
+    {
+        ClassType = GetType().Name;
+    }
+
     /// <summary>
-    /// ID - not sure if it is needed
+    /// Name of the concrete part class. // > maybe not needed at all
     /// </summary>
-    public Guid Id { get; init; } = Guid.NewGuid();
+    public string ClassType { get; }
+
     /// <summary>
     /// Part name
     /// </summary>
@@ -19,32 +25,6 @@ public abstract class CircuitPart
     /// Description - text only.
     /// </summary>
     public string Description { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Tags used to search and filter parts in the catalog.
-    /// </summary>
-    public List<string> Tags { get; set; } = new();
-
-    /// <summary>
-    /// SVG markup used as the visual background of the part.
-    /// </summary>
-    public string SvgMarkup { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Top-left position of the SVG background in the part's local coordinate system.
-    /// </summary>
-    public double SvgLocalX { get; set; }
-    public double SvgLocalY { get; set; }
-
-    /// <summary>
-    /// X position of the part in a circuit scheme.
-    /// </summary>
-    public double SchemeX { get; set; }
-
-    /// <summary>
-    /// Y position of the part in a circuit scheme.
-    /// </summary>
-    public double SchemeY { get; set; }
 
     /// <summary>
     /// List of connection points that can connect part into circuit.
@@ -58,14 +38,14 @@ public abstract class CircuitPart
     /// <summary>
     /// Defines which state is active.
     /// </summary>
-    public PartState? ActiveState { get; internal set; } = null;
+    public PartState? ActiveState { get; set; } = null;
 
     /// <summary>
     /// Creates a deep clone while preserving the connections between cloned points and states.
     /// </summary>
-    public CircuitPart Clone()
+    public virtual BaseCircuitPart Clone()
     {
-        var clone = (CircuitPart)MemberwiseClone();
+        var clone = (BaseCircuitPart)MemberwiseClone();
         var clonedPoints = new Dictionary<ConnectionPoint, ConnectionPoint>();
 
         clone.Points = Points.Select(point =>
@@ -80,7 +60,6 @@ public abstract class CircuitPart
             return clonedPoint;
         }).ToList();
 
-        clone.Tags = [.. Tags];
         clone.States = States.Select(state => new PartState
         {
             Label = state.Label,

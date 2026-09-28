@@ -8,8 +8,8 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddScoped<GwireRepoService>();
+builder.Services.AddScoped<GwirePartsService>();
 
 var host = builder.Build();
-await host.Services.GetRequiredService<GwireRepoService>().InitializeAsync();
+await host.Services.GetRequiredService<GwirePartsService>().InitializeAsync();
 await host.RunAsync();

@@ -6,7 +6,11 @@ using System.Text.Json.Serialization;
 
 namespace Gwire.Services;
 
-public sealed class GwireRepoService(HttpClient httpClient)
+/// <summary>
+/// Service provides parts for scheme editor or for editing them in part editor
+/// </summary>
+/// <param name="httpClient"></param>
+public sealed class GwirePartsService(HttpClient httpClient)
 {
     private const string IndexUrl = "https://raw.githubusercontent.com/meshosk/gwire-parts-catalog/refs/heads/main/index.json";
     private static readonly JsonSerializerOptions PartJsonOptions = new(JsonSerializerDefaults.Web)
@@ -15,7 +19,23 @@ public sealed class GwireRepoService(HttpClient httpClient)
     };
 
     public List<string> Tags { get; } = [];
-    public List<CircuitPart> Parts { get; } = [];
+    public List<BaseCircuitPart> Parts { get; } = [];
+
+    public void SavePart(CircuitPart part)
+    {
+        ArgumentNullException.ThrowIfNull(part);
+
+        var savedPart = part.Clone();
+        var index = Parts.FindIndex(existing => existing is CircuitPart existingPart && existingPart.Id == part.Id);
+        if (index >= 0)
+        {
+            Parts[index] = savedPart;
+        }
+        else
+        {
+            Parts.Add(savedPart);
+        }
+    }
 
     public async Task InitializeAsync()
     {
@@ -44,7 +64,7 @@ public sealed class GwireRepoService(HttpClient httpClient)
             ?? throw new InvalidDataException("The Gwire parts catalog tags file is empty.");
     }
 
-    private async Task<List<CircuitPart>> LoadPartsAsync(string partsDirectory, string partsIndexFile)
+    private async Task<List<BaseCircuitPart>> LoadPartsAsync(string partsDirectory, string partsIndexFile)
     {
         if (string.IsNullOrWhiteSpace(partsDirectory) || string.IsNullOrWhiteSpace(partsIndexFile))
         {
@@ -59,8 +79,10 @@ public sealed class GwireRepoService(HttpClient httpClient)
         var parts = await Task.WhenAll(partFiles.Select(async partFile =>
         {
             var partUrl = new Uri(partsDirectoryUrl, partFile).AbsoluteUri;
-            return await httpClient.GetFromJsonAsync<CustomPart>(partUrl, PartJsonOptions)
+            var part = await httpClient.GetFromJsonAsync<CircuitPart>(partUrl, PartJsonOptions)
                 ?? throw new InvalidDataException($"The Gwire parts catalog part '{partFile}' is empty.");
+            part.IsFromRepo = true;
+            return part;
         }));
 
         return [.. parts];

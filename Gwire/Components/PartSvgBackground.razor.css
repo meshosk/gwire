@@ -1,0 +1,52 @@
+.part-svg-background {
+    cursor: grab;
+}
+
+.part-svg-background:active {
+    cursor: grabbing;
+}
+
+.part-outline {
+    fill: none;
+    stroke: #b8c3ce;
+    stroke-dasharray: 7 5;
+    stroke-width: 2;
+    pointer-events: none;
+}
+
+.part-resize-edge {
+    fill: transparent;
+}
+
+.part-resize-edge:hover {
+    fill: rgba(22, 119, 210, .15);
+}
+
+.part-resize-right {
+    cursor: ew-resize;
+}
+
+.part-resize-bottom {
+    cursor: ns-resize;
+}
+
+.part-resize-corner {
+    fill: #fff;
+    stroke: #1677d2;
+    stroke-width: 2;
+    cursor: nwse-resize;
+}
+.editor-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    touch-action: none;
+}
+
+.canvas-grid {
+    stroke: #e8edf3;
+    stroke-width: 1;
+}
+
+

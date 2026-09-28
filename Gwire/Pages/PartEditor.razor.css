@@ -1,5 +1,26 @@
 .part-editor {
-    max-width: 1600px;
+    height: calc(100dvh - 3.5rem);
+    min-height: 0;
+}
+
+.part-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(20rem, 32%) minmax(0, 1fr);
+    height: 100%;
+}
+
+.editor-sidebar {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    padding: 1rem;
+    border-right: 1px solid var(--bs-border-color);
+}
+
+.editor-canvas-panel {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .part-name-input {
@@ -9,39 +30,6 @@
 .point-panel,
 .state-panel {
     min-width: 0;
-}
-
-.canvas-scroll {
-    overflow: auto;
-}
-
-.editor-canvas {
-    display: block;
-    min-width: 800px;
-    border: 1px solid var(--bs-border-color);
-    border-radius: .5rem;
-    background: #fff;
-    touch-action: none;
-}
-
-.canvas-grid {
-    stroke: #e8edf3;
-    stroke-width: 1;
-}
-
-.part-outline {
-    fill: #f8f9fa;
-    stroke: #b8c3ce;
-    stroke-dasharray: 7 5;
-    stroke-width: 2;
-}
-
-.part-svg-background {
-    cursor: grab;
-}
-
-.part-svg-background:active {
-    cursor: grabbing;
 }
 
 .connection-line-outline {
@@ -95,8 +83,4 @@
     cursor: grabbing;
 }
 
-@media (max-width: 767.98px) {
-    .editor-controls {
-        grid-template-columns: 1fr;
-    }
-}
+

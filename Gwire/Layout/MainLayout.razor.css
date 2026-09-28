@@ -1,5 +1,5 @@
 .app-shell {
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -24,5 +24,7 @@
 
 .workspace {
     flex: 1;
+    display: flex;
+    min-height: 0;
     min-width: 0;
 }

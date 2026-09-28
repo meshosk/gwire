@@ -1,6 +1,7 @@
 ﻿@page "/scheme-editor"
 @using Gwire.Models
 @using Gwire.Models.Base
+@inject Gwire.Services.GwirePartsService GwireParts
 
 <PageTitle>Gwire - The scheme editor</PageTitle>
 
@@ -9,14 +10,24 @@
         <button type="button" class="btn btn-primary" @onclick="AddCable">
             <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add cable
         </button>
+        <div class="input-group scheme-editor-part-picker">
+            <select class="form-select" aria-label="Part to add" @bind="selectedPartIndex" disabled="@(GwireParts.Parts.Count == 0)">
+                <option value="-1">Select a part</option>
+                @for (var index = 0; index < GwireParts.Parts.Count; index++)
+                {
+                    <option value="@index">@(GwireParts.Parts[index] is CircuitPart part ? part.DisplayName : GwireParts.Parts[index].Name)</option>
+                }
+            </select>
+            <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartIndex < 0)">
+                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
+        </div>
     </div>
 
     <div class="scheme-editor-canvas-container">
         <svg class="scheme-editor-canvas"
-             viewBox="0 0 1200 700"
              role="img"
              aria-label="Circuit scheme editor"
-             @onpointermove="MoveDraggedItem"
+             @onpointermove="MoveDraggedPart"
              @onpointerup="EndDrag"
              @onpointercancel="CancelDrag"
              @onpointerleave="CancelDrag">
@@ -25,53 +36,14 @@
                     <path d="M 25 0 L 0 0 0 25" fill="none" class="scheme-grid" />
                 </pattern>
             </defs>
-            <rect width="1200" height="700" fill="url(#scheme-grid)" />
-
+            <rect width="100%" height="100%" fill="url(#scheme-grid)" />
+            @foreach (var part in Circuit.Parts.OfType<CircuitPart>())
+            {
+                <CircuitPartRenderer CircuitPart="part" DragStarted="(eventArgs) => StartPartDrag(part, eventArgs)" />
+            }
             @foreach (var cable in Circuit.Parts.OfType<CablePart>())
             {
-                <line x1="@cable.Points[0].LocalX"
-                      y1="@cable.Points[0].LocalY"
-                      x2="@cable.Points[1].LocalX"
-                      y2="@cable.Points[1].LocalY"
-                      class="cable-line" />
-            }
-
-            @foreach (var part in Circuit.Parts.Where(part => part is not CablePart))
-            {
-                <g transform="@PartTransform(part)" @onpointerdown="(eventArgs) => StartPartDrag(part, eventArgs)">
-                    @if (SvgImageSource(part) is { } svgImageSource)
-                    {
-                        <image href="@svgImageSource"
-                               x="@part.SvgLocalX"
-                               y="@part.SvgLocalY"
-                               width="800"
-                               height="450"
-                               preserveAspectRatio="xMidYMid meet"
-                               class="scheme-part-svg" />
-                    }
-                </g>
-            }
-
-            @foreach (var part in Circuit.Parts.Where(part => part is not CablePart))
-            {
-                <g transform="@PartTransform(part)" class="scheme-part-points" @onpointerdown="(eventArgs) => StartPartDrag(part, eventArgs)">
-                    @foreach (var point in part.Points)
-                    {
-                        <circle cx="@point.LocalX" cy="@point.LocalY" r="10" class="scheme-connection-point" />
-                    }
-                </g>
-            }
-
-            @foreach (var cable in Circuit.Parts.OfType<CablePart>())
-            {
-                @foreach (var point in cable.Points)
-                {
-                    <circle cx="@point.LocalX"
-                            cy="@point.LocalY"
-                            r="10"
-                            class="scheme-connection-point cable-endpoint"
-                            @onpointerdown="(eventArgs) => StartCablePointDrag(point, eventArgs)" />
-                }
+	            <CablePartRenderer CablePart="cable" />
             }
         </svg>
     </div>

@@ -1,0 +1,51 @@
+<svg class="editor-canvas"
+     role="img"
+     aria-label="SVG scheme of the component"
+     @onpointermove="HandlePointerMove"
+     @onpointerup="HandlePointerUp"
+     @onpointercancel="HandlePointerCancel"
+     @onpointerleave="HandlePointerCancel"
+     @onpointermove:stopPropagation="IsBackgroundInteractionActive"
+     @onpointerup:stopPropagation="IsBackgroundInteractionActive"
+     @onpointercancel:stopPropagation="IsBackgroundInteractionActive">
+    <defs>
+        <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse">
+            <path d="M 25 0 L 0 0 0 25" fill="none" class="canvas-grid" />
+        </pattern>
+        <clipPath id="@clipId">
+            <rect x="0" y="0" width="@Part.Width" height="@Part.Height" />
+        </clipPath>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#grid)" />
+
+    @if (ImageSource is { } imageSource)
+    {
+        <image href="@imageSource"
+               x="@Part.SvgLocalX"
+               y="@Part.SvgLocalY"
+               width="@Part.Width"
+               height="@Part.Height"
+               preserveAspectRatio="xMidYMid meet"
+               clip-path="@ClipPathUrl"
+               class="part-svg-background"
+               @onpointerdown="StartDrag"
+               @onpointerdown:stopPropagation="true" />
+    }
+
+    <rect x="0" y="0" width="@Part.Width" height="@Part.Height" class="part-outline" />
+
+    @ChildContent
+
+    <rect x="@(Part.Width - 6)" y="0" width="12" height="@Part.Height"
+          class="part-resize-edge part-resize-right"
+          @onpointerdown="(eventArgs) => StartResize(Enums.PartSvgBackground.ResizeDirection.Right, eventArgs)"
+          @onpointerdown:stopPropagation="true" />
+    <rect x="0" y="@(Part.Height - 6)" width="@Part.Width" height="12"
+          class="part-resize-edge part-resize-bottom"
+          @onpointerdown="(eventArgs) => StartResize(Enums.PartSvgBackground.ResizeDirection.Bottom, eventArgs)"
+          @onpointerdown:stopPropagation="true" />
+    <rect x="@(Part.Width - 9)" y="@(Part.Height - 9)" width="18" height="18"
+          class="part-resize-corner"
+          @onpointerdown="(eventArgs) => StartResize(Enums.PartSvgBackground.ResizeDirection.Corner, eventArgs)"
+          @onpointerdown:stopPropagation="true" />
+</svg>

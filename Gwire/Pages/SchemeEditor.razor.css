@@ -1,22 +1,31 @@
 .scheme-editor {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .scheme-editor-toolbar {
     flex: 0 0 auto;
 }
 
+.scheme-editor-part-picker {
+    display: inline-flex;
+    margin-left: 0.5rem;
+    max-width: 24rem;
+    vertical-align: middle;
+}
+
 .scheme-editor-canvas-container {
     flex: 1 1 auto;
-    overflow: auto;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .scheme-editor-canvas {
     display: block;
-    min-width: 1200px;
-    min-height: 700px;
+    width: 100%;
+    height: 100%;
     background: #fff;
     touch-action: none;
 }
@@ -26,30 +35,3 @@
     stroke-width: 1;
 }
 
-.scheme-part-svg,
-.scheme-part-points {
-    cursor: grab;
-}
-
-.scheme-part-svg:active,
-.scheme-part-points:active,
-.cable-endpoint:active {
-    cursor: grabbing;
-}
-
-.cable-line {
-    stroke: #3d647a;
-    stroke-linecap: round;
-    stroke-width: 4;
-    pointer-events: none;
-}
-
-.scheme-connection-point {
-    fill: #1677d2;
-    stroke: #fff;
-    stroke-width: 3;
-}
-
-.cable-endpoint {
-    cursor: grab;
-}

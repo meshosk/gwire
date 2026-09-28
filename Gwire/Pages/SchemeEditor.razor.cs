@@ -2,7 +2,6 @@ using Gwire.Models;
 using Gwire.Models.Base;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using System.Text;
 
 namespace Gwire.Pages;
 
@@ -10,9 +9,11 @@ public partial class SchemeEditor : ComponentBase
 {
     private readonly Circuit Circuit = new();
     private CircuitPart? draggedPart;
-    private ConnectionPoint? draggedCablePoint;
-    private double dragOffsetX;
-    private double dragOffsetY;
+    private double dragStartClientX;
+    private double dragStartClientY;
+    private double dragStartPartX;
+    private double dragStartPartY;
+    private int selectedPartIndex = -1;
 
     private void AddCable()
     {
@@ -29,51 +30,56 @@ public partial class SchemeEditor : ComponentBase
         Circuit.Parts.Add(cable);
     }
 
-    private void StartPartDrag(CircuitPart part, PointerEventArgs eventArgs)
+    private void AddSelectedPart()
     {
-        draggedCablePoint = null;
-        draggedPart = part;
-        dragOffsetX = eventArgs.OffsetX - part.SchemeX;
-        dragOffsetY = eventArgs.OffsetY - part.SchemeY;
-    }
-
-    private void StartCablePointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
-    {
-        draggedPart = null;
-        draggedCablePoint = point;
-        dragOffsetX = eventArgs.OffsetX - point.LocalX;
-        dragOffsetY = eventArgs.OffsetY - point.LocalY;
-    }
-
-    private void MoveDraggedItem(PointerEventArgs eventArgs)
-    {
-        if (draggedPart is not null)
+        if (selectedPartIndex < 0 || selectedPartIndex >= GwireParts.Parts.Count)
         {
-            draggedPart.SchemeX = eventArgs.OffsetX - dragOffsetX;
-            draggedPart.SchemeY = eventArgs.OffsetY - dragOffsetY;
             return;
         }
 
-        if (draggedCablePoint is not null)
+        if (GwireParts.Parts[selectedPartIndex] is not CircuitPart selectedPart)
         {
-            draggedCablePoint.LocalX = eventArgs.OffsetX - dragOffsetX;
-            draggedCablePoint.LocalY = eventArgs.OffsetY - dragOffsetY;
+            return;
         }
+
+        var part = selectedPart.Clone();
+        var partNumber = Circuit.Parts.OfType<CircuitPart>().Count();
+        part.SchemeX = 150 + partNumber * 25;
+        part.SchemeY = 150 + partNumber * 25;
+        Circuit.Parts.Add(part);
     }
 
-    private void EndDrag(PointerEventArgs eventArgs) => CancelDrag(eventArgs);
+    private void StartPartDrag(CircuitPart part, PointerEventArgs eventArgs)
+    {
+        draggedPart = part;
+        dragStartClientX = eventArgs.ClientX;
+        dragStartClientY = eventArgs.ClientY;
+        dragStartPartX = part.SchemeX;
+        dragStartPartY = part.SchemeY;
+    }
 
-    private void CancelDrag(PointerEventArgs eventArgs)
+    private void MoveDraggedPart(PointerEventArgs eventArgs)
+    {
+        if (draggedPart is null)
+        {
+            return;
+        }
+
+        draggedPart.SchemeX = dragStartPartX + eventArgs.ClientX - dragStartClientX;
+        draggedPart.SchemeY = dragStartPartY + eventArgs.ClientY - dragStartClientY;
+    }
+
+    private void EndDrag(PointerEventArgs eventArgs) => ResetDrag();
+
+    private void CancelDrag(PointerEventArgs eventArgs) => ResetDrag();
+
+    private void ResetDrag()
     {
         draggedPart = null;
-        draggedCablePoint = null;
-        dragOffsetX = 0;
-        dragOffsetY = 0;
+        dragStartClientX = 0;
+        dragStartClientY = 0;
+        dragStartPartX = 0;
+        dragStartPartY = 0;
     }
 
-    private static string PartTransform(CircuitPart part) => $"translate({part.SchemeX} {part.SchemeY})";
-
-    private static string? SvgImageSource(CircuitPart part) => string.IsNullOrWhiteSpace(part.SvgMarkup)
-        ? null
-        : $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(part.SvgMarkup))}";
 }
