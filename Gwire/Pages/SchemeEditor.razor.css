@@ -1,7 +1,8 @@
 .scheme-editor {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .scheme-editor-toolbar {
@@ -17,13 +18,14 @@
 
 .scheme-editor-canvas-container {
     flex: 1 1 auto;
-    overflow: auto;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .scheme-editor-canvas {
     display: block;
-    min-width: 1200px;
-    min-height: 700px;
+    width: 100%;
+    height: 100%;
     background: #fff;
     touch-action: none;
 }
