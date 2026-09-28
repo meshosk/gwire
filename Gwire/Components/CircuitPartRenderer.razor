@@ -1,0 +1,45 @@
+<g transform="@PartTransform">
+    @if (SvgImageSource is { } svgImageSource)
+    {
+        <svg x="0" y="0" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden">
+            <image href="@svgImageSource"
+                   x="@CircuitPart.SvgLocalX"
+                   y="@CircuitPart.SvgLocalY"
+                   width="@CircuitPart.Width"
+                   height="@CircuitPart.Height"
+                   preserveAspectRatio="xMidYMid meet"
+                   class="circuit-part-svg"
+                   @onpointerdown="StartDrag"
+                   @onpointerdown:stopPropagation="true" />
+        </svg>
+    }
+
+    <g class="circuit-part-points">
+        @foreach (var point in CircuitPart.Points)
+        {
+            <circle cx="@point.LocalX"
+                    cy="@point.LocalY"
+                    r="10"
+                    class="circuit-connection-point"
+                    @onpointerdown="StartDrag"
+                    @onpointerdown:stopPropagation="true" />
+        }
+    </g>
+
+    @if (isDragging)
+    {
+        <rect x="@(-CircuitPart.SchemeX)"
+              y="@(-CircuitPart.SchemeY)"
+              width="100%"
+              height="100%"
+              class="circuit-part-drag-capture"
+              @onpointermove="MoveDraggedPart"
+              @onpointerup="EndDrag"
+              @onpointercancel="CancelDrag"
+              @onpointerleave="CancelDrag"
+              @onpointermove:stopPropagation="true"
+              @onpointerup:stopPropagation="true"
+              @onpointercancel:stopPropagation="true"
+              @onpointerleave:stopPropagation="true" />
+    }
+</g>

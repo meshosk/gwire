@@ -35,19 +35,3 @@
     stroke-width: 1;
 }
 
-.scheme-part-svg,
-.scheme-part-points {
-    cursor: grab;
-}
-
-.scheme-part-svg:active,
-.scheme-part-points:active {
-    cursor: grabbing;
-}
-
-.scheme-connection-point {
-    fill: #1677d2;
-    stroke: #fff;
-    stroke-width: 3;
-}
-

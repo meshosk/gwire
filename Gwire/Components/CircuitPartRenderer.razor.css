@@ -1,0 +1,20 @@
+.circuit-part-svg,
+.circuit-part-points {
+    cursor: grab;
+}
+
+.circuit-part-svg:active,
+.circuit-part-points:active {
+    cursor: grabbing;
+}
+
+.circuit-connection-point {
+    fill: #1677d2;
+    stroke: #fff;
+    stroke-width: 3;
+}
+
+.circuit-part-drag-capture {
+    fill: transparent;
+    pointer-events: all;
+}
