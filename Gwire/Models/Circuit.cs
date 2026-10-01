@@ -7,5 +7,5 @@ namespace Gwire.Models;
 /// </summary>
 public sealed class Circuit
 {
-    public List<BaseCircuitPart> Parts { get; } = new();
+    public List<BaseCircuitPart> Parts { get; set; } = new();
 }

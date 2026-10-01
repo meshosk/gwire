@@ -10,8 +10,8 @@ public sealed class CablePart : BaseCircuitPart
     public CablePart()
     {
         // cable has only one permanently connected state
-        Points.Add(new ConnectionPoint());
-        Points.Add(new ConnectionPoint());
+        Points.Add(new ConnectionPoint { Owner = this });
+        Points.Add(new ConnectionPoint { Owner = this });
 
         this.States.Add(new PartState() {
                 ConnectionGroups =

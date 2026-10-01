@@ -96,6 +96,7 @@ public partial class PartEditor : ComponentBase
         var count = Part.Points.Count;
         var point = new ConnectionPoint
         {
+            Owner = Part,
             Label = $"Point {count + 1}",
             LocalX = 120 + (count % 5) * 140,
             LocalY = 120 + (count / 5) * 100
@@ -225,6 +226,11 @@ public partial class PartEditor : ComponentBase
     private void SetEditedPart(CircuitPart part)
     {
         Part = part;
+        foreach (var point in Part.Points)
+        {
+            point.Owner = Part;
+        }
+
         if (Part.Width <= 0)
         {
             Part.Width = 500;
