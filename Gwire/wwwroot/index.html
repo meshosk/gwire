@@ -34,7 +34,16 @@
     </div>
     <script src="js/file-download.js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
-    <script>navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });</script>
+    <script>
+        const isLocalhost = ['localhost', '127.0.0.1', '[::1]']
+            .includes(location.hostname);
+
+        if (!isLocalhost) {
+            navigator.serviceWorker.register('service-worker.js', {
+                updateViaCache: 'none'
+            });
+        }
+    </script>
 </body>
 
 </html>

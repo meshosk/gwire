@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Watch Gwire",
+      "label": "Gwire: watch",
       "type": "process",
       "command": "dotnet",
       "args": [
@@ -13,14 +13,27 @@
         "--launch-profile",
         "http"
       ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "1"
+        }
+      },
       "isBackground": true,
       "problemMatcher": {
         "base": "$msCompile",
         "background": {
           "activeOnStart": true,
-          "beginsPattern": ".*",
-          "endsPattern": ".*Now listening on:.*"
+          "beginsPattern": ".*dotnet watch.*Building.*",
+          "endsPattern": ".*Now listening on: http://localhost:5188/?\\s*$"
         }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "runOptions": {
+        "instanceLimit": 1
       }
     }
   ]
