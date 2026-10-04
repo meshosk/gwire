@@ -42,16 +42,15 @@ public partial class PartEditor : ComponentBase
     #region Drags
 
     private ConnectionPoint? draggedPoint;
-    private double dragOffsetX;
-    private double dragOffsetY;
+    private Point dragOffset;
     private bool pointWasDragged;
 
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
         SelectedPoint = point;
         draggedPoint = point;
-        dragOffsetX = eventArgs.OffsetX - point.LocalX;
-        dragOffsetY = eventArgs.OffsetY - point.LocalY;
+        var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+        dragOffset = new Point(pointer.X - point.LocalPosition.X, pointer.Y - point.LocalPosition.Y);
         pointWasDragged = false;
     }
 
@@ -71,8 +70,7 @@ public partial class PartEditor : ComponentBase
     private void CancelPointDrag(PointerEventArgs eventArgs)
     {
         draggedPoint = null;
-        dragOffsetX = 0;
-        dragOffsetY = 0;
+        dragOffset = new Point();
         pointWasDragged = false;
     }
 
@@ -80,11 +78,11 @@ public partial class PartEditor : ComponentBase
     {
         if (draggedPoint is not null)
         {
-            var nextX = eventArgs.OffsetX - dragOffsetX;
-            var nextY = eventArgs.OffsetY - dragOffsetY;
-            pointWasDragged |= Math.Abs(nextX - draggedPoint.LocalX) > 2 || Math.Abs(nextY - draggedPoint.LocalY) > 2;
-            draggedPoint.LocalX = nextX;
-            draggedPoint.LocalY = nextY;
+            var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+            var nextPosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
+            pointWasDragged |= MathF.Abs(nextPosition.X - draggedPoint.LocalPosition.X) > 2 ||
+                MathF.Abs(nextPosition.Y - draggedPoint.LocalPosition.Y) > 2;
+            draggedPoint.LocalPosition = nextPosition;
             return;
         }
     }
@@ -98,8 +96,7 @@ public partial class PartEditor : ComponentBase
         {
             Owner = Part,
             Label = $"Point {count + 1}",
-            LocalX = 120 + (count % 5) * 140,
-            LocalY = 120 + (count / 5) * 100
+            LocalPosition = new Point(120 + (count % 5) * 140, 120 + (count / 5) * 100)
         };
 
         Part.Points.Add(point);
@@ -289,8 +286,7 @@ public partial class PartEditor : ComponentBase
             }
 
             Part.SvgMarkup = svgMarkup;
-            Part.SvgLocalX = 0;
-            Part.SvgLocalY = 0;
+            Part.SvgLocalPosition = new Point();
             ImportMessage = "SVG background imported successfully.";
             ImportMessageClass = "alert-success";
         }
@@ -304,8 +300,7 @@ public partial class PartEditor : ComponentBase
     private void RemoveSvg()
     {
         Part.SvgMarkup = string.Empty;
-        Part.SvgLocalX = 0;
-        Part.SvgLocalY = 0;
+        Part.SvgLocalPosition = new Point();
     }
 
     private static string CreateFileName(string name)

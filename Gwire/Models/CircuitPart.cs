@@ -39,18 +39,44 @@ public sealed class CircuitPart : BaseCircuitPart
     /// <summary>
     /// Top-left position of the SVG background in the part's local coordinate system.
     /// </summary>
-    public double SvgLocalX { get; set; }
-    public double SvgLocalY { get; set; }
+    public Point SvgLocalPosition { get; set; } = new();
 
     /// <summary>
-    /// X position of the part in a circuit scheme.
+    /// Position of the part in a circuit scheme.
     /// </summary>
-    public double SchemeX { get; set; }
+    public Point SchemePosition { get; set; } = new();
 
     /// <summary>
-    /// Y position of the part in a circuit scheme.
+    /// Moves the part and updates the stored coordinates of its connected cable points.
     /// </summary>
-    public double SchemeY { get; set; }
+    public void MoveTo(Point position)
+    {
+        SchemePosition = position.Copy();
+        UpdateConnectedCablePoints();
+    }
+
+    public void UpdateConnectedCablePoints()
+    {
+        var cables = new HashSet<CablePart>();
+        foreach (var point in Points)
+        {
+            foreach (var connectedPoint in point.ConnectionPoints)
+            {
+                if (connectedPoint.Owner is CablePart cable)
+                {
+                    connectedPoint.LocalPosition = new Point(SchemePosition.X + point.LocalPosition.X,
+                        SchemePosition.Y + point.LocalPosition.Y);
+                    cables.Add(cable);
+                }
+            }
+        }
+
+        NotifyChanged();
+        foreach (var cable in cables)
+        {
+            cable.NotifyChanged();
+        }
+    }
 
     /// <summary>
     /// Tags used to search and filter parts in the catalog.
@@ -63,6 +89,8 @@ public sealed class CircuitPart : BaseCircuitPart
     public override CircuitPart Clone()
     {
         var clone = (CircuitPart)base.Clone();
+        clone.SvgLocalPosition = SvgLocalPosition.Copy();
+        clone.SchemePosition = SchemePosition.Copy();
         clone.Width = Width;
         clone.Height = Height;
         clone.Tags = [.. Tags];

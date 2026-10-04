@@ -26,11 +26,7 @@
     <div class="scheme-editor-canvas-container">
         <svg class="scheme-editor-canvas"
              role="img"
-             aria-label="Circuit scheme editor"
-             @onpointermove="MoveDraggedPart"
-             @onpointerup="EndDrag"
-             @onpointercancel="CancelDrag"
-             @onpointerleave="CancelDrag">
+             aria-label="Circuit scheme editor">
             <defs>
                 <pattern id="scheme-grid" width="25" height="25" patternUnits="userSpaceOnUse">
                     <path d="M 25 0 L 0 0 0 25" fill="none" class="scheme-grid" />
@@ -39,11 +35,11 @@
             <rect width="100%" height="100%" fill="url(#scheme-grid)" />
             @foreach (var part in Circuit.Parts.OfType<CircuitPart>())
             {
-                <CircuitPartRenderer CircuitPart="part" DragStarted="(eventArgs) => StartPartDrag(part, eventArgs)" />
+                <CircuitPartRenderer @key="part" CircuitPart="part" />
             }
             @foreach (var cable in Circuit.Parts.OfType<CablePart>())
             {
-	            <CablePartRenderer CablePart="cable" />
+                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" />
             }
         </svg>
     </div>

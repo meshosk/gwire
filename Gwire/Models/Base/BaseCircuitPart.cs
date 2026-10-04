@@ -12,6 +12,10 @@ namespace Gwire.Models.Base;
 [JsonDerivedType(typeof(Gwire.Models.CircuitPart), "circuitPart")]
 public abstract class BaseCircuitPart
 {
+    public event Action? Changed;
+
+    public void NotifyChanged() => Changed?.Invoke();
+
     protected BaseCircuitPart()
     {
         ClassType = GetType().Name;
@@ -51,6 +55,7 @@ public abstract class BaseCircuitPart
     public virtual BaseCircuitPart Clone()
     {
         var clone = (BaseCircuitPart)MemberwiseClone();
+        clone.Changed = null;
         var clonedPoints = new Dictionary<ConnectionPoint, ConnectionPoint>();
 
         clone.Points = Points
@@ -92,7 +97,7 @@ public abstract class BaseCircuitPart
     {
         if (ActiveState is not null)
         {
-            return ActiveState.GetConnectedPoints(startingPoint);  
+            return ActiveState.GetConnectedPoints(startingPoint);
         }
 
         return Array.Empty<ConnectionPoint>();

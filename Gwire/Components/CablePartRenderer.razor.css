@@ -19,7 +19,6 @@
     cursor: grabbing;
 }
 
-.cable-drag-capture {
-    fill: transparent;
-    pointer-events: all;
+.cable-connection-point.connection-highlight {
+    fill: #ffc107;
 }

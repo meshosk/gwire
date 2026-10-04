@@ -21,8 +21,8 @@
     @if (ImageSource is { } imageSource)
     {
         <image href="@imageSource"
-               x="@Part.SvgLocalX"
-               y="@Part.SvgLocalY"
+               x="@Part.SvgLocalPosition.X"
+               y="@Part.SvgLocalPosition.Y"
                width="@Part.Width"
                height="@Part.Height"
                preserveAspectRatio="xMidYMid meet"

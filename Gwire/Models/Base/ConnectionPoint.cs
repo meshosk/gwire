@@ -7,20 +7,33 @@ namespace Gwire.Models.Base;
 /// </summary>
 public class ConnectionPoint
 {
+    private bool isHighlighted;
+
+    [JsonIgnore]
+    public bool IsHighlighted
+    {
+        get => isHighlighted;
+        set
+        {
+            if (isHighlighted == value)
+            {
+                return;
+            }
+
+            isHighlighted = value;
+            Owner?.NotifyChanged();
+        }
+    }
+
     /// <summary>
     /// Connection needs a name.
     /// </summary>
     public string Label { get; set; } = string.Empty;
 
     /// <summary>
-    /// X coordinate of the point in the part's local coordinate system.
+    /// Position of the point in the part's local coordinate system.
     /// </summary>
-    public double LocalX { get; set; }
-    
-    /// <summary>
-    /// Y coordinate of the point in the part's local coordinate system.
-    /// </summary>
-    public double LocalY { get; set; }
+    public Point LocalPosition { get; set; } = new();
 
     #region networking
 
@@ -37,7 +50,7 @@ public class ConnectionPoint
 
     /// <summary>
     /// Bi-directional point connections
-    /// </summary>  
+    /// </summary>
     /// <param name="point"></param>
     public void Connect(ConnectionPoint point)
     {
@@ -45,10 +58,24 @@ public class ConnectionPoint
         {
             this.ConnectionPoints.Add(point);
         }
-        
+
         if (!point.ConnectionPoints.Contains(this))
         {
             point.ConnectionPoints.Add(this);
+        }
+
+        if (Owner is Gwire.Models.CircuitPart part && point.Owner is Gwire.Models.CablePart)
+        {
+            part.UpdateConnectedCablePoints();
+        }
+        else if (point.Owner is Gwire.Models.CircuitPart connectedPart && Owner is Gwire.Models.CablePart)
+        {
+            connectedPart.UpdateConnectedCablePoints();
+        }
+        else
+        {
+            Owner?.NotifyChanged();
+            point.Owner?.NotifyChanged();
         }
     }
 
@@ -63,6 +90,9 @@ public class ConnectionPoint
         {
             point.ConnectionPoints.Remove(this);
         }
+
+        Owner?.NotifyChanged();
+        point.Owner?.NotifyChanged();
     }
 
     /// <summary>
@@ -72,6 +102,8 @@ public class ConnectionPoint
     {
         var clone = (ConnectionPoint)MemberwiseClone();
         clone.ConnectionPoints = new List<ConnectionPoint>();
+        clone.isHighlighted = false;
+        clone.LocalPosition = LocalPosition.Copy();
         return clone;
     }
 
