@@ -1,4 +1,6 @@
 <g @ref="element" transform="@PartTransform"
+   @onclick="Select"
+   @onclick:stopPropagation="true"
    @onpointerdown="StartDrag"
    @onpointermove="MoveDraggedPart"
    @onpointerup="EndDrag"
@@ -26,4 +28,9 @@
                     class="circuit-connection-point @(point.IsHighlighted ? "connection-highlight" : null)" />
         }
     </g>
+    @if (IsSelected)
+    {
+        <rect x="0" y="0" width="@CircuitPart.Width" height="@CircuitPart.Height"
+              class="circuit-selection-outline" />
+    }
 </g>

@@ -9,6 +9,7 @@ namespace Gwire.Components;
 public partial class CircuitPartRenderer : IDisposable
 {
     private ElementReference element;
+    private bool wasDragged;
     private CircuitPart? subscribedPart;
     private long? dragPointerId;
     private Point dragStartClient;
@@ -16,6 +17,12 @@ public partial class CircuitPartRenderer : IDisposable
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Parameter]
+    public bool IsSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsSelectedChanged { get; set; }
 
     [Parameter, EditorRequired]
     public CircuitPart CircuitPart { get; set; } = default!;
@@ -49,6 +56,8 @@ public partial class CircuitPartRenderer : IDisposable
         }
     }
 
+    private Task Select() => wasDragged || IsSelected ? Task.CompletedTask : IsSelectedChanged.InvokeAsync(true);
+
     private void HandleChanged() => _ = InvokeAsync(StateHasChanged);
 
     private void StartDrag(PointerEventArgs eventArgs)
@@ -59,6 +68,7 @@ public partial class CircuitPartRenderer : IDisposable
         }
 
         dragPointerId = eventArgs.PointerId;
+        wasDragged = false;
         dragStartClient = new Point(eventArgs);
         dragStartPart = CircuitPart.SchemePosition.Copy();
     }
@@ -71,6 +81,8 @@ public partial class CircuitPartRenderer : IDisposable
         }
 
         var pointer = new Point(eventArgs);
+        wasDragged |= MathF.Abs(pointer.X - dragStartClient.X) > 2 ||
+            MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
         CircuitPart.MoveTo(new Point(dragStartPart.X + pointer.X - dragStartClient.X,
             dragStartPart.Y + pointer.Y - dragStartClient.Y));
     }

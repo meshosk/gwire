@@ -9,6 +9,7 @@ namespace Gwire.Components;
 public partial class CablePartRenderer : IDisposable
 {
     private ElementReference element;
+    private bool wasDragged;
     private CablePart? subscribedCable;
     private ConnectionPoint? draggedPoint;
     private ConnectionPoint? originalConnection;
@@ -19,6 +20,12 @@ public partial class CablePartRenderer : IDisposable
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Parameter]
+    public bool IsSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsSelectedChanged { get; set; }
 
     [Parameter, EditorRequired]
     public CablePart CablePart { get; set; } = default!;
@@ -49,6 +56,10 @@ public partial class CablePartRenderer : IDisposable
         }
     }
 
+    private void PrepareSelection(PointerEventArgs eventArgs) => wasDragged = false;
+
+    private Task Select() => wasDragged || IsSelected ? Task.CompletedTask : IsSelectedChanged.InvokeAsync(true);
+
     private void HandleChanged() => _ = InvokeAsync(StateHasChanged);
 
     private void StartDrag(ConnectionPoint point, PointerEventArgs eventArgs)
@@ -60,6 +71,7 @@ public partial class CablePartRenderer : IDisposable
 
         draggedPoint = point;
         dragPointerId = eventArgs.PointerId;
+        wasDragged = false;
         dragStartClient = new Point(eventArgs);
         dragStartPoint = point.LocalPosition.Copy();
         originalConnection = point.ConnectionPoints.FirstOrDefault(connection => connection.Owner is CircuitPart);
@@ -121,6 +133,8 @@ public partial class CablePartRenderer : IDisposable
         }
 
         var pointer = new Point(eventArgs);
+        wasDragged |= MathF.Abs(pointer.X - dragStartClient.X) > 2 ||
+            MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
         draggedPoint.LocalPosition = new Point(dragStartPoint.X + pointer.X - dragStartClient.X,
             dragStartPoint.Y + pointer.Y - dragStartClient.Y);
         UpdateConnectionTarget();

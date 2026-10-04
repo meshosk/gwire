@@ -26,20 +26,25 @@
     <div class="scheme-editor-canvas-container">
         <svg class="scheme-editor-canvas"
              role="img"
-             aria-label="Circuit scheme editor">
+             aria-label="Circuit scheme editor"
+             @onclick="ClearSelection">
             <defs>
                 <pattern id="scheme-grid" width="25" height="25" patternUnits="userSpaceOnUse">
                     <path d="M 25 0 L 0 0 0 25" fill="none" class="scheme-grid" />
                 </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#scheme-grid)" />
-            @foreach (var part in Circuit.Parts.OfType<CircuitPart>())
+            @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, Circuit.SelectedPart)))
             {
-                <CircuitPartRenderer @key="part" CircuitPart="part" />
+                <CircuitPartRenderer @key="part" CircuitPart="part"
+                                     @bind-IsSelected:get="ReferenceEquals(part, Circuit.SelectedPart)"
+                                     @bind-IsSelected:set="value => SetPartSelection(part, value)" />
             }
-            @foreach (var cable in Circuit.Parts.OfType<CablePart>())
+            @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, Circuit.SelectedPart)))
             {
-                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" />
+                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit"
+                                   @bind-IsSelected:get="ReferenceEquals(cable, Circuit.SelectedPart)"
+                                   @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
             }
         </svg>
     </div>

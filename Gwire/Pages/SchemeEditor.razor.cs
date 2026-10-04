@@ -9,6 +9,20 @@ public partial class SchemeEditor : ComponentBase
     private readonly Circuit Circuit = new();
     private int selectedPartIndex = -1;
 
+    private void ClearSelection() => Circuit.SelectedPart = null;
+
+    private void SetPartSelection(BaseCircuitPart part, bool isSelected)
+    {
+        if (isSelected)
+        {
+            Circuit.SelectedPart = part;
+        }
+        else if (ReferenceEquals(Circuit.SelectedPart, part))
+        {
+            Circuit.SelectedPart = null;
+        }
+    }
+
     private void AddCable()
     {
         var cableNumber = Circuit.Parts.OfType<CablePart>().Count() + 1;

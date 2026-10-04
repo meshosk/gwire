@@ -1,4 +1,7 @@
 <g @ref="element"
+   @onclick="Select"
+   @onclick:stopPropagation="true"
+   @onpointerdown="PrepareSelection"
    @onpointermove="MoveDraggedPoint"
    @onpointerup="EndDrag"
    @onpointercancel="CancelDrag">
@@ -6,14 +9,14 @@
           y1="@CablePart.Points[0].LocalPosition.Y"
           x2="@CablePart.Points[1].LocalPosition.X"
           y2="@CablePart.Points[1].LocalPosition.Y"
-          class="cable-line" />
+          class="cable-line @(IsSelected ? "cable-selected" : null)" />
 
     @foreach (var point in CablePart.Points)
     {
         <circle cx="@point.LocalPosition.X"
                 cy="@point.LocalPosition.Y"
                 r="10"
-                class="cable-connection-point cable-endpoint @(point.IsHighlighted ? "connection-highlight" : null)"
+                class="cable-connection-point cable-endpoint @(IsSelected ? "cable-selected" : null) @(point.IsHighlighted ? "connection-highlight" : null)"
                 @onpointerdown="(eventArgs) => StartDrag(point, eventArgs)"
                 @onpointerdown:stopPropagation="true" />
     }
