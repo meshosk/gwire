@@ -1,4 +1,6 @@
 using Gwire.Models;
+using Gwire.UndoRedo;
+using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -17,6 +19,9 @@ public partial class CircuitPartRenderer : IDisposable
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public UndoRedoHistory History { get; set; } = default!;
 
     [Parameter]
     public bool IsSelected { get; set; }
@@ -71,6 +76,7 @@ public partial class CircuitPartRenderer : IDisposable
         wasDragged = false;
         dragStartClient = new Point(eventArgs);
         dragStartPart = CircuitPart.SchemePosition.Copy();
+        History.Freeze();
     }
 
     private void MoveDraggedPart(PointerEventArgs eventArgs)
@@ -89,15 +95,27 @@ public partial class CircuitPartRenderer : IDisposable
 
     private void EndDrag(PointerEventArgs eventArgs)
     {
+        if (dragPointerId != eventArgs.PointerId)
+        {
+            return;
+        }
+
         MoveDraggedPart(eventArgs);
-        CancelDrag(eventArgs);
+        if (!dragStartPart.Equals(CircuitPart.SchemePosition))
+        {
+            History.Record(new MovePartAction(CircuitPart, dragStartPart, CircuitPart.SchemePosition.Copy()));
+        }
+        dragPointerId = null;
+        History.Unfreeze();
     }
 
     private void CancelDrag(PointerEventArgs eventArgs)
     {
         if (dragPointerId == eventArgs.PointerId)
         {
+            CircuitPart.MoveTo(dragStartPart);
             dragPointerId = null;
+            History.Unfreeze();
         }
     }
 
@@ -106,6 +124,10 @@ public partial class CircuitPartRenderer : IDisposable
         if (subscribedPart is not null)
         {
             subscribedPart.Changed -= HandleChanged;
+        }
+        if (dragPointerId is { } pointerId)
+        {
+            CancelDrag(new PointerEventArgs { PointerId = pointerId });
         }
     }
 }

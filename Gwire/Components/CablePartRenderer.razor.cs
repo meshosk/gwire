@@ -1,5 +1,7 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.UndoRedo;
+using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -13,6 +15,7 @@ public partial class CablePartRenderer : IDisposable
     private CablePart? subscribedCable;
     private ConnectionPoint? draggedPoint;
     private ConnectionPoint? originalConnection;
+    private ConnectionPoint[] dragStartConnections = [];
     private ConnectionPoint? connectionTarget;
     private long? dragPointerId;
     private Point dragStartClient;
@@ -20,6 +23,9 @@ public partial class CablePartRenderer : IDisposable
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public UndoRedoHistory History { get; set; } = default!;
 
     [Parameter]
     public bool IsSelected { get; set; }
@@ -74,6 +80,8 @@ public partial class CablePartRenderer : IDisposable
         wasDragged = false;
         dragStartClient = new Point(eventArgs);
         dragStartPoint = point.LocalPosition.Copy();
+        dragStartConnections = point.ConnectionPoints.ToArray();
+        History.Freeze();
         originalConnection = point.ConnectionPoints.FirstOrDefault(connection => connection.Owner is CircuitPart);
         if (originalConnection is not null)
         {
@@ -152,6 +160,11 @@ public partial class CablePartRenderer : IDisposable
         {
             draggedPoint.Connect(connectionTarget);
         }
+        var action = new MoveCablePointAction(draggedPoint, dragStartPoint, dragStartConnections);
+        if (action.HasChanges)
+        {
+            History.Record(action);
+        }
         ResetDrag();
     }
 
@@ -162,10 +175,7 @@ public partial class CablePartRenderer : IDisposable
             return;
         }
 
-        if (originalConnection is not null)
-        {
-            draggedPoint.Connect(originalConnection);
-        }
+        new MoveCablePointAction(draggedPoint, dragStartPoint, dragStartConnections).Undo();
         ResetDrag();
     }
 
@@ -183,6 +193,8 @@ public partial class CablePartRenderer : IDisposable
         originalConnection = null;
         connectionTarget = null;
         dragPointerId = null;
+        dragStartConnections = [];
+        History.Unfreeze();
     }
 
     public void Dispose()

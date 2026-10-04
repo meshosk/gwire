@@ -5,9 +5,21 @@
 
 <PageTitle>Gwire - The scheme editor</PageTitle>
 
-<div class="scheme-editor">
+<div @ref="editorElement" class="scheme-editor" tabindex="0">
     <div class="scheme-editor-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Scheme editor toolbar">
-        <button type="button" class="btn btn-primary" @onclick="AddCable">
+        <div class="btn-group me-2" role="group" aria-label="Edit history">
+            <button type="button" class="btn btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)">
+                <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>Undo
+            </button>
+            <button type="button" class="btn btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)">
+                <i class="fa-solid fa-rotate-right me-1" aria-hidden="true"></i>Redo
+            </button>
+        </div>
+        <button type="button" class="btn btn-outline-danger me-2" @onclick="DeleteSelectedPart"
+                disabled="@(Circuit.SelectedPart is null || history.IsFrozen)">
+            <i class="fa-solid fa-trash me-1" aria-hidden="true"></i>Delete selected
+        </button>
+        <button type="button" class="btn btn-primary" @onclick="AddCable" disabled="@history.IsFrozen">
             <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add cable
         </button>
         <div class="input-group scheme-editor-part-picker">
@@ -18,7 +30,7 @@
                     <option value="@index">@(GwireParts.Parts[index] is CircuitPart part ? part.DisplayName : GwireParts.Parts[index].Name)</option>
                 }
             </select>
-            <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartIndex < 0)">
+            <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartIndex < 0 || history.IsFrozen)">
                 <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
         </div>
     </div>
@@ -36,13 +48,13 @@
             <rect width="100%" height="100%" fill="url(#scheme-grid)" />
             @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, Circuit.SelectedPart)))
             {
-                <CircuitPartRenderer @key="part" CircuitPart="part"
+                <CircuitPartRenderer @key="part" CircuitPart="part" History="history"
                                      @bind-IsSelected:get="ReferenceEquals(part, Circuit.SelectedPart)"
                                      @bind-IsSelected:set="value => SetPartSelection(part, value)" />
             }
             @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, Circuit.SelectedPart)))
             {
-                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit"
+                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history"
                                    @bind-IsSelected:get="ReferenceEquals(cable, Circuit.SelectedPart)"
                                    @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
             }
