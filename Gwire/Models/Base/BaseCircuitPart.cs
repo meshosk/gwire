@@ -56,12 +56,16 @@ public abstract class BaseCircuitPart
     {
         var clone = (BaseCircuitPart)MemberwiseClone();
         clone.Changed = null;
-        // clear points
-        clone.Points.Clear();
         var clonedPoints = new Dictionary<ConnectionPoint, ConnectionPoint>();
 
-        // clone points
-        clone.Points.AddRange(this.Points.Select(point => point.Clone(clone)));
+        clone.Points = Points
+            .Select(point =>
+            {
+                var clonedPoint = point.Clone(clone);
+                clonedPoints.Add(point, clonedPoint);
+                return clonedPoint;
+            })
+            .ToList();
 
         clone.States = States.Select(state => new PartState
         {
