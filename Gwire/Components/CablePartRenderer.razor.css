@@ -1,4 +1,6 @@
 .cable-line {
+    fill: none;
+    stroke-linejoin: round;
     stroke: #3d647a;
     stroke-linecap: round;
     stroke-width: 4;

@@ -10,9 +10,9 @@ namespace Gwire.Components;
 
 public partial class CablePartRenderer : IDisposable
 {
-    private ElementReference element;
+    private ElementReference elementReference;
+    private readonly string elementReferenceId = $"cable-{Guid.NewGuid():N}";
     private bool wasDragged;
-    private CablePart? subscribedCable;
     private ConnectionPoint? draggedPoint;
     private ConnectionPoint? originalConnection;
     private ConnectionPoint[] dragStartConnections = [];
@@ -39,26 +39,54 @@ public partial class CablePartRenderer : IDisposable
     [Parameter, EditorRequired]
     public Circuit Circuit { get; set; } = default!;
 
-    protected override void OnParametersSet()
+    private IEnumerable<Point> RoutePoints => CablePart.BendPoints
+        .Prepend(CablePart.Points[0].LocalPosition)
+        .Append(CablePart.Points[1].LocalPosition);
+
+    private string CablePath => string.Join(" ", RoutePoints.Select(point =>
+        FormattableString.Invariant($"{point.X},{point.Y}")));
+
+    private Task SelectContextTarget() => History.IsFrozen || IsSelected
+        ? Task.CompletedTask
+        : IsSelectedChanged.InvokeAsync(true);
+
+    private bool CanAddBendPoint(Point position) =>
+        !History.IsFrozen && CablePart.FindBendPointInsertion(position) is not null;
+
+    private void AddBendPoint(Point position)
     {
-        if (ReferenceEquals(subscribedCable, CablePart))
+        if (History.IsFrozen || CablePart.FindBendPointInsertion(position) is not { } bend)
         {
             return;
         }
 
-        if (subscribedCable is not null)
+        var bends = CablePart.BendPoints.ToList();
+        bends.Insert(bend.Index, bend.Position);
+        History.Execute(new ChangeCableRouteAction(CablePart, CablePart.BendPoints, bends));
+    }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var previousCablePart = CablePart;
+        await base.SetParametersAsync(parameters);
+
+        if (ReferenceEquals(previousCablePart, CablePart))
         {
-            subscribedCable.Changed -= HandleChanged;
+            return;
         }
-        subscribedCable = CablePart;
-        subscribedCable.Changed += HandleChanged;
+
+        if (previousCablePart is not null)
+        {
+            previousCablePart.Changed -= HandleChanged;
+        }
+        CablePart.Changed += HandleChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await JS.InvokeVoidAsync("gwire.enablePointerCapture", element);
+            await JS.InvokeVoidAsync("gwire.enablePointerCapture", elementReference);
         }
     }
 
@@ -66,11 +94,11 @@ public partial class CablePartRenderer : IDisposable
 
     private Task Select() => wasDragged || IsSelected ? Task.CompletedTask : IsSelectedChanged.InvokeAsync(true);
 
-    private void HandleChanged() => _ = InvokeAsync(StateHasChanged);
+    private void HandleChanged() => StateHasChanged();
 
     private void StartDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
-        if (eventArgs.Button != 0 || !eventArgs.IsPrimary || draggedPoint is not null)
+        if (eventArgs.Button != 0 || !eventArgs.IsPrimary || dragPointerId is not null)
         {
             return;
         }
@@ -135,7 +163,7 @@ public partial class CablePartRenderer : IDisposable
 
     private void MoveDraggedPoint(PointerEventArgs eventArgs)
     {
-        if (draggedPoint is null || dragPointerId != eventArgs.PointerId)
+        if (dragPointerId != eventArgs.PointerId)
         {
             return;
         }
@@ -143,39 +171,49 @@ public partial class CablePartRenderer : IDisposable
         var pointer = new Point(eventArgs);
         wasDragged |= MathF.Abs(pointer.X - dragStartClient.X) > 2 ||
             MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
-        draggedPoint.LocalPosition = new Point(dragStartPoint.X + pointer.X - dragStartClient.X,
+        var position = new Point(dragStartPoint.X + pointer.X - dragStartClient.X,
             dragStartPoint.Y + pointer.Y - dragStartClient.Y);
-        UpdateConnectionTarget();
+        if (draggedPoint is not null)
+        {
+            draggedPoint.LocalPosition = position;
+            UpdateConnectionTarget();
+        }
     }
 
     private void EndDrag(PointerEventArgs eventArgs)
     {
-        if (draggedPoint is null || dragPointerId != eventArgs.PointerId)
+        if (dragPointerId != eventArgs.PointerId)
         {
             return;
         }
 
         MoveDraggedPoint(eventArgs);
-        if (connectionTarget is not null)
+        if (draggedPoint is not null)
         {
-            draggedPoint.Connect(connectionTarget);
-        }
-        var action = new MoveCablePointAction(draggedPoint, dragStartPoint, dragStartConnections);
-        if (action.HasChanges)
-        {
-            History.Record(action);
+            if (connectionTarget is not null)
+            {
+                draggedPoint.Connect(connectionTarget);
+            }
+            var action = new MoveCablePointAction(draggedPoint, dragStartPoint, dragStartConnections);
+            if (action.HasChanges)
+            {
+                History.Record(action);
+            }
         }
         ResetDrag();
     }
 
     private void CancelDrag(PointerEventArgs eventArgs)
     {
-        if (draggedPoint is null || dragPointerId != eventArgs.PointerId)
+        if (dragPointerId != eventArgs.PointerId)
         {
             return;
         }
 
-        new MoveCablePointAction(draggedPoint, dragStartPoint, dragStartConnections).Undo();
+        if (draggedPoint is not null)
+        {
+            new MoveCablePointAction(draggedPoint, dragStartPoint, dragStartConnections).Undo();
+        }
         ResetDrag();
     }
 
@@ -199,9 +237,9 @@ public partial class CablePartRenderer : IDisposable
 
     public void Dispose()
     {
-        if (subscribedCable is not null)
+        if (CablePart is not null)
         {
-            subscribedCable.Changed -= HandleChanged;
+            CablePart.Changed -= HandleChanged;
         }
         if (dragPointerId is { } pointerId)
         {

@@ -17,20 +17,22 @@ public partial class CircuitPartRenderer : IDisposable
     private Point dragStartClient;
     private Point dragStartPart;
 
-    [Inject]
-    private IJSRuntime JS { get; set; } = default!;
-
-    [Parameter, EditorRequired]
-    public UndoRedoHistory History { get; set; } = default!;
-
-    [Parameter]
-    public bool IsSelected { get; set; }
-
-    [Parameter]
-    public EventCallback<bool> IsSelectedChanged { get; set; }
-
-    [Parameter, EditorRequired]
-    public CircuitPart CircuitPart { get; set; } = default!;
+#region Injects & prams
+        [Inject]
+        private IJSRuntime JS { get; set; } = default!;
+    
+        [Parameter, EditorRequired]
+        public UndoRedoHistory History { get; set; } = default!;
+    
+        [Parameter]
+        public bool IsSelected { get; set; }
+    
+        [Parameter]
+        public EventCallback<bool> IsSelectedChanged { get; set; }
+    
+        [Parameter, EditorRequired]
+        public CircuitPart CircuitPart { get; set; } = default!;
+#endregion
 
     private string PartTransform => $"translate({CircuitPart.SchemePosition.X} {CircuitPart.SchemePosition.Y})";
 
@@ -63,9 +65,11 @@ public partial class CircuitPartRenderer : IDisposable
 
     private Task Select() => wasDragged || IsSelected ? Task.CompletedTask : IsSelectedChanged.InvokeAsync(true);
 
-    private void HandleChanged() => _ = InvokeAsync(StateHasChanged);
+    private void HandleChanged() => StateHasChanged();
 
-    private void StartDrag(PointerEventArgs eventArgs)
+
+#region Dragging
+        private void StartDrag(PointerEventArgs eventArgs)
     {
         if (eventArgs.Button != 0 || !eventArgs.IsPrimary || dragPointerId is not null)
         {
@@ -78,21 +82,19 @@ public partial class CircuitPartRenderer : IDisposable
         dragStartPart = CircuitPart.SchemePosition.Copy();
         History.Freeze();
     }
-
-    private void MoveDraggedPart(PointerEventArgs eventArgs)
-    {
-        if (dragPointerId != eventArgs.PointerId)
+        private void MoveDraggedPart(PointerEventArgs eventArgs)
         {
-            return;
+            if (dragPointerId != eventArgs.PointerId)
+            {
+                return;
+            }
+    
+            var pointer = new Point(eventArgs);
+            wasDragged |= MathF.Abs(pointer.X - dragStartClient.X) > 2 ||
+                MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
+            CircuitPart.MoveTo(new Point(dragStartPart.X + pointer.X - dragStartClient.X,
+                dragStartPart.Y + pointer.Y - dragStartClient.Y));
         }
-
-        var pointer = new Point(eventArgs);
-        wasDragged |= MathF.Abs(pointer.X - dragStartClient.X) > 2 ||
-            MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
-        CircuitPart.MoveTo(new Point(dragStartPart.X + pointer.X - dragStartClient.X,
-            dragStartPart.Y + pointer.Y - dragStartClient.Y));
-    }
-
     private void EndDrag(PointerEventArgs eventArgs)
     {
         if (dragPointerId != eventArgs.PointerId)
@@ -118,6 +120,8 @@ public partial class CircuitPartRenderer : IDisposable
             History.Unfreeze();
         }
     }
+#endregion
+    
 
     public void Dispose()
     {

@@ -1,0 +1,20 @@
+<g @ref="element"
+   @onpointermove="MoveDraggedPoint"
+   @onpointerup="EndDrag"
+   @onpointercancel="CancelDrag"
+   @onpointermove:stopPropagation="true"
+   @onpointerup:stopPropagation="true"
+   @onpointercancel:stopPropagation="true"
+   @onclick:stopPropagation="true">
+    @if (IsSelected)
+    {
+        @for (var index = 0; index < CablePart.BendPoints.Count; index++)
+        {
+            var bendIndex = index;
+            var bend = CablePart.BendPoints[bendIndex];
+            <circle cx="@bend.X" cy="@bend.Y" r="6" class="cable-bend-point"
+                    @onpointerdown="eventArgs => StartDrag(bendIndex, eventArgs)"
+                    @onpointerdown:stopPropagation="true" />
+        }
+    }
+</g>

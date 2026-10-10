@@ -1,0 +1,17 @@
+@if (IsOpen)
+{
+    <foreignObject x="0" y="0" width="100%" height="100%" class="svg-context-menu-layer"
+                   @onpointerdown:stopPropagation="true" @onclick:stopPropagation="true"
+                   @oncontextmenu:preventDefault="true" @oncontextmenu:stopPropagation="true">
+        <div @ref="overlay" xmlns="http://www.w3.org/1999/xhtml" class="svg-context-menu-overlay" tabindex="-1"
+             @onclick="DismissAsync" @oncontextmenu="DismissAsync"
+             @onkeydown="HandleKeyDown">
+            <div class="dropdown-menu show svg-context-menu" role="menu"
+                 @onclick:stopPropagation="true">
+                <CascadingValue Value="this" IsFixed="true">
+                    @ChildContent
+                </CascadingValue>
+            </div>
+        </div>
+    </foreignObject>
+}

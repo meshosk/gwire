@@ -8,7 +8,7 @@ public class PartState
     /// <summary>
     /// State name
     /// </summary>
-    public string Label { get; set; }
+    public string Label { get; set; } = string.Empty;
     /// <summary>
     /// State can set interconnect of a points groups, so part line simple on//off state can be created. 
     /// </summary>

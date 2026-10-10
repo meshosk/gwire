@@ -40,13 +40,19 @@ public class ConnectionPoint
     /// <summary>
     /// Part that owns actual connection point.
     /// </summary>
-    public BaseCircuitPart Owner { get; set; }
+    public BaseCircuitPart Owner { get; private set; }
 
     /// <summary>
     /// If is not null, this point is connected to point of other part.
     /// </summary>
     [JsonInclude]
     public List<ConnectionPoint> ConnectionPoints { get; private set; } = new();
+
+
+    public ConnectionPoint(BaseCircuitPart owner)
+    {
+        Owner = owner;
+    }
 
     /// <summary>
     /// Bi-directional point connections
@@ -98,9 +104,10 @@ public class ConnectionPoint
     /// <summary>
     /// Creates a clone without external point connections.
     /// </summary>
-    public ConnectionPoint Clone()
+    public ConnectionPoint Clone(BaseCircuitPart newPointOwner)
     {
         var clone = (ConnectionPoint)MemberwiseClone();
+        clone.Owner = newPointOwner; // shady but works
         clone.ConnectionPoints = new List<ConnectionPoint>();
         clone.isHighlighted = false;
         clone.LocalPosition = LocalPosition.Copy();

@@ -21,7 +21,7 @@
 			                <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
 			            </button>
 			            <button type="button" class="btn btn-outline-primary" @onclick="SavePartToService">
-			                <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>@(Part.IsFromRepo ? "Save as own copy" : "Save to service")
+			                <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")
 			            </button>
 		            </div>
 			<div class="input-group mb-3">
@@ -44,20 +44,20 @@
 			            <BootstrapTab Title="Part">
 				            <div class="mb-3">
 					            <label for="part-name" class="form-label">Title</label>
-					            <input class="form-control" id="part-name" @bind="@this.Part.Name" aria-label="Part name" />
+					            <input class="form-control" id="part-name" @bind="@this.EditedPart.Name" aria-label="Part name" />
 				            </div>
 			               <div class="mb-3">
 			                  <label for="part-description" class="form-label">Description</label>
-			                  <textarea class="form-control" @bind="@this.Part.Description" id="part-description" rows="3"></textarea>
+			                  <textarea class="form-control" @bind="@this.EditedPart.Description" id="part-description" rows="3"></textarea>
 			               </div>
 			               <div class="row g-2 mb-3">
 			                  <div class="col-6">
 			                     <label for="part-width" class="form-label">Width (px)</label>
-			                     <input id="part-width" class="form-control" type="number" @bind="Part.Width" />
+			                     <input id="part-width" class="form-control" type="number" @bind="EditedPart.Width" />
 			                  </div>
 			                  <div class="col-6">
 			                     <label for="part-height" class="form-label">Height (px)</label>
-			                     <input id="part-height" class="form-control" type="number" @bind="Part.Height" />
+			                     <input id="part-height" class="form-control" type="number" @bind="EditedPart.Height" />
 			                  </div>
 			               </div>
 			               <div class="mb-3">
@@ -72,10 +72,10 @@
 			                     </select>
 			                     <button type="button" class="btn btn-outline-primary" @onclick="AddTag" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
 			                  </div>
-			                  @if (Part.Tags.Count > 0)
+			                  @if (EditedPart.Tags.Count > 0)
 			                  {
 			                     <div class="d-flex flex-wrap gap-2 mt-2">
-			                        @foreach (var tag in Part.Tags)
+			                        @foreach (var tag in EditedPart.Tags)
 			                        {
 			                           <span class="badge text-bg-secondary d-flex align-items-center gap-1">
 			                              @tag
@@ -92,22 +92,22 @@
 			                        <i class="fa-solid fa-image me-1" aria-hidden="true"></i>Upload SVG
 			                     </label>
 			                     <InputFile id="part-svg-import" class="visually-hidden" accept="image/svg+xml,.svg" OnChange="ImportSvgAsync" />
-			                     @if (!string.IsNullOrWhiteSpace(Part.SvgMarkup))
+			                     @if (!string.IsNullOrWhiteSpace(EditedPart.SvgMarkup))
 			                     {
 			                        <button type="button" class="btn btn-outline-danger" @onclick="RemoveSvg">Remove SVG</button>
 			                     }
 			                  </div>
 			               </div>
-			               @if (!string.IsNullOrWhiteSpace(Part.SvgMarkup))
+			               @if (!string.IsNullOrWhiteSpace(EditedPart.SvgMarkup))
 			               {
 			                  <div class="row g-2 mb-3">
 			                     <div class="col-6">
 			                        <label class="form-label" for="svg-x">SVG X</label>
-				                        <input id="svg-x" class="form-control" type="number" @bind:get="Part.SvgLocalPosition.X" @bind:set="(float value) => Part.SvgLocalPosition = new Point(value, Part.SvgLocalPosition.Y)" />
+				                        <input id="svg-x" class="form-control" type="number" @bind:get="EditedPart.SvgLocalPosition.X" @bind:set="(float value) => EditedPart.SvgLocalPosition = new Point(value, EditedPart.SvgLocalPosition.Y)" />
 			                     </div>
 			                     <div class="col-6">
 			                        <label class="form-label" for="svg-y">SVG Y</label>
-				                        <input id="svg-y" class="form-control" type="number" @bind:get="Part.SvgLocalPosition.Y" @bind:set="(float value) => Part.SvgLocalPosition = new Point(Part.SvgLocalPosition.X, value)" />
+				                        <input id="svg-y" class="form-control" type="number" @bind:get="EditedPart.SvgLocalPosition.Y" @bind:set="(float value) => EditedPart.SvgLocalPosition = new Point(EditedPart.SvgLocalPosition.X, value)" />
 			                     </div>
 			                  </div>
 			               }
@@ -139,17 +139,17 @@
 					            }
 
 			            </BootstrapTab>
-			            <BootstrapTab Title="States" Disabled="@(!this.Part.Points.Any())">
+			            <BootstrapTab Title="States" Disabled="@(!this.EditedPart.Points.Any())">
 
 				            <div class="mb-1">
 					            <div class="d-grid gap-2">
 						            <button type="button" class="btn btn-primary" @onclick="AddState">Add state</button>
 								</div>
 				            </div>
-					            @if (Part.States.Count > 0) {
+					            @if (EditedPart.States.Count > 0) {
 						            <div class="mt-3 p-3">
 										<BootstrapTabs>
-							            @foreach (PartState state in this.Part.States)
+							            @foreach (PartState state in this.EditedPart.States)
 							            {
 							            <BootstrapTab Title="@state.Label" OnClick="() => SelectActiveState(state)">
 									            <label class="form-label" for="state-label">State name</label>
@@ -205,7 +205,7 @@
                  @onpointerup="EndPointDrag"
                  @onpointercancel="CancelPointDrag"
                  @onpointerleave="CancelPointDrag">
-            <Gwire.Components.PartSvgBackground @bind-Part="Part">
+            <Gwire.Components.PartSvgBackground @bind-Part="EditedPart">
 
                         @if (ActiveState is { } state)
                         {
@@ -223,7 +223,7 @@
                             }
                         }
 
-                        @foreach (var point in Part.Points)
+                        @foreach (var point in EditedPart.Points)
                         {
                             <circle cx="@point.LocalPosition.X"
                                     cy="@point.LocalPosition.Y"

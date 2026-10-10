@@ -1,15 +1,16 @@
-<g @ref="element"
+<g id="@elementReferenceId" @ref="elementReference"
    @onclick="Select"
+   @oncontextmenu="SelectContextTarget"
+   @oncontextmenu:stopPropagation="true"
    @onclick:stopPropagation="true"
    @onpointerdown="PrepareSelection"
    @onpointermove="MoveDraggedPoint"
    @onpointerup="EndDrag"
    @onpointercancel="CancelDrag">
-    <line x1="@CablePart.Points[0].LocalPosition.X"
-          y1="@CablePart.Points[0].LocalPosition.Y"
-          x2="@CablePart.Points[1].LocalPosition.X"
-          y2="@CablePart.Points[1].LocalPosition.Y"
-          class="cable-line @(IsSelected ? "cable-selected" : null)" />
+    <polyline points="@CablePath"
+              class="cable-line @(IsSelected ? "cable-selected" : null)" />
+
+    <CableBendPoints CablePart="CablePart" History="History" IsSelected="IsSelected" />
 
     @foreach (var point in CablePart.Points)
     {
@@ -21,3 +22,9 @@
                 @onpointerdown:stopPropagation="true" />
     }
 </g>
+
+<SvgContextMenu Target="@("#" + elementReferenceId)">
+    <SvgContextMenuItem OnClick="AddBendPoint" CanExecute="CanAddBendPoint">
+        Add bend point
+    </SvgContextMenuItem>
+</SvgContextMenu>

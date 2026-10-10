@@ -6,6 +6,7 @@
    @onpointerup="EndDrag"
    @onpointercancel="CancelDrag"
    @onpointerdown:stopPropagation="true">
+   
     @if (SvgImageSource is { } svgImageSource)
     {
         <svg x="0" y="0" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden">

@@ -1,0 +1,11 @@
+.cable-bend-point {
+    fill: #fff;
+    stroke: #ffc107;
+    stroke-width: 2;
+    cursor: grab;
+}
+
+.cable-bend-point:active {
+    cursor: grabbing;
+}
+
