@@ -7,6 +7,10 @@
 
 <div @ref="editorElement" class="scheme-editor" tabindex="0">
     <div class="scheme-editor-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Scheme editor toolbar">
+        <button type="button" class="btn btn-outline-secondary me-2" data-scheme-pan-toggle
+                aria-label="Pan mode" aria-pressed="false" title="Edit mode (hold Space to pan)">
+            <i class="fa-solid fa-computer-mouse" aria-hidden="true"></i>
+        </button>
         <div class="btn-group me-2" role="group" aria-label="Edit history">
             <button type="button" class="btn btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)">
                 <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>Undo

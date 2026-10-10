@@ -26,6 +26,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         {
             shortcutReference = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("gwire.enableUndoRedoShortcuts", editorElement, shortcutReference);
+            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement);
         }
     }
 
@@ -57,6 +58,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         history.Changed -= HandleHistoryChanged;
         if (shortcutReference is not null)
         {
+            await JS.InvokeVoidAsync("gwire.disableSchemePan", editorElement);
             await JS.InvokeVoidAsync("gwire.disableUndoRedoShortcuts", editorElement);
             shortcutReference.Dispose();
         }

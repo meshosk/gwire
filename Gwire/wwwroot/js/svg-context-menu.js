@@ -24,6 +24,15 @@ window.gwire.attachSvgContextMenu = (selector, receiver) => {
 };
 
 window.gwire.showSvgContextMenu = (overlay, clientX, clientY) => {
+    const layer = overlay.parentElement;
+    const svg = layer.ownerSVGElement;
+    if (svg.hasAttribute("viewBox")) {
+        const view = svg.viewBox.baseVal;
+        layer.setAttribute("x", view.x);
+        layer.setAttribute("y", view.y);
+        layer.setAttribute("width", view.width);
+        layer.setAttribute("height", view.height);
+    }
     const menu = overlay.querySelector('[role="menu"]');
     const bounds = overlay.getBoundingClientRect();
     const left = (clientX - bounds.left) * overlay.clientWidth / bounds.width;
