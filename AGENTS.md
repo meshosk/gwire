@@ -21,4 +21,7 @@
 - Do not restore intentionally removed code or behavior unless the user explicitly requests it.
 - Do not make assumptions that expand the requested change; do not alter related API contracts, generic constraints, or behavior unless explicitly requested.
 - Prefer existing platform, framework, and project solutions before creating custom implementations. Create custom code only when a concrete requirement cannot be met by an existing solution.
+- Preserve user-chosen names and renames of fields, properties, parameters, methods, and components. Do not rename them or revert user edits unless explicitly requested. Before editing, read the current files and make only the changes required for the task.
+- Never use async void. Asynchronous methods must return Task or ValueTask and be awaited by their callers. Do not discard asynchronous work. Keep handlers synchronous when the work is synchronous; for Blazor notifications already running on the renderer context, call StateHasChanged directly.
+- Avoid redundant fields, duplicated state, and extra abstractions when existing framework APIs can handle the requirement. For Blazor parameter changes, save the current parameter value in a local variable, await base.SetParametersAsync, then compare it with the updated parameter and adjust event subscriptions only if it changed. Do not store a second model reference in a field or read ParameterView manually when this lifecycle approach suffices.
 - Do not build app by yourselft. If you want, please ask for confirmation before building the app.

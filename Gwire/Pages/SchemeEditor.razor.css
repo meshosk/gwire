@@ -35,3 +35,16 @@
     stroke-width: 1;
 }
 
+
+.scheme-editor-canvas.pan-ready {
+    cursor: grab;
+    user-select: none;
+}
+
+.scheme-editor-canvas.panning {
+    cursor: grabbing;
+}
+
+.scheme-editor-canvas.pan-ready ::deep * {
+    cursor: inherit;
+}

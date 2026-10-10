@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Gwire.Models.Base;
 
 /// <summary>
@@ -5,8 +7,15 @@ namespace Gwire.Models.Base;
 /// A wire and a user-defined part differ only in their specialised data, not
 /// in how their terminals and internal connections are represented.
 /// </summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(Gwire.Models.CablePart), "cable")]
+[JsonDerivedType(typeof(Gwire.Models.CircuitPart), "circuitPart")]
 public abstract class BaseCircuitPart
 {
+    public event Action? Changed;
+
+    public void NotifyChanged() => Changed?.Invoke();
+
     protected BaseCircuitPart()
     {
         ClassType = GetType().Name;
@@ -46,19 +55,13 @@ public abstract class BaseCircuitPart
     public virtual BaseCircuitPart Clone()
     {
         var clone = (BaseCircuitPart)MemberwiseClone();
+        clone.Changed = null;
+        // clear points
+        clone.Points.Clear();
         var clonedPoints = new Dictionary<ConnectionPoint, ConnectionPoint>();
 
-        clone.Points = Points.Select(point =>
-        {
-            var clonedPoint = new ConnectionPoint
-            {
-                Label = point.Label,
-                LocalX = point.LocalX,
-                LocalY = point.LocalY
-            };
-            clonedPoints.Add(point, clonedPoint);
-            return clonedPoint;
-        }).ToList();
+        // clone points
+        clone.Points.AddRange(this.Points.Select(point => point.Clone(clone)));
 
         clone.States = States.Select(state => new PartState
         {
@@ -73,4 +76,24 @@ public abstract class BaseCircuitPart
         clone.ActiveState = activeStateIndex >= 0 ? clone.States[activeStateIndex] : null;
         return clone;
     }
+
+    #region networking
+
+    /// <summary>
+    /// Get connected points to the starting point. If the part has no active state, returns an empty collection.
+    /// </summary>
+    /// <param name="startingPoint"></param>
+    /// <returns></returns>
+    public IEnumerable<ConnectionPoint> GetConnectedPoints(ConnectionPoint startingPoint)
+    {
+        if (ActiveState is not null)
+        {
+            return ActiveState.GetConnectedPoints(startingPoint);
+        }
+
+        return Array.Empty<ConnectionPoint>();
+    }
+
+    #endregion
+
 }

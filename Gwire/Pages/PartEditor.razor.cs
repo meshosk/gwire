@@ -22,7 +22,7 @@ public partial class PartEditor : ComponentBase
     /// <summary>
     /// Currently edited part
     /// </summary>
-    public CircuitPart Part { get; private set; } = new();
+    public CircuitPart EditedPart { get; private set; } = new();
 
 
     private ConnectionPoint? SelectedPoint { get; set; }
@@ -36,22 +36,21 @@ public partial class PartEditor : ComponentBase
     private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts.OfType<CircuitPart>();
 
     private IReadOnlyList<string> AvailableTags => GwireParts.Tags
-        .Where(tag => !Part.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        .Where(tag => !EditedPart.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
         .ToList();
 
     #region Drags
 
     private ConnectionPoint? draggedPoint;
-    private double dragOffsetX;
-    private double dragOffsetY;
+    private Point dragOffset;
     private bool pointWasDragged;
 
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
         SelectedPoint = point;
         draggedPoint = point;
-        dragOffsetX = eventArgs.OffsetX - point.LocalX;
-        dragOffsetY = eventArgs.OffsetY - point.LocalY;
+        var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+        dragOffset = new Point(pointer.X - point.LocalPosition.X, pointer.Y - point.LocalPosition.Y);
         pointWasDragged = false;
     }
 
@@ -71,8 +70,7 @@ public partial class PartEditor : ComponentBase
     private void CancelPointDrag(PointerEventArgs eventArgs)
     {
         draggedPoint = null;
-        dragOffsetX = 0;
-        dragOffsetY = 0;
+        dragOffset = new Point();
         pointWasDragged = false;
     }
 
@@ -80,11 +78,11 @@ public partial class PartEditor : ComponentBase
     {
         if (draggedPoint is not null)
         {
-            var nextX = eventArgs.OffsetX - dragOffsetX;
-            var nextY = eventArgs.OffsetY - dragOffsetY;
-            pointWasDragged |= Math.Abs(nextX - draggedPoint.LocalX) > 2 || Math.Abs(nextY - draggedPoint.LocalY) > 2;
-            draggedPoint.LocalX = nextX;
-            draggedPoint.LocalY = nextY;
+            var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+            var nextPosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
+            pointWasDragged |= MathF.Abs(nextPosition.X - draggedPoint.LocalPosition.X) > 2 ||
+                MathF.Abs(nextPosition.Y - draggedPoint.LocalPosition.Y) > 2;
+            draggedPoint.LocalPosition = nextPosition;
             return;
         }
     }
@@ -93,15 +91,14 @@ public partial class PartEditor : ComponentBase
 
     private void AddPoint()
     {
-        var count = Part.Points.Count;
-        var point = new ConnectionPoint
+        var count = EditedPart.Points.Count;
+        var point = new ConnectionPoint(EditedPart)
         {
             Label = $"Point {count + 1}",
-            LocalX = 120 + (count % 5) * 140,
-            LocalY = 120 + (count / 5) * 100
+            LocalPosition = new Point(120 + (count % 5) * 140, 120 + (count / 5) * 100)
         };
 
-        Part.Points.Add(point);
+        EditedPart.Points.Add(point);
         SelectedPoint = point;
     }
 
@@ -113,8 +110,8 @@ public partial class PartEditor : ComponentBase
 
     private void AddState()
     {
-        var state = new PartState { Label = $"State {Part.States.Count + 1}" };
-        Part.States.Add(state);
+        var state = new PartState { Label = $"State {EditedPart.States.Count + 1}" };
+        EditedPart.States.Add(state);
         SelectActiveState(state);
         ActiveConnectionGroup = null;
     }
@@ -122,7 +119,7 @@ public partial class PartEditor : ComponentBase
     private void SelectActiveState(PartState state)
     {
         ActiveState = state;
-        Part.ActiveState = state;
+        EditedPart.ActiveState = state;
     }
 
     private void AddTag()
@@ -132,13 +129,13 @@ public partial class PartEditor : ComponentBase
             return;
         }
 
-        Part.Tags.Add(selectedTag);
+        EditedPart.Tags.Add(selectedTag);
         selectedTag = string.Empty;
     }
 
     private void RemoveTag(string tag)
     {
-        Part.Tags.Remove(tag);
+        EditedPart.Tags.Remove(tag);
     }
 
     private void RemoveSelectedPoint()
@@ -148,8 +145,8 @@ public partial class PartEditor : ComponentBase
             return;
         }
 
-        Part.Points.Remove(SelectedPoint);
-        foreach (var state in Part.States)
+        EditedPart.Points.Remove(SelectedPoint);
+        foreach (var state in EditedPart.States)
         {
             foreach (var group in state.ConnectionGroups)
             {
@@ -179,8 +176,13 @@ public partial class PartEditor : ComponentBase
     private string PointClass(ConnectionPoint point) =>
         ReferenceEquals(point, SelectedPoint) ? "connection-point is-selected" : "connection-point";
 
-    private void AddRemovePointToGroup(ConnectionGroup group, ConnectionPoint selectedPoint)
+    private void AddRemovePointToGroup(ConnectionGroup group, ConnectionPoint? selectedPoint)
     {
+        if (selectedPoint is null)
+        {
+            return;
+        }
+
         if (group.ConnectedPints.Contains(selectedPoint))
         {
             group.ConnectedPints.Remove(selectedPoint);
@@ -193,17 +195,17 @@ public partial class PartEditor : ComponentBase
 
     private void SavePartToService()
     {
-        var savedAsCopy = Part.IsFromRepo || AvailableParts.Any(existing => existing.IsFromRepo && existing.Id == Part.Id);
+        var savedAsCopy = EditedPart.IsFromRepo || AvailableParts.Any(existing => existing.IsFromRepo && existing.Id == EditedPart.Id);
         if (savedAsCopy)
         {
-            var copy = Part.Clone();
+            var copy = EditedPart.Clone();
             copy.Id = Guid.NewGuid();
             copy.IsFromRepo = false;
             SetEditedPart(copy);
         }
 
-        GwireParts.SavePart(Part);
-        selectedPartId = Part.Id;
+        GwireParts.SavePart(EditedPart);
+        selectedPartId = EditedPart.Id;
         ImportMessage = savedAsCopy ? "Part saved as your own copy." : "Part saved to the parts service.";
         ImportMessageClass = "alert-success";
     }
@@ -224,22 +226,23 @@ public partial class PartEditor : ComponentBase
 
     private void SetEditedPart(CircuitPart part)
     {
-        Part = part;
-        if (Part.Width <= 0)
+        EditedPart = part;
+
+        if (EditedPart.Width <= 0)
         {
-            Part.Width = 500;
+            EditedPart.Width = 500;
         }
 
-        if (Part.Height <= 0)
+        if (EditedPart.Height <= 0)
         {
-            Part.Height = 500;
+            EditedPart.Height = 500;
         }
 
         SelectedPoint = null;
-        ActiveState = Part.ActiveState is { } activeState && Part.States.Contains(activeState)
+        ActiveState = EditedPart.ActiveState is { } activeState && EditedPart.States.Contains(activeState)
             ? activeState
-            : Part.States.FirstOrDefault();
-        Part.ActiveState = ActiveState;
+            : EditedPart.States.FirstOrDefault();
+        EditedPart.ActiveState = ActiveState;
         ActiveConnectionGroup = null;
         CancelPointDrag(new PointerEventArgs());
     }
@@ -263,11 +266,11 @@ public partial class PartEditor : ComponentBase
     private async Task ExportPartAsync()
     {
         await using var stream = new MemoryStream();
-        await ObjectJsonSerializer.ExportAsync<CircuitPart>(Part, stream);
+        await ObjectJsonSerializer.ExportAsync<CircuitPart>(EditedPart, stream);
         stream.Position = 0;
 
         using var streamReference = new DotNetStreamReference(stream);
-        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(Part.Name), streamReference);
+        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(EditedPart.Name), streamReference);
     }
 
     private async Task ImportSvgAsync(InputFileChangeEventArgs eventArgs)
@@ -282,9 +285,8 @@ public partial class PartEditor : ComponentBase
                 throw new InvalidDataException("The selected file does not contain an SVG image.");
             }
 
-            Part.SvgMarkup = svgMarkup;
-            Part.SvgLocalX = 0;
-            Part.SvgLocalY = 0;
+            EditedPart.SvgMarkup = svgMarkup;
+            EditedPart.SvgLocalPosition = new Point();
             ImportMessage = "SVG background imported successfully.";
             ImportMessageClass = "alert-success";
         }
@@ -297,9 +299,8 @@ public partial class PartEditor : ComponentBase
 
     private void RemoveSvg()
     {
-        Part.SvgMarkup = string.Empty;
-        Part.SvgLocalX = 0;
-        Part.SvgLocalY = 0;
+        EditedPart.SvgMarkup = string.Empty;
+        EditedPart.SvgLocalPosition = new Point();
     }
 
     private static string CreateFileName(string name)

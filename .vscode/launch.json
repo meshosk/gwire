@@ -2,14 +2,24 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Gwire WASM with Hot Reload",
+      "name": "Gwire: Hot Reload + WASM Debug",
       "type": "blazorwasm",
       "request": "attach",
       "cwd": "${workspaceFolder}/Gwire",
+      "projectPath": "${workspaceFolder}/Gwire/Gwire.csproj",
+      "webRoot": "${workspaceFolder}/Gwire/wwwroot",
       "url": "http://localhost:5188",
       "browser": "chrome",
       "timeout": 120000,
-      "preLaunchTask": "Watch Gwire"
+      "preLaunchTask": "Gwire: watch",
+      "browserConfig": {
+        "userDataDir": "${workspaceFolder}/.vscode/chrome-local-debug-profile",
+        "cleanUp": "wholeBrowser",
+        "killBehavior": "polite",
+        "trace": {
+          "logFile": "${workspaceFolder}/.vscode/wasm-debug.log"
+        }
+      }
     }
   ]
 }

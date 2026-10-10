@@ -6,17 +6,15 @@ using System.Text;
 namespace Gwire.Components;
 
 /// <summary>
-/// 
+///
 /// </summary>
 public partial class PartSvgBackground
 {
     private readonly string clipId = $"part-svg-clip-{Guid.NewGuid():N}";
     private bool isDragging;
-    private double dragOffsetX;
-    private double dragOffsetY;
+    private Point dragOffset;
     private Enums.PartSvgBackground.ResizeDirection resizeDirection;
-    private double resizeStartClientX;
-    private double resizeStartClientY;
+    private Point resizeStartClient;
     private int resizeStartWidth;
     private int resizeStartHeight;
 
@@ -42,16 +40,15 @@ public partial class PartSvgBackground
     {
         resizeDirection = Enums.PartSvgBackground.ResizeDirection.None;
         isDragging = true;
-        dragOffsetX = eventArgs.OffsetX - Part.SvgLocalX;
-        dragOffsetY = eventArgs.OffsetY - Part.SvgLocalY;
+        var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+        dragOffset = new Point(pointer.X - Part.SvgLocalPosition.X, pointer.Y - Part.SvgLocalPosition.Y);
     }
 
     private void StartResize(Enums.PartSvgBackground.ResizeDirection direction, PointerEventArgs eventArgs)
     {
         isDragging = false;
         resizeDirection = direction;
-        resizeStartClientX = eventArgs.ClientX;
-        resizeStartClientY = eventArgs.ClientY;
+        resizeStartClient = new Point(eventArgs);
         resizeStartWidth = Part.Width;
         resizeStartHeight = Part.Height;
     }
@@ -60,14 +57,15 @@ public partial class PartSvgBackground
     {
         if (resizeDirection != Enums.PartSvgBackground.ResizeDirection.None)
         {
+            var pointer = new Point(eventArgs);
             if (resizeDirection is Enums.PartSvgBackground.ResizeDirection.Right or Enums.PartSvgBackground.ResizeDirection.Corner)
             {
-                Part.Width = Math.Max(1, resizeStartWidth + (int)Math.Round(eventArgs.ClientX - resizeStartClientX));
+                Part.Width = Math.Max(1, resizeStartWidth + (int)MathF.Round(pointer.X - resizeStartClient.X));
             }
 
             if (resizeDirection is Enums.PartSvgBackground.ResizeDirection.Bottom or Enums.PartSvgBackground.ResizeDirection.Corner)
             {
-                Part.Height = Math.Max(1, resizeStartHeight + (int)Math.Round(eventArgs.ClientY - resizeStartClientY));
+                Part.Height = Math.Max(1, resizeStartHeight + (int)MathF.Round(pointer.Y - resizeStartClient.Y));
             }
 
             await PartChanged.InvokeAsync(Part);
@@ -76,8 +74,8 @@ public partial class PartSvgBackground
 
         if (isDragging)
         {
-            Part.SvgLocalX = eventArgs.OffsetX - dragOffsetX;
-            Part.SvgLocalY = eventArgs.OffsetY - dragOffsetY;
+            var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+            Part.SvgLocalPosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
             await PartChanged.InvokeAsync(Part);
             return;
         }

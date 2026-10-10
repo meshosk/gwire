@@ -1,4 +1,5 @@
 using Gwire.Models.Base;
+using System.Text.Json.Serialization;
 
 namespace Gwire.Models;
 
@@ -7,5 +8,8 @@ namespace Gwire.Models;
 /// </summary>
 public sealed class Circuit
 {
-    public List<BaseCircuitPart> Parts { get; } = new();
+    [JsonIgnore]
+    public BaseCircuitPart? SelectedPart { get; set; }
+
+    public List<BaseCircuitPart> Parts { get; set; } = new();
 }

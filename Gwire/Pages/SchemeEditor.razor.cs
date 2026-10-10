@@ -1,38 +1,104 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.UndoRedo;
+using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace Gwire.Pages;
 
-public partial class SchemeEditor : ComponentBase
+public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 {
     private readonly Circuit Circuit = new();
-    private CircuitPart? draggedPart;
-    private double dragStartClientX;
-    private double dragStartClientY;
-    private double dragStartPartX;
-    private double dragStartPartY;
+    private readonly UndoRedoHistory history = new();
+    private ElementReference editorElement;
+    private DotNetObjectReference<SchemeEditor>? shortcutReference;
     private int selectedPartIndex = -1;
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+    protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            shortcutReference = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("gwire.enableUndoRedoShortcuts", editorElement, shortcutReference);
+            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement);
+        }
+    }
+
+    private void HandleHistoryChanged() => _ = InvokeAsync(StateHasChanged);
+
+    [JSInvokable]
+    public void HandleHistoryShortcut(bool redo)
+    {
+        if (redo)
+        {
+            history.Redo();
+        }
+        else
+        {
+            history.Undo();
+        }
+    }
+
+    private void DeleteSelectedPart()
+    {
+        if (!history.IsFrozen && Circuit.SelectedPart is { } part)
+        {
+            history.Execute(new RemovePartAction(Circuit, part));
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        history.Changed -= HandleHistoryChanged;
+        if (shortcutReference is not null)
+        {
+            await JS.InvokeVoidAsync("gwire.disableSchemePan", editorElement);
+            await JS.InvokeVoidAsync("gwire.disableUndoRedoShortcuts", editorElement);
+            shortcutReference.Dispose();
+        }
+    }
+
+    private void ClearSelection() => Circuit.SelectedPart = null;
+
+    private void SetPartSelection(BaseCircuitPart part, bool isSelected)
+    {
+        if (isSelected)
+        {
+            Circuit.SelectedPart = part;
+        }
+        else if (ReferenceEquals(Circuit.SelectedPart, part))
+        {
+            Circuit.SelectedPart = null;
+        }
+    }
 
     private void AddCable()
     {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+
         var cableNumber = Circuit.Parts.OfType<CablePart>().Count() + 1;
         var cable = new CablePart
         {
             Name = $"Cable {cableNumber}"
         };
 
-        cable.Points[0].LocalX = 300;
-        cable.Points[0].LocalY = 300 + (cableNumber - 1) * 40;
-        cable.Points[1].LocalX = 500;
-        cable.Points[1].LocalY = 300 + (cableNumber - 1) * 40;
-        Circuit.Parts.Add(cable);
+        cable.Points[0].LocalPosition = new Point(300, 300 + (cableNumber - 1) * 40);
+        cable.Points[1].LocalPosition = new Point(500, 300 + (cableNumber - 1) * 40);
+        history.Execute(new AddPartAction(Circuit, cable));
     }
 
     private void AddSelectedPart()
     {
-        if (selectedPartIndex < 0 || selectedPartIndex >= GwireParts.Parts.Count)
+        if (history.IsFrozen || selectedPartIndex < 0 || selectedPartIndex >= GwireParts.Parts.Count)
         {
             return;
         }
@@ -44,42 +110,8 @@ public partial class SchemeEditor : ComponentBase
 
         var part = selectedPart.Clone();
         var partNumber = Circuit.Parts.OfType<CircuitPart>().Count();
-        part.SchemeX = 150 + partNumber * 25;
-        part.SchemeY = 150 + partNumber * 25;
-        Circuit.Parts.Add(part);
-    }
-
-    private void StartPartDrag(CircuitPart part, PointerEventArgs eventArgs)
-    {
-        draggedPart = part;
-        dragStartClientX = eventArgs.ClientX;
-        dragStartClientY = eventArgs.ClientY;
-        dragStartPartX = part.SchemeX;
-        dragStartPartY = part.SchemeY;
-    }
-
-    private void MoveDraggedPart(PointerEventArgs eventArgs)
-    {
-        if (draggedPart is null)
-        {
-            return;
-        }
-
-        draggedPart.SchemeX = dragStartPartX + eventArgs.ClientX - dragStartClientX;
-        draggedPart.SchemeY = dragStartPartY + eventArgs.ClientY - dragStartClientY;
-    }
-
-    private void EndDrag(PointerEventArgs eventArgs) => ResetDrag();
-
-    private void CancelDrag(PointerEventArgs eventArgs) => ResetDrag();
-
-    private void ResetDrag()
-    {
-        draggedPart = null;
-        dragStartClientX = 0;
-        dragStartClientY = 0;
-        dragStartPartX = 0;
-        dragStartPartY = 0;
+        part.SchemePosition = new Point(150 + partNumber * 25, 150 + partNumber * 25);
+        history.Execute(new AddPartAction(Circuit, part));
     }
 
 }

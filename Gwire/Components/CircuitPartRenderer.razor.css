@@ -14,3 +14,13 @@
     stroke-width: 3;
 }
 
+.circuit-connection-point.connection-highlight {
+    fill: #ffc107;
+}
+
+.circuit-selection-outline {
+    fill: none;
+    stroke: #ffc107;
+    stroke-width: 3;
+    pointer-events: none;
+}

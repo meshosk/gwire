@@ -1,8 +1,11 @@
 .cable-line {
+    fill: none;
+    stroke-linejoin: round;
     stroke: #3d647a;
     stroke-linecap: round;
     stroke-width: 4;
-    pointer-events: none;
+    pointer-events: stroke;
+    cursor: pointer;
 }
 
 .cable-connection-point {
@@ -19,7 +22,15 @@
     cursor: grabbing;
 }
 
-.cable-drag-capture {
-    fill: transparent;
-    pointer-events: all;
+.cable-connection-point.connection-highlight {
+    fill: #ffc107;
+}
+
+.cable-line.cable-selected {
+    stroke: #ffc107;
+    stroke-width: 6;
+}
+
+.cable-connection-point.cable-selected {
+    stroke: #ffc107;
 }
