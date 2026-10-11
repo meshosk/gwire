@@ -6,8 +6,14 @@ window.gwire.enableUndoRedoShortcuts = (element, receiver) => {
             element.focus({ preventScroll: true });
         }
     };
-    const handleKeyDown = (event) => {
+    const handleKeyDown = async (event) => {
         if (event.target.closest("input, textarea, select, [contenteditable]")) {
+            return;
+        }
+        if ((event.key === "Backspace" || event.key === "Delete") &&
+            !event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            await receiver.invokeMethodAsync("DeleteSelectedPart");
             return;
         }
         if (!(event.ctrlKey || event.metaKey) || event.altKey) {
@@ -18,7 +24,7 @@ window.gwire.enableUndoRedoShortcuts = (element, receiver) => {
             return;
         }
         event.preventDefault();
-        receiver.invokeMethodAsync("HandleHistoryShortcut", key === "y" || event.shiftKey);
+        await receiver.invokeMethodAsync("HandleHistoryShortcut", key === "y" || event.shiftKey);
     };
     element.addEventListener("pointerdown", focusCanvas);
     element.addEventListener("keydown", handleKeyDown);

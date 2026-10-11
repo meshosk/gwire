@@ -52,6 +52,8 @@ Open the repository root in VS Code. Install the .NET 10 SDK, Google Chrome, and
 3. Set breakpoints in the client C# code and save changes to apply supported Hot Reload edits. The watch terminal prompts for a restart when a change cannot be applied. After a restart, reload the browser or restart the debug session if needed.
 4. Stop debugging with **Shift+F5**. The watch task keeps running so another debug session can reuse it. To stop the app as well, focus the watch terminal and press **Ctrl+C**, or run **Tasks: Terminate Task** and select **Gwire: watch**.
 
+If a debug session leaves processes or a locked browser profile behind on macOS, stop debugging with **Shift+F5**, then run **Tasks: Run Task** > **Gwire: stop debug sessions (macOS)**. The task stops Chrome using the Gwire debug profile and Blazor `BrowserDebugHost` processes owned by the current VS Code instance, then removes the debug profile lock files after confirming that the browser has exited. This can stop other Blazor debug hosts in the same VS Code instance. The regular Chrome profile and `dotnet watch` are unaffected. No separate cleanup script is required.
+
 To use Hot Reload without debugging, run **Tasks: Run Task** > **Gwire: watch** and open `http://localhost:5188` manually. No additional scripts are required; the standalone client development server provides the debug proxy, so the `Server` project is not needed for this workflow.
 
 Chrome uses a dedicated debug profile at `.vscode/chrome-local-debug-profile`, which is already ignored by Git, and VS Code closes the whole debug browser when the session ends. This avoids reusing the JavaScript debugger's shared profile when it has a stale lock from an earlier session. The ordinary Chrome profile is unaffected.

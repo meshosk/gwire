@@ -1,5 +1,4 @@
 using Gwire.Models;
-using Gwire.Models.Base;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -12,21 +11,32 @@ namespace Gwire.Services;
 /// <param name="httpClient"></param>
 public sealed class GwirePartsService(HttpClient httpClient)
 {
+    /// <summary>
+    /// Where to search for repo index. 
+    /// </summary>
     private const string IndexUrl = "https://raw.githubusercontent.com/meshosk/gwire-parts-catalog/refs/heads/main/index.json";
     private static readonly JsonSerializerOptions PartJsonOptions = new(JsonSerializerDefaults.Web)
     {
         ReferenceHandler = ReferenceHandler.Preserve
     };
 
+    /// <summary>
+    /// List of tags that can be used to filter parts in the scheme editor.
+    /// </summary>
     public List<string> Tags { get; } = [];
-    public List<BaseCircuitPart> Parts { get; } = [];
+    /// <summary>
+    /// List of parts that can be used in the scheme editor. It contains user created parts and parts from the Gwire parts catalog repository. 
+    /// </summary>
+    public List<CircuitPart> Parts { get; } = [];
 
     public void SavePart(CircuitPart part)
     {
+        // no nulls 
         ArgumentNullException.ThrowIfNull(part);
 
-        var savedPart = part.Clone();
-        var index = Parts.FindIndex(existing => existing is CircuitPart existingPart && existingPart.Id == part.Id);
+        var savedPart = part.Clone(); // saving as clone, because clone has disconnected points
+        var index = Parts.FindIndex(existing => existing.Id == part.Id);
+
         if (index >= 0)
         {
             Parts[index] = savedPart;
@@ -64,7 +74,7 @@ public sealed class GwirePartsService(HttpClient httpClient)
             ?? throw new InvalidDataException("The Gwire parts catalog tags file is empty.");
     }
 
-    private async Task<List<BaseCircuitPart>> LoadPartsAsync(string partsDirectory, string partsIndexFile)
+    private async Task<List<CircuitPart>> LoadPartsAsync(string partsDirectory, string partsIndexFile)
     {
         if (string.IsNullOrWhiteSpace(partsDirectory) || string.IsNullOrWhiteSpace(partsIndexFile))
         {

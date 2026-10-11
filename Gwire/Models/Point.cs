@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Gwire.Models;
 
 /// <summary>
-/// A position or offset represented by single-precision coordinates.
+/// Position in 2D space.
 /// </summary>
 public struct Point
 {

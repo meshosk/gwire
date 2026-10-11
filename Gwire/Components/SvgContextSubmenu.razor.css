@@ -1,0 +1,13 @@
+.svg-context-submenu {
+    position: relative;
+}
+
+.svg-context-submenu-panel {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 12rem;
+    min-width: 0;
+    margin: 0;
+    overflow-y: auto;
+}

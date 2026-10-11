@@ -1,0 +1,16 @@
+@using Gwire.Models
+
+<div class="toast-container position-fixed top-0 end-0 p-3" aria-live="polite" aria-atomic="false">
+    @foreach (var message in messages)
+    {
+        <div class="toast show" role="@(message.Type == MessageType.Danger ? "alert" : "status")"
+             aria-live="@(message.Type == MessageType.Danger ? "assertive" : "polite")" aria-atomic="true">
+            <div class="toast-header">
+                <span class="badge text-bg-@GetMessageClass(message.Type) me-2">@message.Type</span>
+                <strong class="me-auto">@message.Title</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="() => Dismiss(message)"></button>
+            </div>
+            <div class="toast-body">@message.Text</div>
+        </div>
+    }
+</div>

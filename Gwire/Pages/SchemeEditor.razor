@@ -1,41 +1,69 @@
 ﻿@page "/scheme-editor"
 @using Gwire.Models
-@using Gwire.Models.Base
 @inject Gwire.Services.GwirePartsService GwireParts
 
 <PageTitle>Gwire - The scheme editor</PageTitle>
 
 <div @ref="editorElement" class="scheme-editor" tabindex="0">
     <div class="scheme-editor-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Scheme editor toolbar">
-        <button type="button" class="btn btn-outline-secondary me-2" data-scheme-pan-toggle
+        <button type="button" class="btn btn-sm btn-outline-secondary me-2" data-scheme-pan-toggle
                 aria-label="Pan mode" aria-pressed="false" title="Edit mode (hold Space to pan)">
             <i class="fa-solid fa-computer-mouse" aria-hidden="true"></i>
         </button>
-        <div class="btn-group me-2" role="group" aria-label="Edit history">
-            <button type="button" class="btn btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)">
+        <div class="input-group input-group-sm scheme-editor-zoom me-2" role="group" aria-label="Zoom">
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Zoom in" aria-label="Zoom in"
+                    @onclick="() => SetZoomAsync(zoom + 0.1f)" disabled="@(zoom >= 2f || history.IsFrozen)">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Zoom out" aria-label="Zoom out"
+                    @onclick="() => SetZoomAsync(zoom - 0.1f)" disabled="@(zoom <= 0.2f || history.IsFrozen)">
+                <i class="fa-solid fa-minus" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" title="Reset zoom to 100%" aria-label="Reset zoom to 100%"
+                    @onclick="() => SetZoomAsync(1f)" disabled="@history.IsFrozen">100%</button>
+            <input type="number" class="form-control text-center" min="20" max="200" step="1" inputmode="numeric"
+                   aria-label="Zoom percentage" @bind:get="ZoomPercentage" @bind:set="SetZoomPercentageAsync"
+                   disabled="@history.IsFrozen" />
+        </div>
+        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Edit history">
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)">
                 <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>Undo
             </button>
-            <button type="button" class="btn btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)">
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)">
                 <i class="fa-solid fa-rotate-right me-1" aria-hidden="true"></i>Redo
             </button>
         </div>
-        <button type="button" class="btn btn-outline-danger me-2" @onclick="DeleteSelectedPart"
-                disabled="@(Circuit.SelectedPart is null || history.IsFrozen)">
+        <button type="button" class="btn btn-sm btn-outline-danger me-2" @onclick="DeleteSelectedPart"
+                disabled="@(SelectedPart is null || history.IsFrozen)">
             <i class="fa-solid fa-trash me-1" aria-hidden="true"></i>Delete selected
         </button>
-        <button type="button" class="btn btn-primary" @onclick="AddCable" disabled="@history.IsFrozen">
+        <button type="button" class="btn btn-sm btn-primary" @onclick="AddCable" disabled="@history.IsFrozen">
             <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add cable
         </button>
-        <div class="input-group scheme-editor-part-picker">
-            <select class="form-select" aria-label="Part to add" @bind="selectedPartIndex" disabled="@(GwireParts.Parts.Count == 0)">
+        <div class="input-group input-group-sm scheme-editor-part-picker">
+            <select class="form-select" aria-label="Part to add" @bind="selectedPartForAddIndex" disabled="@(GwireParts.Parts.Count == 0)">
                 <option value="-1">Select a part</option>
-                @for (var index = 0; index < GwireParts.Parts.Count; index++)
+                @foreach (var (part, index) in GwireParts.Parts.Select((part, index) => (part, index)))
                 {
-                    <option value="@index">@(GwireParts.Parts[index] is CircuitPart part ? part.DisplayName : GwireParts.Parts[index].Name)</option>
+                    <option value="@index">@part.DisplayName</option>
                 }
             </select>
-            <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartIndex < 0 || history.IsFrozen)">
+            <button type="button" class="btn btn-sm btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartForAddIndex < 0 || history.IsFrozen)">
                 <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-2" role="group" aria-label="Source-ground pairs">
+            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddSourceGroundPair" disabled="@history.IsFrozen">
+                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add source-ground pair
+            </button>
+            @foreach (var (pair, index) in SourceGroundPairs.Select((pair, index) => (pair, index)))
+            {
+                <label @key="pair" class="d-flex align-items-center gap-2">
+                    Pair @(index + 1)
+                    <input type="color" class="form-control form-control-color" title="Path color"
+                           aria-label="@($"Path color for pair {index + 1}")"
+                           @bind:get="pair.LineColor" @bind:set="color => SetPairColor(pair, color)" disabled="@history.IsFrozen" />
+                </label>
+            }
         </div>
     </div>
 
@@ -50,18 +78,24 @@
                 </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#scheme-grid)" />
-            @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, Circuit.SelectedPart)))
+            @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
             {
-                <CircuitPartRenderer @key="part" CircuitPart="part" History="history"
-                                     @bind-IsSelected:get="ReferenceEquals(part, Circuit.SelectedPart)"
+                <CircuitPartRenderer @key="part" CircuitPart="part" History="history" Zoom="zoom" OnDelete="() => DeletePart(part)"
+                                     @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
                                      @bind-IsSelected:set="value => SetPartSelection(part, value)" />
             }
-            @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, Circuit.SelectedPart)))
+            @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
             {
-                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history"
-                                   @bind-IsSelected:get="ReferenceEquals(cable, Circuit.SelectedPart)"
+                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history" Zoom="zoom" OnDelete="() => DeletePart(cable)"
+                                   @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
                                    @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
             }
+            @foreach (var pair in SourceGroundPairs)
+            {
+                <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
+                <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
+            }
+            <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
         </svg>
     </div>
 </div>

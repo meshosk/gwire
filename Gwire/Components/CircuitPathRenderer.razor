@@ -1,0 +1,7 @@
+@foreach (var pair in SourceGroundPairs)
+{
+    @if (GetPathPoints(pair) is { } points)
+    {
+        <polyline @key="pair" points="@points" stroke="@pair.LineColor" class="circuit-path" aria-label="Connected path from power source to ground" />
+    }
+}

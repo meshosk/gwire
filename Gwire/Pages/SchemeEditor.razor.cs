@@ -10,10 +10,23 @@ namespace Gwire.Pages;
 public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 {
     private readonly Circuit Circuit = new();
+    internal List<SourceGroundPair> SourceGroundPairs { get; } = [new()];
     private readonly UndoRedoHistory history = new();
     private ElementReference editorElement;
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
-    private int selectedPartIndex = -1;
+    private float zoom = 1;
+
+    private int ZoomPercentage => (int)MathF.Round(zoom * 100);
+
+    /// <summary>
+    /// Index of the part selected in the "Add part" dropdown. -1 if no part is selected.
+    /// </summary>
+    private int selectedPartForAddIndex = -1;
+
+    /// <summary>
+    /// The currently selected part in the scheme editor, or null if no part is selected.
+    /// </summary>
+    internal BaseCircuitPart? SelectedPart { get; set; }
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
@@ -26,11 +39,11 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         {
             shortcutReference = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("gwire.enableUndoRedoShortcuts", editorElement, shortcutReference);
-            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement);
+            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement, shortcutReference);
         }
     }
 
-    private void HandleHistoryChanged() => _ = InvokeAsync(StateHasChanged);
+    private void HandleHistoryChanged() => StateHasChanged();
 
     [JSInvokable]
     public void HandleHistoryShortcut(bool redo)
@@ -45,11 +58,34 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void DeleteSelectedPart()
+    [JSInvokable]
+    public bool HandleZoomChanged(float zoom)
     {
-        if (!history.IsFrozen && Circuit.SelectedPart is { } part)
+        if (history.IsFrozen)
         {
-            history.Execute(new RemovePartAction(Circuit, part));
+            return false;
+        }
+
+        this.zoom = Math.Clamp(zoom, 0.2f, 2f);
+        StateHasChanged();
+        return true;
+    }
+
+    private async Task SetZoomAsync(float zoom)
+    {
+        await JS.InvokeVoidAsync("gwire.setSchemeZoom", editorElement, zoom);
+    }
+
+    private Task SetZoomPercentageAsync(int percentage) => SetZoomAsync(percentage / 100f);
+
+    [JSInvokable]
+    public void DeleteSelectedPart() => DeletePart(SelectedPart);
+
+    private void DeletePart(BaseCircuitPart? part)
+    {
+        if (!history.IsFrozen && part is not null && Circuit.Parts.Contains(part))
+        {
+            history.Execute(new RemovePartAction(Circuit, this, part));
         }
     }
 
@@ -64,17 +100,43 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void ClearSelection() => Circuit.SelectedPart = null;
+    private void ClearSelection() => SelectedPart = null;
 
     private void SetPartSelection(BaseCircuitPart part, bool isSelected)
     {
         if (isSelected)
         {
-            Circuit.SelectedPart = part;
+            SelectedPart = part;
         }
-        else if (ReferenceEquals(Circuit.SelectedPart, part))
+        else if (ReferenceEquals(SelectedPart, part))
         {
-            Circuit.SelectedPart = null;
+            SelectedPart = null;
+        }
+    }
+
+    private void AddSourceGroundPair()
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+        var color = ConnectionGroup.GetLineColor(SourceGroundPairs.Count);
+        while (SourceGroundPairs.Any(candidate => string.Equals(candidate.LineColor, color, StringComparison.OrdinalIgnoreCase)))
+        {
+            color = $"#{Random.Shared.Next(0x1000000):x6}";
+        }
+        var pair = new SourceGroundPair { LineColor = color };
+        var offset = SourceGroundPairs.Count * 110;
+        pair.PowerSource.MoveTo(new Point(pair.PowerSource.SchemePosition.X, pair.PowerSource.SchemePosition.Y + offset));
+        pair.Ground.MoveTo(new Point(pair.Ground.SchemePosition.X, pair.Ground.SchemePosition.Y + offset));
+        history.Execute(new AddSourceGroundPairAction(SourceGroundPairs, pair));
+    }
+
+    private void SetPairColor(SourceGroundPair pair, string color)
+    {
+        if (!history.IsFrozen && !string.Equals(pair.LineColor, color, StringComparison.OrdinalIgnoreCase))
+        {
+            history.Execute(new ChangePairColorAction(pair, pair.LineColor, color));
         }
     }
 
@@ -85,33 +147,17 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        var cableNumber = Circuit.Parts.OfType<CablePart>().Count() + 1;
-        var cable = new CablePart
-        {
-            Name = $"Cable {cableNumber}"
-        };
-
-        cable.Points[0].LocalPosition = new Point(300, 300 + (cableNumber - 1) * 40);
-        cable.Points[1].LocalPosition = new Point(500, 300 + (cableNumber - 1) * 40);
-        history.Execute(new AddPartAction(Circuit, cable));
+        history.Execute(AddPartAction.CreateCable(Circuit, this));
     }
 
     private void AddSelectedPart()
     {
-        if (history.IsFrozen || selectedPartIndex < 0 || selectedPartIndex >= GwireParts.Parts.Count)
+        if (history.IsFrozen || selectedPartForAddIndex < 0 || selectedPartForAddIndex >= GwireParts.Parts.Count)
         {
             return;
         }
 
-        if (GwireParts.Parts[selectedPartIndex] is not CircuitPart selectedPart)
-        {
-            return;
-        }
-
-        var part = selectedPart.Clone();
-        var partNumber = Circuit.Parts.OfType<CircuitPart>().Count();
-        part.SchemePosition = new Point(150 + partNumber * 25, 150 + partNumber * 25);
-        history.Execute(new AddPartAction(Circuit, part));
+        history.Execute(AddPartAction.CreatePart(Circuit, this, GwireParts.Parts[selectedPartForAddIndex]));
     }
 
 }

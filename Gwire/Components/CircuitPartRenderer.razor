@@ -1,5 +1,7 @@
-<g @ref="element" transform="@PartTransform"
+<g id="@elementReferenceId" @ref="element" transform="@PartTransform"
    @onclick="Select"
+   @oncontextmenu="SelectContextTarget"
+   @oncontextmenu:stopPropagation="true"
    @onclick:stopPropagation="true"
    @onpointerdown="StartDrag"
    @onpointermove="MoveDraggedPart"
@@ -35,3 +37,27 @@
               class="circuit-selection-outline" />
     }
 </g>
+
+@if (OnDelete.HasDelegate || CircuitPart.States.Count > 1)
+{
+    <SvgContextMenu Target="@("#" + elementReferenceId)">
+        @if (CircuitPart.States.Count > 1)
+        {
+            <SvgContextSubmenu Label="State" Disabled="@History.IsFrozen">
+                @foreach (var state in CircuitPart.States)
+                {
+                    <SvgContextMenuItem @key="state" OnClick="() => SetActiveState(state)" CanExecute="_ => !History.IsFrozen"
+                                        IsChecked="@ReferenceEquals(CircuitPart.ActiveState, state)">
+                        @state.Label
+                    </SvgContextMenuItem>
+                }
+            </SvgContextSubmenu>
+        }
+        @if (OnDelete.HasDelegate)
+        {
+            <SvgContextMenuItem OnClick="() => OnDelete.InvokeAsync()" CanExecute="_ => !History.IsFrozen">
+                Delete
+            </SvgContextMenuItem>
+        }
+    </SvgContextMenu>
+}

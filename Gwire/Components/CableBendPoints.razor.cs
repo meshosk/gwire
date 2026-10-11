@@ -16,6 +16,9 @@ public partial class CableBendPoints : IDisposable
     private Point dragStartPoint;
     private Point[] dragStartPoints = [];
 
+    [Parameter]
+    public float Zoom { get; set; } = 1;
+
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
@@ -59,8 +62,8 @@ public partial class CableBendPoints : IDisposable
         }
 
         var pointer = new Point(eventArgs);
-        CablePart.BendPoints[index] = new Point(dragStartPoint.X + pointer.X - dragStartClient.X,
-            dragStartPoint.Y + pointer.Y - dragStartClient.Y);
+        CablePart.BendPoints[index] = new Point(dragStartPoint.X + (pointer.X - dragStartClient.X) / Zoom,
+            dragStartPoint.Y + (pointer.Y - dragStartClient.Y) / Zoom);
         CablePart.NotifyChanged();
     }
 

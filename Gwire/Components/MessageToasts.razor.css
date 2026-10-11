@@ -1,0 +1,12 @@
+.toast-container {
+    max-width: 100vw;
+    max-height: 100vh;
+    overflow-y: auto;
+    pointer-events: none;
+}
+
+.toast {
+    width: 100%;
+    pointer-events: auto;
+    overflow-wrap: anywhere;
+}

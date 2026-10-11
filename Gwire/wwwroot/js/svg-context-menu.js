@@ -42,3 +42,21 @@ window.gwire.showSvgContextMenu = (overlay, clientX, clientY) => {
     const item = menu.querySelector('[role="menuitem"]:not(:disabled)');
     (item || overlay).focus({ preventScroll: true });
 };
+
+window.gwire.showSvgContextSubmenu = (element) => {
+    const overlay = element.closest(".svg-context-menu-overlay");
+    const menu = element.querySelector('[role="menu"]');
+    const bounds = overlay.getBoundingClientRect();
+    const anchor = element.getBoundingClientRect();
+    const scaleX = bounds.width / overlay.clientWidth;
+    const scaleY = bounds.height / overlay.clientHeight;
+    const anchorLeft = (anchor.left - bounds.left) / scaleX;
+    const anchorTop = (anchor.top - bounds.top) / scaleY;
+    menu.style.maxWidth = `${overlay.clientWidth}px`;
+    menu.style.maxHeight = `${overlay.clientHeight}px`;
+    const right = anchorLeft + element.offsetWidth;
+    const left = right + menu.offsetWidth <= overlay.clientWidth ? right : anchorLeft - menu.offsetWidth;
+    menu.style.left = `${Math.max(0, Math.min(left, overlay.clientWidth - menu.offsetWidth)) - anchorLeft}px`;
+    menu.style.top = `${Math.max(0, Math.min(anchorTop, overlay.clientHeight - menu.offsetHeight)) - anchorTop}px`;
+    menu.querySelector('.dropdown-item:not(:disabled)')?.focus({ preventScroll: true });
+};
