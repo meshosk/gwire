@@ -35,11 +35,6 @@
 				<button type="button" class="btn btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">Load</button>
 			</div>
 
-		            @if (!string.IsNullOrEmpty(ImportMessage))
-		            {
-			            <div class="alert @ImportMessageClass mb-3" role="status">@ImportMessage</div>
-		            }
-
 		            <BootstrapTabs>
 			            <BootstrapTab Title="Part">
 				            <div class="mb-3">

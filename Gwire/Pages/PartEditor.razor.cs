@@ -19,6 +19,9 @@ public partial class PartEditor : ComponentBase
     [Inject]
     private GwirePartsService GwireParts { get; set; } = default!;
 
+    [Inject]
+    private MessageService MessageService { get; set; } = default!;
+
     /// <summary>
     /// Currently edited part
     /// </summary>
@@ -34,8 +37,6 @@ public partial class PartEditor : ComponentBase
     private PartState? ActiveStateInEditor { get; set; }
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
     
-    private string? ImportMessage { get; set; }
-    private string ImportMessageClass { get; set; } = "alert-success";
     private string selectedTag = string.Empty;
     private Guid? selectedPartId;
 
@@ -212,8 +213,7 @@ public partial class PartEditor : ComponentBase
 
         GwireParts.SavePart(EditedPart);
         selectedPartId = EditedPart.Id;
-        ImportMessage = savedAsCopy ? "Part saved as your own copy." : "Part saved to the parts service.";
-        ImportMessageClass = "alert-success";
+        MessageService.Show("Part saved", savedAsCopy ? "Part saved as your own copy." : "Part saved to the parts service.", MessageType.Success);
     }
 
     private void LoadSelectedPart()
@@ -226,8 +226,7 @@ public partial class PartEditor : ComponentBase
 
         SetEditedPart(part.Clone());
         selectedPartId = part.Id;
-        ImportMessage = "Part loaded for editing.";
-        ImportMessageClass = "alert-success";
+        MessageService.Show("Part loaded", "Part loaded for editing.", MessageType.Success);
     }
 
     private void SetEditedPart(CircuitPart part)
@@ -259,13 +258,11 @@ public partial class PartEditor : ComponentBase
         {
             SetEditedPart(await ObjectJsonSerializer.ImportAsync<CircuitPart>(eventArgs.File));
             selectedPartId = null;
-            ImportMessage = "Part imported successfully.";
-            ImportMessageClass = "alert-success";
+            MessageService.Show("Part imported", "Part imported successfully.", MessageType.Success);
         }
         catch (Exception exception) when (exception is InvalidDataException or IOException)
         {
-            ImportMessage = exception.Message;
-            ImportMessageClass = "alert-danger";
+            MessageService.Show("Part import failed", exception.Message, MessageType.Danger);
         }
     }
 
@@ -293,13 +290,11 @@ public partial class PartEditor : ComponentBase
 
             EditedPart.SvgMarkup = svgMarkup;
             EditedPart.SvgLocalPosition = new Point();
-            ImportMessage = "SVG background imported successfully.";
-            ImportMessageClass = "alert-success";
+            MessageService.Show("SVG background imported", "SVG background imported successfully.", MessageType.Success);
         }
         catch (Exception exception) when (exception is InvalidDataException or IOException)
         {
-            ImportMessage = exception.Message;
-            ImportMessageClass = "alert-danger";
+            MessageService.Show("SVG import failed", exception.Message, MessageType.Danger);
         }
     }
 
