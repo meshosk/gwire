@@ -1,4 +1,5 @@
 using Gwire.Models;
+using Gwire.Models.Base;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
@@ -78,6 +79,14 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
     private Task Select() => wasDragged || IsSelected ? Task.CompletedTask : IsSelectedChanged.InvokeAsync(true);
 
     private void HandleChanged() => StateHasChanged();
+
+    private void SetActiveState(PartState state)
+    {
+        if (!History.IsFrozen && !ReferenceEquals(CircuitPart.ActiveState, state))
+        {
+            History.Execute(new ChangePartStateAction(CircuitPart, state));
+        }
+    }
 
 
 #region Dragging

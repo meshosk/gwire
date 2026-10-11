@@ -17,6 +17,9 @@ public partial class SvgContextMenuItem
     [Parameter]
     public Func<Point, bool>? CanExecute { get; set; }
 
+    [Parameter]
+    public bool? IsChecked { get; set; }
+
     private bool CanRun => Menu.IsOpen && (CanExecute?.Invoke(Menu.menuOpenPosition) ?? true);
 
     private Task ExecuteAsync() => CanRun ? Menu.ExecuteAsync(OnClick) : Task.CompletedTask;

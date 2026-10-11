@@ -1,3 +1,13 @@
-<button type="button" class="dropdown-item" role="menuitem" disabled="@(!CanRun)" @onclick="ExecuteAsync">
+<button type="button" class="dropdown-item" role="@(IsChecked.HasValue ? "menuitemradio" : "menuitem")"
+        aria-checked="@IsChecked?.ToString().ToLowerInvariant()" disabled="@(!CanRun)" @onclick="ExecuteAsync">
+    @if (IsChecked.HasValue)
+    {
+        <span class="menu-item-check" aria-hidden="true">
+            @if (IsChecked.Value)
+            {
+                <i class="fa-solid fa-check"></i>
+            }
+        </span>
+    }
     @ChildContent
 </button>

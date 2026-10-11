@@ -38,11 +38,26 @@
     }
 </g>
 
-@if (OnDelete.HasDelegate)
+@if (OnDelete.HasDelegate || CircuitPart.States.Count > 1)
 {
     <SvgContextMenu Target="@("#" + elementReferenceId)">
-        <SvgContextMenuItem OnClick="() => OnDelete.InvokeAsync()" CanExecute="_ => !History.IsFrozen">
-            Delete
-        </SvgContextMenuItem>
+        @if (CircuitPart.States.Count > 1)
+        {
+            <SvgContextSubmenu Label="State" Disabled="@History.IsFrozen">
+                @foreach (var state in CircuitPart.States)
+                {
+                    <SvgContextMenuItem @key="state" OnClick="() => SetActiveState(state)" CanExecute="_ => !History.IsFrozen"
+                                        IsChecked="@ReferenceEquals(CircuitPart.ActiveState, state)">
+                        @state.Label
+                    </SvgContextMenuItem>
+                }
+            </SvgContextSubmenu>
+        }
+        @if (OnDelete.HasDelegate)
+        {
+            <SvgContextMenuItem OnClick="() => OnDelete.InvokeAsync()" CanExecute="_ => !History.IsFrozen">
+                Delete
+            </SvgContextMenuItem>
+        }
     </SvgContextMenu>
 }

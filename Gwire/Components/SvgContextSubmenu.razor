@@ -1,0 +1,14 @@
+<div @ref="element" class="svg-context-submenu">
+    <button type="button" class="dropdown-item d-flex align-items-center justify-content-between" role="menuitem"
+            aria-haspopup="menu" aria-expanded="@isExpanded.ToString().ToLowerInvariant()"
+            disabled="@Disabled" @onclick="Toggle">
+        @Label
+        <i class="fa-solid fa-chevron-right ms-2" aria-hidden="true"></i>
+    </button>
+    @if (isExpanded)
+    {
+        <div class="dropdown-menu show svg-context-submenu-panel" role="menu" aria-label="@Label">
+            @ChildContent
+        </div>
+    }
+</div>
