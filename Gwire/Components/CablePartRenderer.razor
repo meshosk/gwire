@@ -10,7 +10,7 @@
     <polyline points="@CablePath"
               class="cable-line @(IsSelected ? "cable-selected" : null)" />
 
-    <CableBendPoints CablePart="CablePart" History="History" IsSelected="IsSelected" />
+    <CableBendPoints CablePart="CablePart" History="History" IsSelected="IsSelected" Zoom="Zoom" />
 
     @foreach (var point in CablePart.Points)
     {

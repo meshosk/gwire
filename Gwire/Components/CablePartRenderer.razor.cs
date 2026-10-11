@@ -21,6 +21,9 @@ public partial class CablePartRenderer : IDisposable
     private Point dragStartClient;
     private Point dragStartPoint;
 
+    [Parameter]
+    public float Zoom { get; set; } = 1;
+
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
@@ -171,8 +174,8 @@ public partial class CablePartRenderer : IDisposable
         var pointer = new Point(eventArgs);
         wasDragged |= MathF.Abs(pointer.X - dragStartClient.X) > 2 ||
             MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
-        var position = new Point(dragStartPoint.X + pointer.X - dragStartClient.X,
-            dragStartPoint.Y + pointer.Y - dragStartClient.Y);
+        var position = new Point(dragStartPoint.X + (pointer.X - dragStartClient.X) / Zoom,
+            dragStartPoint.Y + (pointer.Y - dragStartClient.Y) / Zoom);
         if (draggedPoint is not null)
         {
             draggedPoint.LocalPosition = position;

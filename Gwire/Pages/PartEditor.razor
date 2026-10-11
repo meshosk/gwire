@@ -13,18 +13,18 @@
 			<div class="editor-controls">
 	            <section class="card shadow-sm point-panel p-2">
 		            <div class="d-flex flex-wrap gap-2 mb-3">
-			            <label class="btn btn-outline-primary mb-0" for="part-import">
+			            <label class="btn btn-sm btn-outline-primary mb-0" for="part-import">
 				            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
 			            </label>
 			            <InputFile id="part-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportPartAsync" />
-			            <button type="button" class="btn btn-outline-primary" @onclick="ExportPartAsync">
+			            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ExportPartAsync">
 			                <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
 			            </button>
-			            <button type="button" class="btn btn-outline-primary" @onclick="SavePartToService">
+			            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService">
 			                <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")
 			            </button>
 		            </div>
-			<div class="input-group mb-3">
+			<div class="input-group input-group-sm mb-3">
 				<select class="form-select" aria-label="Part to edit" @bind="selectedPartId" disabled="@(!AvailableParts.Any())">
 					<option value="">Select a part to edit</option>
 					@foreach (var part in AvailableParts)
@@ -32,7 +32,7 @@
 						<option value="@part.Id">@part.DisplayName</option>
 					}
 				</select>
-				<button type="button" class="btn btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">Load</button>
+				<button type="button" class="btn btn-sm btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">Load</button>
 			</div>
 
 		            <BootstrapTabs>

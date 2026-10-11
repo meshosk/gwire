@@ -13,6 +13,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private readonly UndoRedoHistory history = new();
     private ElementReference editorElement;
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
+    private float zoom = 1;
+
+    private int ZoomPercentage => (int)MathF.Round(zoom * 100);
 
     /// <summary>
     /// Index of the part selected in the "Add part" dropdown. -1 if no part is selected.
@@ -35,7 +38,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         {
             shortcutReference = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("gwire.enableUndoRedoShortcuts", editorElement, shortcutReference);
-            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement);
+            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement, shortcutReference);
         }
     }
 
@@ -53,6 +56,26 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             history.Undo();
         }
     }
+
+    [JSInvokable]
+    public bool HandleZoomChanged(float zoom)
+    {
+        if (history.IsFrozen)
+        {
+            return false;
+        }
+
+        this.zoom = Math.Clamp(zoom, 0.2f, 2f);
+        StateHasChanged();
+        return true;
+    }
+
+    private async Task SetZoomAsync(float zoom)
+    {
+        await JS.InvokeVoidAsync("gwire.setSchemeZoom", editorElement, zoom);
+    }
+
+    private Task SetZoomPercentageAsync(int percentage) => SetZoomAsync(percentage / 100f);
 
     private void DeleteSelectedPart()
     {

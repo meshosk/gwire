@@ -9,6 +9,17 @@
     flex: 0 0 auto;
 }
 
+.scheme-editor-zoom {
+    display: inline-flex;
+    width: auto;
+    vertical-align: middle;
+}
+
+.scheme-editor-zoom .form-control {
+    flex: 0 0 4.5rem;
+    width: 4.5rem;
+}
+
 .scheme-editor-part-picker {
     display: inline-flex;
     margin-left: 0.5rem;

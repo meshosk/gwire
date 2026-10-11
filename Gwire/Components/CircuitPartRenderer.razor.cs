@@ -17,6 +17,9 @@ public partial class CircuitPartRenderer : IDisposable
     private Point dragStartClient;
     private Point dragStartPart;
 
+    [Parameter]
+    public float Zoom { get; set; } = 1;
+
 #region Injects & prams
         [Inject]
         private IJSRuntime JS { get; set; } = default!;
@@ -92,8 +95,8 @@ public partial class CircuitPartRenderer : IDisposable
             var pointer = new Point(eventArgs);
             wasDragged |= MathF.Abs(pointer.X - dragStartClient.X) > 2 ||
                 MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
-            CircuitPart.MoveTo(new Point(dragStartPart.X + pointer.X - dragStartClient.X,
-                dragStartPart.Y + pointer.Y - dragStartClient.Y));
+            CircuitPart.MoveTo(new Point(dragStartPart.X + (pointer.X - dragStartClient.X) / Zoom,
+                dragStartPart.Y + (pointer.Y - dragStartClient.Y) / Zoom));
         }
     private void EndDrag(PointerEventArgs eventArgs)
     {
