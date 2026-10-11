@@ -7,11 +7,10 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text;
-using PartSvgBackground = Gwire.Components.Enums.PartSvgBackground;
 
 namespace Gwire.Pages;
 
-public partial class PartEditor : ComponentBase
+public partial class PartEditor : ComponentBase, IAsyncDisposable
 {
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
@@ -28,14 +27,18 @@ public partial class PartEditor : ComponentBase
     public CircuitPart EditedPart { get; private set; } = new();
 
     /// <summary>
-    /// PArt selected in the editor
+    /// Part selected in the editor
     /// </summary>
     private ConnectionPoint? SelectedPointInEditor { get; set; }
     /// <summary>
     /// Edited part's active state. This is the state that is currently being edited in the editor.
     /// </summary>
     private PartState? ActiveStateInEditor { get; set; }
+    /// <summary>
+    /// Parts that is currently being edited in the editor. 
+    /// </summary>
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
+    
     
     private string selectedTag = string.Empty;
     private Guid? selectedPartId;
@@ -54,7 +57,13 @@ public partial class PartEditor : ComponentBase
 
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
+        if (pendingEdit is not null)
+        {
+            return;
+        }
+
         SelectedPointInEditor = point;
+        BeginEdit();
         draggedPoint = point;
         var pointer = new Point(eventArgs);
         dragOffset = new Point(pointer.X - point.LocalPosition.X, pointer.Y - point.LocalPosition.Y);
@@ -71,10 +80,23 @@ public partial class PartEditor : ComponentBase
             }
         }
 
-        CancelPointDrag(eventArgs);
+        if (draggedPoint is not null)
+        {
+            CompleteEdit();
+        }
+        ResetPointDrag();
     }
 
     private void CancelPointDrag(PointerEventArgs eventArgs)
+    {
+        if (draggedPoint is not null)
+        {
+            CancelEdit();
+        }
+        ResetPointDrag();
+    }
+
+    private void ResetPointDrag()
     {
         draggedPoint = null;
         dragOffset = new Point();
@@ -231,6 +253,8 @@ public partial class PartEditor : ComponentBase
 
     private void SetEditedPart(CircuitPart part)
     {
+        pendingEdit = null;
+        history = new();
         EditedPart = part;
 
         if (EditedPart.Width <= 0)
@@ -249,7 +273,7 @@ public partial class PartEditor : ComponentBase
             : EditedPart.States.FirstOrDefault();
         EditedPart.ActiveState = ActiveStateInEditor;
         ActiveConnectionGroup = null;
-        CancelPointDrag(new PointerEventArgs());
+        ResetPointDrag();
     }
 
     private async Task ImportPartAsync(InputFileChangeEventArgs eventArgs)
@@ -288,8 +312,11 @@ public partial class PartEditor : ComponentBase
                 throw new InvalidDataException("The selected file does not contain an SVG image.");
             }
 
-            EditedPart.SvgMarkup = svgMarkup;
-            EditedPart.SvgLocalPosition = new Point();
+            ExecuteEdit(() =>
+            {
+                EditedPart.SvgMarkup = svgMarkup;
+                EditedPart.SvgLocalPosition = new Point();
+            });
             MessageService.Show("SVG background imported", "SVG background imported successfully.", MessageType.Success);
         }
         catch (Exception exception) when (exception is InvalidDataException or IOException)
@@ -297,13 +324,20 @@ public partial class PartEditor : ComponentBase
             MessageService.Show("SVG import failed", exception.Message, MessageType.Danger);
         }
     }
-
+    /// <summary>
+    /// Removes the SVG background from the edited part.
+    /// </summary>
     private void RemoveSvg()
     {
         EditedPart.SvgMarkup = string.Empty;
         EditedPart.SvgLocalPosition = new Point();
     }
 
+    /// <summary>
+    /// Returns a safe file name for the part, replacing invalid characters with underscores and appending ".part.json" extension. If the name is empty or whitespace, it defaults to "part.json".
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
     private static string CreateFileName(string name)
     {
         var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();

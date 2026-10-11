@@ -132,8 +132,11 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         history.Execute(new AddSourceGroundPairAction(SourceGroundPairs, pair));
     }
 
-    private void SetPairColor(SourceGroundPair pair, string color)
+    private void SetPairColor(SourceGroundPair pair, string? color)
     {
+
+        color = string.IsNullOrWhiteSpace(color) ? "red" : color; // yeah default is red :D
+
         if (!history.IsFrozen && !string.Equals(pair.LineColor, color, StringComparison.OrdinalIgnoreCase))
         {
             history.Execute(new ChangePairColorAction(pair, pair.LineColor, color));
