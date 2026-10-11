@@ -1,8 +1,11 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Serialization;
+using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 
 namespace Gwire.Pages;
@@ -51,6 +54,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private MessageService MessageService { get; set; } = default!;
 
     protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
 
@@ -128,14 +134,64 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
+        SetCircuit(new Circuit());
+    }
+
+    private void SetCircuit(Circuit circuit)
+    {
         history.Changed -= HandleHistoryChanged;
         history = new();
         history.Changed += HandleHistoryChanged;
-        Circuit = new();
+        Circuit = circuit;
         SourceGroundPairs.Clear();
         SelectedPart = null;
         selectedPartForAddIndex = -1;
         selectedTag = string.Empty;
+    }
+
+    private async Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs)
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+
+        try
+        {
+            var circuit = await ObjectJsonSerializer.ImportAsync<Circuit>(eventArgs.File);
+            if (history.IsFrozen)
+            {
+                return;
+            }
+
+            SetCircuit(circuit);
+            MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        {
+            MessageService.Show("Scheme import failed", "The selected file does not contain valid scheme JSON or could not be read.", MessageType.Danger);
+        }
+    }
+
+    private async Task ExportSchemeAsync()
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+
+        await using var stream = new MemoryStream();
+        await ObjectJsonSerializer.ExportAsync<Circuit>(Circuit, stream);
+        stream.Position = 0;
+
+        using var streamReference = new DotNetStreamReference(stream);
+        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(Circuit.Name), streamReference);
+    }
+
+    private static string CreateFileName(string name)
+    {
+        var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
+        return string.IsNullOrWhiteSpace(safeName) ? "scheme.json" : $"{safeName}.scheme.json";
     }
 
     private void ClearSelection() => SelectedPart = null;

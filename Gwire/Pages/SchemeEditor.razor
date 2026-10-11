@@ -9,6 +9,13 @@
         <button type="button" class="btn btn-sm btn-outline-primary me-2" @onclick="NewScheme" disabled="@history.IsFrozen">
             <i class="fa-solid fa-file-circle-plus me-1" aria-hidden="true"></i>New scheme
         </button>
+        <label class="btn btn-sm btn-outline-primary me-2 mb-0 @(history.IsFrozen ? "disabled" : null)" for="scheme-import">
+            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
+        </label>
+        <InputFile id="scheme-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportSchemeAsync" disabled="@history.IsFrozen" />
+        <button type="button" class="btn btn-sm btn-outline-primary me-2" @onclick="ExportSchemeAsync" disabled="@history.IsFrozen">
+            <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
+        </button>
         <button type="button" class="btn btn-sm btn-outline-secondary me-2" data-scheme-pan-toggle
                 aria-label="Pan mode" aria-pressed="false" title="Edit mode (hold Space to pan)">
             <i class="fa-solid fa-computer-mouse" aria-hidden="true"></i>
