@@ -7,9 +7,14 @@
 
 <PageTitle>Gwire - The part editor</PageTitle>
 
+<NavigationLock ConfirmExternalNavigation="HasUnsavedChanges" OnBeforeInternalNavigation="ConfirmNavigationAsync" />
+
 <div class="part-editor" @ref="editorElement" tabindex="0">
     <div class="part-editor-toolbar d-flex flex-wrap align-items-center gap-2 border-bottom bg-body-tertiary px-2 py-2"
          role="toolbar" aria-label="Part editor toolbar">
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="NewPart">
+            <i class="fa-solid fa-file-circle-plus me-1" aria-hidden="true"></i>New part
+        </button>
         <label class="btn btn-sm btn-outline-primary mb-0" for="part-import">
             <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
         </label>
@@ -154,12 +159,13 @@
 										<BootstrapTabs>
 							            @foreach (PartState state in this.EditedPart.States)
 							            {
-							            <BootstrapTab Title="@state.Label" OnClick="() => SelectActiveState(state)">
+							            <BootstrapTab @key="state" Title="@state.Label" OnClick="() => SelectActiveState(state)">
 									            <label class="form-label" for="state-label">State name</label>
 									            <input id="state-label" class="form-control mb-4" @bind:get="state.Label" @bind:set="value => ExecuteEdit(() => state.Label = value ?? string.Empty)"/>
 
 									            <div class="d-grid gap-2">
 										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => AddConnectionGroup(state))">Add group</button>
+										            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveState(state))">Remove state</button>
 									            </div>
 
 									            @if (state.ConnectionGroups.Count > 0 ){
@@ -168,7 +174,7 @@
 
 												            @foreach (var group in state.ConnectionGroups.WithIndex())
 												            {
-																<BootstrapTab Title="@($"Group {group.Index}")">
+																<BootstrapTab @key="group.Item" Title="@($"Group {group.Index}")">
 														            <div class="m-2">
 															            Connected:
 															            @foreach (var connectedPin in group.Item.ConnectedPints)

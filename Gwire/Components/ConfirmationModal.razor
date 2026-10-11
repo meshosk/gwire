@@ -1,0 +1,17 @@
+@using Gwire.Models
+
+<div @ref="modalElement" class="modal fade" tabindex="-1" aria-labelledby="confirmation-modal-title" aria-describedby="confirmation-modal-text">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmation-modal-title">@request?.Title</h5>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="() => RespondAsync(ConfirmationResult.NO)" disabled="@responding"></button>
+            </div>
+            <div class="modal-body" id="confirmation-modal-text">@request?.Text</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="() => RespondAsync(ConfirmationResult.NO)" disabled="@responding">No</button>
+                <button type="button" class="btn btn-primary" @onclick="() => RespondAsync(ConfirmationResult.YES)" disabled="@responding">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
