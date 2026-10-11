@@ -9,12 +9,33 @@ namespace Gwire.Pages;
 
 public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 {
-    private readonly Circuit Circuit = new();
+    private Circuit Circuit = new();
     internal List<SourceGroundPair> SourceGroundPairs { get; } = [new()];
-    private readonly UndoRedoHistory history = new();
+    private UndoRedoHistory history = new();
     private ElementReference editorElement;
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
     private float zoom = 1;
+    private bool showDetails;
+    private string selectedTag = string.Empty;
+
+    private IReadOnlyList<string> AvailableTags => GwireParts.Tags
+        .Where(tag => !Circuit.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        .ToList();
+
+    private void ToggleDetails() => showDetails = !showDetails;
+
+    private void AddTag()
+    {
+        if (string.IsNullOrWhiteSpace(selectedTag) || !AvailableTags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        Circuit.Tags.Add(selectedTag);
+        selectedTag = string.Empty;
+    }
+
+    private void RemoveTag(string tag) => Circuit.Tags.Remove(tag);
 
     private int ZoomPercentage => (int)MathF.Round(zoom * 100);
 
@@ -98,6 +119,23 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             await JS.InvokeVoidAsync("gwire.disableUndoRedoShortcuts", editorElement);
             shortcutReference.Dispose();
         }
+    }
+
+    private void NewScheme()
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+
+        history.Changed -= HandleHistoryChanged;
+        history = new();
+        history.Changed += HandleHistoryChanged;
+        Circuit = new();
+        SourceGroundPairs.Clear();
+        SelectedPart = null;
+        selectedPartForAddIndex = -1;
+        selectedTag = string.Empty;
     }
 
     private void ClearSelection() => SelectedPart = null;

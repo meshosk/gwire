@@ -6,6 +6,9 @@
 
 <div @ref="editorElement" class="scheme-editor" tabindex="0">
     <div class="scheme-editor-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Scheme editor toolbar">
+        <button type="button" class="btn btn-sm btn-outline-primary me-2" @onclick="NewScheme" disabled="@history.IsFrozen">
+            <i class="fa-solid fa-file-circle-plus me-1" aria-hidden="true"></i>New scheme
+        </button>
         <button type="button" class="btn btn-sm btn-outline-secondary me-2" data-scheme-pan-toggle
                 aria-label="Pan mode" aria-pressed="false" title="Edit mode (hold Space to pan)">
             <i class="fa-solid fa-computer-mouse" aria-hidden="true"></i>
@@ -51,6 +54,10 @@
             <button type="button" class="btn btn-sm btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartForAddIndex < 0 || history.IsFrozen)">
                 <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
         </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" @onclick="ToggleDetails"
+                aria-expanded="@(showDetails ? "true" : "false")" aria-controls="scheme-editor-details">
+            <i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>Details
+        </button>
         <div class="d-flex flex-wrap align-items-center gap-2 mt-2" role="group" aria-label="Source-ground pairs">
             <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddSourceGroundPair" disabled="@history.IsFrozen">
                 <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add source-ground pair
@@ -67,35 +74,82 @@
         </div>
     </div>
 
-    <div class="scheme-editor-canvas-container">
-        <svg class="scheme-editor-canvas"
-             role="img"
-             aria-label="Circuit scheme editor"
-             @onclick="ClearSelection">
-            <defs>
-                <pattern id="scheme-grid" width="25" height="25" patternUnits="userSpaceOnUse">
-                    <path d="M 25 0 L 0 0 0 25" fill="none" class="scheme-grid" />
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#scheme-grid)" />
-            @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
-            {
-                <CircuitPartRenderer @key="part" CircuitPart="part" History="history" Zoom="zoom" OnDelete="() => DeletePart(part)"
-                                     @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
-                                     @bind-IsSelected:set="value => SetPartSelection(part, value)" />
-            }
-            @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
-            {
-                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history" Zoom="zoom" OnDelete="() => DeletePart(cable)"
-                                   @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
-                                   @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
-            }
-            @foreach (var pair in SourceGroundPairs)
-            {
-                <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
-                <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
-            }
-            <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
-        </svg>
+    <div class="scheme-editor-content">
+        @if (showDetails)
+        {
+            <aside id="scheme-editor-details" class="scheme-editor-details" aria-label="Circuit details">
+                <section class="card shadow-sm p-2">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h2 class="h6 mb-0">Circuit details</h2>
+                        <button type="button" class="btn-close" aria-label="Close details" @onclick="ToggleDetails"></button>
+                    </div>
+                    <div class="mb-3">
+                        <label for="circuit-name" class="form-label">Name</label>
+                        <input id="circuit-name" class="form-control" @bind:get="Circuit.Name" @bind:set="value => Circuit.Name = value ?? string.Empty" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="circuit-description" class="form-label">Description</label>
+                        <textarea id="circuit-description" class="form-control" rows="3" @bind:get="Circuit.Description" @bind:set="value => Circuit.Description = value ?? string.Empty"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="circuit-tag" class="form-label">Tags</label>
+                        <div class="input-group">
+                            <select id="circuit-tag" class="form-select" @bind="selectedTag" disabled="@(AvailableTags.Count == 0)">
+                                <option value="">Select a tag</option>
+                                @foreach (var tag in AvailableTags)
+                                {
+                                    <option value="@tag">@tag</option>
+                                }
+                            </select>
+                            <button type="button" class="btn btn-outline-primary" @onclick="AddTag" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
+                        </div>
+                        @if (Circuit.Tags.Count > 0)
+                        {
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                @foreach (var tag in Circuit.Tags)
+                                {
+                                    <span class="badge text-bg-secondary d-flex align-items-center gap-1">
+                                        @tag
+                                        <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => RemoveTag(tag)"></button>
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
+            </aside>
+        }
+
+        <div class="scheme-editor-canvas-container">
+            <svg class="scheme-editor-canvas"
+                 role="img"
+                 aria-label="Circuit scheme editor"
+                 @onclick="ClearSelection">
+                <defs>
+                    <pattern id="scheme-grid" width="25" height="25" patternUnits="userSpaceOnUse">
+                        <path d="M 25 0 L 0 0 0 25" fill="none" class="scheme-grid" />
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#scheme-grid)" />
+                @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
+                {
+                    <CircuitPartRenderer @key="part" CircuitPart="part" History="history" Zoom="zoom" OnDelete="() => DeletePart(part)"
+                                         @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
+                                         @bind-IsSelected:set="value => SetPartSelection(part, value)" />
+                }
+                @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
+                {
+                    <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history" Zoom="zoom" OnDelete="() => DeletePart(cable)"
+                                       @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
+                                       @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
+                }
+                @foreach (var pair in SourceGroundPairs)
+                {
+                    <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
+                    <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
+                }
+                <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
+            </svg>
+        </div>
     </div>
 </div>
