@@ -1,5 +1,6 @@
 .part-editor {
-    height: calc(100dvh - 3.5rem);
+    flex: 1;
+    min-width: 0;
     min-height: 0;
 }
 

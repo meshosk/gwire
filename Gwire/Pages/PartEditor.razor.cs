@@ -56,7 +56,7 @@ public partial class PartEditor : ComponentBase
     {
         SelectedPointInEditor = point;
         draggedPoint = point;
-        var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+        var pointer = new Point(eventArgs);
         dragOffset = new Point(pointer.X - point.LocalPosition.X, pointer.Y - point.LocalPosition.Y);
         pointWasDragged = false;
     }
@@ -85,7 +85,7 @@ public partial class PartEditor : ComponentBase
     {
         if (draggedPoint is not null)
         {
-            var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+            var pointer = new Point(eventArgs);
             var nextPosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
             pointWasDragged |= MathF.Abs(nextPosition.X - draggedPoint.LocalPosition.X) > 2 ||
                 MathF.Abs(nextPosition.Y - draggedPoint.LocalPosition.Y) > 2;

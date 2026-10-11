@@ -11,10 +11,10 @@
    
     @if (SvgImageSource is { } svgImageSource)
     {
-        <svg x="0" y="0" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden">
+        <svg x="@CircuitPart.SvgLocalPosition.X" y="@CircuitPart.SvgLocalPosition.Y" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden">
             <image href="@svgImageSource"
-                   x="@CircuitPart.SvgLocalPosition.X"
-                   y="@CircuitPart.SvgLocalPosition.Y"
+                   x="0"
+                   y="0"
                    width="@CircuitPart.Width"
                    height="@CircuitPart.Height"
                    preserveAspectRatio="xMidYMid meet"
@@ -33,7 +33,7 @@
     </g>
     @if (IsSelected)
     {
-        <rect x="0" y="0" width="@CircuitPart.Width" height="@CircuitPart.Height"
+        <rect x="@CircuitPart.SvgLocalPosition.X" y="@CircuitPart.SvgLocalPosition.Y" width="@CircuitPart.Width" height="@CircuitPart.Height"
               class="circuit-selection-outline" />
     }
 </g>

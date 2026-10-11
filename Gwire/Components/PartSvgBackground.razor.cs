@@ -10,7 +10,6 @@ namespace Gwire.Components;
 /// </summary>
 public partial class PartSvgBackground
 {
-    private readonly string clipId = $"part-svg-clip-{Guid.NewGuid():N}";
     private bool isDragging;
     private Point dragOffset;
     private Enums.PartSvgBackground.ResizeDirection resizeDirection;
@@ -27,7 +26,7 @@ public partial class PartSvgBackground
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private string ClipPathUrl => $"url(#{clipId})";
+    private string CropTransform => FormattableString.Invariant($"translate({Part.SvgLocalPosition.X} {Part.SvgLocalPosition.Y})");
 
     private bool IsBackgroundInteractionActive =>
         isDragging || resizeDirection != Enums.PartSvgBackground.ResizeDirection.None;
@@ -40,7 +39,7 @@ public partial class PartSvgBackground
     {
         resizeDirection = Enums.PartSvgBackground.ResizeDirection.None;
         isDragging = true;
-        var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+        var pointer = new Point(eventArgs);
         dragOffset = new Point(pointer.X - Part.SvgLocalPosition.X, pointer.Y - Part.SvgLocalPosition.Y);
     }
 
@@ -74,7 +73,7 @@ public partial class PartSvgBackground
 
         if (isDragging)
         {
-            var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
+            var pointer = new Point(eventArgs);
             Part.SvgLocalPosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
             await PartChanged.InvokeAsync(Part);
             return;
