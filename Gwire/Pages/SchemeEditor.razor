@@ -51,6 +51,20 @@
             <button type="button" class="btn btn-sm btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartForAddIndex < 0 || history.IsFrozen)">
                 <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
         </div>
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-2" role="group" aria-label="Source-ground pairs">
+            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddSourceGroundPair" disabled="@history.IsFrozen">
+                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add source-ground pair
+            </button>
+            @foreach (var (pair, index) in SourceGroundPairs.Select((pair, index) => (pair, index)))
+            {
+                <label @key="pair" class="d-flex align-items-center gap-2">
+                    Pair @(index + 1)
+                    <input type="color" class="form-control form-control-color" title="Path color"
+                           aria-label="@($"Path color for pair {index + 1}")"
+                           @bind:get="pair.LineColor" @bind:set="color => SetPairColor(pair, color)" disabled="@history.IsFrozen" />
+                </label>
+            }
+        </div>
     </div>
 
     <div class="scheme-editor-canvas-container">
@@ -66,16 +80,22 @@
             <rect width="100%" height="100%" fill="url(#scheme-grid)" />
             @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
             {
-                <CircuitPartRenderer @key="part" CircuitPart="part" History="history" Zoom="zoom"
+                <CircuitPartRenderer @key="part" CircuitPart="part" History="history" Zoom="zoom" OnDelete="() => DeletePart(part)"
                                      @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
                                      @bind-IsSelected:set="value => SetPartSelection(part, value)" />
             }
             @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
             {
-                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history" Zoom="zoom"
+                <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history" Zoom="zoom" OnDelete="() => DeletePart(cable)"
                                    @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
                                    @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
             }
+            @foreach (var pair in SourceGroundPairs)
+            {
+                <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
+                <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
+            }
+            <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
         </svg>
     </div>
 </div>

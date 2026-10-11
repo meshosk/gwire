@@ -10,6 +10,7 @@ namespace Gwire.Pages;
 public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 {
     private readonly Circuit Circuit = new();
+    internal List<SourceGroundPair> SourceGroundPairs { get; } = [new()];
     private readonly UndoRedoHistory history = new();
     private ElementReference editorElement;
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
@@ -77,9 +78,12 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     private Task SetZoomPercentageAsync(int percentage) => SetZoomAsync(percentage / 100f);
 
-    private void DeleteSelectedPart()
+    [JSInvokable]
+    public void DeleteSelectedPart() => DeletePart(SelectedPart);
+
+    private void DeletePart(BaseCircuitPart? part)
     {
-        if (!history.IsFrozen && SelectedPart is { } part)
+        if (!history.IsFrozen && part is not null && Circuit.Parts.Contains(part))
         {
             history.Execute(new RemovePartAction(Circuit, this, part));
         }
@@ -107,6 +111,32 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         else if (ReferenceEquals(SelectedPart, part))
         {
             SelectedPart = null;
+        }
+    }
+
+    private void AddSourceGroundPair()
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+        var color = ConnectionGroup.GetLineColor(SourceGroundPairs.Count);
+        while (SourceGroundPairs.Any(candidate => string.Equals(candidate.LineColor, color, StringComparison.OrdinalIgnoreCase)))
+        {
+            color = $"#{Random.Shared.Next(0x1000000):x6}";
+        }
+        var pair = new SourceGroundPair { LineColor = color };
+        var offset = SourceGroundPairs.Count * 110;
+        pair.PowerSource.MoveTo(new Point(pair.PowerSource.SchemePosition.X, pair.PowerSource.SchemePosition.Y + offset));
+        pair.Ground.MoveTo(new Point(pair.Ground.SchemePosition.X, pair.Ground.SchemePosition.Y + offset));
+        history.Execute(new AddSourceGroundPairAction(SourceGroundPairs, pair));
+    }
+
+    private void SetPairColor(SourceGroundPair pair, string color)
+    {
+        if (!history.IsFrozen && !string.Equals(pair.LineColor, color, StringComparison.OrdinalIgnoreCase))
+        {
+            history.Execute(new ChangePairColorAction(pair, pair.LineColor, color));
         }
     }
 

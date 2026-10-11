@@ -31,6 +31,9 @@ public partial class CablePartRenderer : IDisposable
     public UndoRedoHistory History { get; set; } = default!;
 
     [Parameter]
+    public EventCallback OnDelete { get; set; }
+
+    [Parameter]
     public bool IsSelected { get; set; }
 
     [Parameter]
@@ -180,6 +183,7 @@ public partial class CablePartRenderer : IDisposable
         {
             draggedPoint.LocalPosition = position;
             UpdateConnectionTarget();
+            CablePart.NotifyChanged();
         }
     }
 

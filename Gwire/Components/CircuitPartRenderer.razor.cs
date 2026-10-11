@@ -8,14 +8,14 @@ using System.Text;
 
 namespace Gwire.Components;
 
-public partial class CircuitPartRenderer : IDisposable
+public partial class CircuitPartRenderer : ComponentBase, IDisposable
 {
     private ElementReference element;
+    private readonly string elementReferenceId = $"part-{Guid.NewGuid():N}";
     private bool wasDragged;
-    private CircuitPart? subscribedPart;
     private long? dragPointerId;
     private Point dragStartClient;
-    private Point dragStartPart;
+    protected Point dragStartPart;
 
     [Parameter]
     public float Zoom { get; set; } = 1;
@@ -28,6 +28,9 @@ public partial class CircuitPartRenderer : IDisposable
         public UndoRedoHistory History { get; set; } = default!;
     
         [Parameter]
+        public EventCallback OnDelete { get; set; }
+
+        [Parameter]
         public bool IsSelected { get; set; }
     
         [Parameter]
@@ -37,25 +40,27 @@ public partial class CircuitPartRenderer : IDisposable
         public CircuitPart CircuitPart { get; set; } = default!;
 #endregion
 
-    private string PartTransform => $"translate({CircuitPart.SchemePosition.X} {CircuitPart.SchemePosition.Y})";
+    protected virtual Point PartPosition => CircuitPart.SchemePosition;
+
+    private string PartTransform => FormattableString.Invariant($"translate({PartPosition.X} {PartPosition.Y})");
 
     private string? SvgImageSource => string.IsNullOrWhiteSpace(CircuitPart.SvgMarkup)
         ? null
         : $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(CircuitPart.SvgMarkup))}";
 
-    protected override void OnParametersSet()
+    public override async Task SetParametersAsync(ParameterView parameters)
     {
-        if (ReferenceEquals(subscribedPart, CircuitPart))
-        {
-            return;
-        }
+        var previousCircuitPart = CircuitPart;
+        await base.SetParametersAsync(parameters);
 
-        if (subscribedPart is not null)
+        if (!ReferenceEquals(previousCircuitPart, CircuitPart))
         {
-            subscribedPart.Changed -= HandleChanged;
+            if (previousCircuitPart is not null)
+            {
+                previousCircuitPart.Changed -= HandleChanged;
+            }
+            CircuitPart.Changed += HandleChanged;
         }
-        subscribedPart = CircuitPart;
-        subscribedPart.Changed += HandleChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -65,6 +70,10 @@ public partial class CircuitPartRenderer : IDisposable
             await JS.InvokeVoidAsync("gwire.enablePointerCapture", element);
         }
     }
+
+    private Task SelectContextTarget() => History.IsFrozen || IsSelected
+        ? Task.CompletedTask
+        : IsSelectedChanged.InvokeAsync(true);
 
     private Task Select() => wasDragged || IsSelected ? Task.CompletedTask : IsSelectedChanged.InvokeAsync(true);
 
@@ -82,8 +91,9 @@ public partial class CircuitPartRenderer : IDisposable
         dragPointerId = eventArgs.PointerId;
         wasDragged = false;
         dragStartClient = new Point(eventArgs);
-        dragStartPart = CircuitPart.SchemePosition.Copy();
+        dragStartPart = PartPosition.Copy();
         History.Freeze();
+        OnDragStarted();
     }
         private void MoveDraggedPart(PointerEventArgs eventArgs)
         {
@@ -97,6 +107,7 @@ public partial class CircuitPartRenderer : IDisposable
                 MathF.Abs(pointer.Y - dragStartClient.Y) > 2;
             CircuitPart.MoveTo(new Point(dragStartPart.X + (pointer.X - dragStartClient.X) / Zoom,
                 dragStartPart.Y + (pointer.Y - dragStartClient.Y) / Zoom));
+            OnDragMoved();
         }
     private void EndDrag(PointerEventArgs eventArgs)
     {
@@ -106,32 +117,43 @@ public partial class CircuitPartRenderer : IDisposable
         }
 
         MoveDraggedPart(eventArgs);
-        if (!dragStartPart.Equals(CircuitPart.SchemePosition))
+        OnDragEnding();
+        if (HasDragChanges)
         {
-            History.Record(new MovePartAction(CircuitPart, dragStartPart, CircuitPart.SchemePosition.Copy()));
+            History.Record(CreateMoveAction());
         }
-        dragPointerId = null;
-        History.Unfreeze();
+        ResetDrag();
     }
 
     private void CancelDrag(PointerEventArgs eventArgs)
     {
         if (dragPointerId == eventArgs.PointerId)
         {
-            CircuitPart.MoveTo(dragStartPart);
-            dragPointerId = null;
-            History.Unfreeze();
+            CreateMoveAction().Undo();
+            ResetDrag();
         }
     }
-#endregion
-    
+    protected virtual void OnDragStarted() { }
+    protected virtual void OnDragMoved() { }
+    protected virtual void OnDragEnding() { }
+    protected virtual void OnDragReset() { }
 
-    public void Dispose()
+    protected virtual bool HasDragChanges => !dragStartPart.Equals(PartPosition);
+
+    protected virtual IUndoableAction CreateMoveAction() =>
+        new MovePartAction(CircuitPart, dragStartPart, CircuitPart.SchemePosition.Copy());
+
+    private void ResetDrag()
     {
-        if (subscribedPart is not null)
-        {
-            subscribedPart.Changed -= HandleChanged;
-        }
+        OnDragReset();
+        dragPointerId = null;
+        History.Unfreeze();
+    }
+#endregion
+
+    public virtual void Dispose()
+    {
+        CircuitPart.Changed -= HandleChanged;
         if (dragPointerId is { } pointerId)
         {
             CancelDrag(new PointerEventArgs { PointerId = pointerId });

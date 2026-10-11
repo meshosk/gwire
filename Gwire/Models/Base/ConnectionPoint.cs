@@ -40,7 +40,8 @@ public class ConnectionPoint
     /// <summary>
     /// Part that owns actual connection point.
     /// </summary>
-    public BaseCircuitPart Owner { get; private set; }
+    [JsonInclude]
+    public BaseCircuitPart Owner { get; private set; } = default!;
 
     /// <summary>
     /// If is not null, this point is connected to point of other part.
@@ -48,6 +49,11 @@ public class ConnectionPoint
     [JsonInclude]
     public List<ConnectionPoint> ConnectionPoints { get; private set; } = new();
 
+
+    [JsonConstructor]
+    private ConnectionPoint()
+    {
+    }
 
     public ConnectionPoint(BaseCircuitPart owner)
     {
@@ -123,6 +129,42 @@ public class ConnectionPoint
     public IEnumerable<ConnectionPoint> GetConnectedPoints(ConnectionPoint startingPoint)
     {
         return ConnectionPoints.Where(p => p != startingPoint);
+    }
+
+    /// <summary>
+    /// Finds a path to the destination through external connections and each owner's active state.
+    /// Returns an empty list when the destination cannot be reached.
+    /// </summary>
+    public IReadOnlyList<ConnectionPoint> FindPathTo(ConnectionPoint destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        var predecessors = new Dictionary<ConnectionPoint, ConnectionPoint?> { [this] = null };
+        var pending = new Queue<ConnectionPoint>();
+        pending.Enqueue(this);
+
+        while (pending.TryDequeue(out var point))
+        {
+            if (ReferenceEquals(point, destination))
+            {
+                var path = new List<ConnectionPoint>();
+                for (ConnectionPoint? current = destination; current is not null; current = predecessors[current])
+                {
+                    path.Add(current);
+                }
+                path.Reverse();
+                return path;
+            }
+
+            foreach (var connected in point.GetConnectedPoints(point).Concat(point.Owner.GetConnectedPoints(point)))
+            {
+                if (predecessors.TryAdd(connected, point))
+                {
+                    pending.Enqueue(connected);
+                }
+            }
+        }
+
+        return Array.Empty<ConnectionPoint>();
     }
 
     #endregion

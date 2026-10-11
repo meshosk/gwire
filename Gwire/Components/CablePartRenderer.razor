@@ -27,4 +27,7 @@
     <SvgContextMenuItem OnClick="AddBendPoint" CanExecute="CanAddBendPoint">
         Add bend point
     </SvgContextMenuItem>
+    <SvgContextMenuItem OnClick="() => OnDelete.InvokeAsync()" CanExecute="_ => !History.IsFrozen">
+        Delete
+    </SvgContextMenuItem>
 </SvgContextMenu>

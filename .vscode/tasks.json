@@ -2,6 +2,24 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Gwire: build",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/gwire.slnx",
+        "--no-restore"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
       "label": "Gwire: watch",
       "type": "process",
       "command": "dotnet",
@@ -27,7 +45,29 @@
           "beginsPattern": ".*dotnet watch.*Building.*",
           "endsPattern": ".*Now listening on: http://localhost:5188/?\\s*$"
         }
+      }, 
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
       },
+      "runOptions": {
+        "instanceLimit": 1
+      }
+    },
+    {
+      "label": "Gwire: stop debug sessions (macOS)",
+      "type": "process",
+      "command": "/bin/bash",
+      "args": [
+        "-c",
+        "set -e\nprofile=\"$1/.vscode/chrome-local-debug-profile\"\ncase \"${VSCODE_PID:-}\" in\n  ''|*[!0-9]*) echo \"Run this task from VS Code; VSCODE_PID is required.\"; exit 1 ;;\nesac\nbelongs_to_vscode() {\n  ancestor=\"$1\"\n  for step in {1..30}; do\n    [ \"$ancestor\" = \"$VSCODE_PID\" ] && return 0\n    [ \"$ancestor\" -gt 1 ] || return 1\n    ancestor=$(ps -p \"$ancestor\" -o ppid= | tr -d ' ') || return 1\n    case \"$ancestor\" in ''|*[!0-9]*) return 1 ;; esac\n  done\n  return 1\n}\nis_debug_chrome() {\n  [[ \"$1\" == '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome '* ]] &&\n    { [[ \"$1\" == *\"--user-data-dir=$profile \"* ]] || [[ \"$1\" == *\"--user-data-dir=$profile\" ]]; }\n}\ntargets=()\nsnapshot=$(ps -axo pid=,ppid=,command=)\nwhile read -r pid parent command; do\n  if is_debug_chrome \"$command\"; then\n    targets+=(\"$pid\")\n  elif [[ \"${command%% *}\" == */dotnet && \"$command\" == *'/.vswebassemblybridge/Microsoft.Diagnostics.BrowserDebugHost.dll '* ]] &&\n       [[ \"$command\" =~ --OwnerPid[[:space:]]+([0-9]+) ]] &&\n       belongs_to_vscode \"${BASH_REMATCH[1]}\"; then\n    targets+=(\"$pid\")\n  fi\ndone <<< \"$snapshot\"\nfor pid in \"${targets[@]}\"; do\n  if kill -TERM \"$pid\" 2>/dev/null; then echo \"Stopping debug process $pid.\"; fi\ndone\nfor pid in \"${targets[@]}\"; do\n  for attempt in {1..30}; do\n    kill -0 \"$pid\" 2>/dev/null || break\n    sleep 0.1\n  done\n  if kill -0 \"$pid\" 2>/dev/null; then\n    echo \"Debug process $pid is still running; profile locks were left untouched.\"\n    exit 1\n  fi\ndone\ncurrent_commands=$(ps -axo command=)\nwhile read -r command; do\n  if is_debug_chrome \"$command\"; then\n    echo \"The debug browser is still running; profile locks were left untouched.\"\n    exit 1\n  fi\ndone <<< \"$current_commands\"\nrm -f -- \"$profile/SingletonLock\" \"$profile/code.lock\"\necho \"Debug cleanup completed. Stop any remaining debug session with Shift+F5 before starting again.\"\n",
+        "gwire-stop-debug",
+        "${workspaceFolder}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
       "presentation": {
         "reveal": "always",
         "panel": "dedicated"

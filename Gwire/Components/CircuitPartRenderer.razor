@@ -1,5 +1,7 @@
-<g @ref="element" transform="@PartTransform"
+<g id="@elementReferenceId" @ref="element" transform="@PartTransform"
    @onclick="Select"
+   @oncontextmenu="SelectContextTarget"
+   @oncontextmenu:stopPropagation="true"
    @onclick:stopPropagation="true"
    @onpointerdown="StartDrag"
    @onpointermove="MoveDraggedPart"
@@ -35,3 +37,12 @@
               class="circuit-selection-outline" />
     }
 </g>
+
+@if (OnDelete.HasDelegate)
+{
+    <SvgContextMenu Target="@("#" + elementReferenceId)">
+        <SvgContextMenuItem OnClick="() => OnDelete.InvokeAsync()" CanExecute="_ => !History.IsFrozen">
+            Delete
+        </SvgContextMenuItem>
+    </SvgContextMenu>
+}
