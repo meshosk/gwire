@@ -13,7 +13,16 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private readonly UndoRedoHistory history = new();
     private ElementReference editorElement;
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
-    private int selectedPartIndex = -1;
+
+    /// <summary>
+    /// Index of the part selected in the "Add part" dropdown. -1 if no part is selected.
+    /// </summary>
+    private int selectedPartForAddIndex = -1;
+
+    /// <summary>
+    /// The currently selected part in the scheme editor, or null if no part is selected.
+    /// </summary>
+    internal BaseCircuitPart? SelectedPart { get; set; }
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
@@ -30,7 +39,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void HandleHistoryChanged() => _ = InvokeAsync(StateHasChanged);
+    private void HandleHistoryChanged() => StateHasChanged();
 
     [JSInvokable]
     public void HandleHistoryShortcut(bool redo)
@@ -47,9 +56,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     private void DeleteSelectedPart()
     {
-        if (!history.IsFrozen && Circuit.SelectedPart is { } part)
+        if (!history.IsFrozen && SelectedPart is { } part)
         {
-            history.Execute(new RemovePartAction(Circuit, part));
+            history.Execute(new RemovePartAction(Circuit, this, part));
         }
     }
 
@@ -64,17 +73,17 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void ClearSelection() => Circuit.SelectedPart = null;
+    private void ClearSelection() => SelectedPart = null;
 
     private void SetPartSelection(BaseCircuitPart part, bool isSelected)
     {
         if (isSelected)
         {
-            Circuit.SelectedPart = part;
+            SelectedPart = part;
         }
-        else if (ReferenceEquals(Circuit.SelectedPart, part))
+        else if (ReferenceEquals(SelectedPart, part))
         {
-            Circuit.SelectedPart = null;
+            SelectedPart = null;
         }
     }
 
@@ -85,33 +94,17 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        var cableNumber = Circuit.Parts.OfType<CablePart>().Count() + 1;
-        var cable = new CablePart
-        {
-            Name = $"Cable {cableNumber}"
-        };
-
-        cable.Points[0].LocalPosition = new Point(300, 300 + (cableNumber - 1) * 40);
-        cable.Points[1].LocalPosition = new Point(500, 300 + (cableNumber - 1) * 40);
-        history.Execute(new AddPartAction(Circuit, cable));
+        history.Execute(AddPartAction.CreateCable(Circuit, this));
     }
 
     private void AddSelectedPart()
     {
-        if (history.IsFrozen || selectedPartIndex < 0 || selectedPartIndex >= GwireParts.Parts.Count)
+        if (history.IsFrozen || selectedPartForAddIndex < 0 || selectedPartForAddIndex >= GwireParts.Parts.Count)
         {
             return;
         }
 
-        if (GwireParts.Parts[selectedPartIndex] is not CircuitPart selectedPart)
-        {
-            return;
-        }
-
-        var part = selectedPart.Clone();
-        var partNumber = Circuit.Parts.OfType<CircuitPart>().Count();
-        part.SchemePosition = new Point(150 + partNumber * 25, 150 + partNumber * 25);
-        history.Execute(new AddPartAction(Circuit, part));
+        history.Execute(AddPartAction.CreatePart(Circuit, this, GwireParts.Parts[selectedPartForAddIndex]));
     }
 
 }

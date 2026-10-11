@@ -24,16 +24,22 @@ public partial class PartEditor : ComponentBase
     /// </summary>
     public CircuitPart EditedPart { get; private set; } = new();
 
-
-    private ConnectionPoint? SelectedPoint { get; set; }
-    private PartState? ActiveState { get; set; }
+    /// <summary>
+    /// PArt selected in the editor
+    /// </summary>
+    private ConnectionPoint? SelectedPointInEditor { get; set; }
+    /// <summary>
+    /// Edited part's active state. This is the state that is currently being edited in the editor.
+    /// </summary>
+    private PartState? ActiveStateInEditor { get; set; }
     private ConnectionGroup? ActiveConnectionGroup { get; set; }
+    
     private string? ImportMessage { get; set; }
     private string ImportMessageClass { get; set; } = "alert-success";
     private string selectedTag = string.Empty;
     private Guid? selectedPartId;
 
-    private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts.OfType<CircuitPart>();
+    private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts;
 
     private IReadOnlyList<string> AvailableTags => GwireParts.Tags
         .Where(tag => !EditedPart.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
@@ -47,7 +53,7 @@ public partial class PartEditor : ComponentBase
 
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
-        SelectedPoint = point;
+        SelectedPointInEditor = point;
         draggedPoint = point;
         var pointer = new Point((float)eventArgs.OffsetX, (float)eventArgs.OffsetY);
         dragOffset = new Point(pointer.X - point.LocalPosition.X, pointer.Y - point.LocalPosition.Y);
@@ -99,7 +105,7 @@ public partial class PartEditor : ComponentBase
         };
 
         EditedPart.Points.Add(point);
-        SelectedPoint = point;
+        SelectedPointInEditor = point;
     }
 
     private void AddConnectionGroup(PartState state)
@@ -118,7 +124,7 @@ public partial class PartEditor : ComponentBase
 
     private void SelectActiveState(PartState state)
     {
-        ActiveState = state;
+        ActiveStateInEditor = state;
         EditedPart.ActiveState = state;
     }
 
@@ -140,41 +146,41 @@ public partial class PartEditor : ComponentBase
 
     private void RemoveSelectedPoint()
     {
-        if (SelectedPoint is null)
+        if (SelectedPointInEditor is null)
         {
             return;
         }
 
-        EditedPart.Points.Remove(SelectedPoint);
+        EditedPart.Points.Remove(SelectedPointInEditor);
         foreach (var state in EditedPart.States)
         {
             foreach (var group in state.ConnectionGroups)
             {
-                group.ConnectedPints.Remove(SelectedPoint);
+                group.ConnectedPints.Remove(SelectedPointInEditor);
             }
         }
 
-        if (ReferenceEquals(draggedPoint, SelectedPoint))
+        if (ReferenceEquals(draggedPoint, SelectedPointInEditor))
         {
             draggedPoint = null;
         }
 
-        SelectedPoint = null;
+        SelectedPointInEditor = null;
     }
 
     private void RemoveActiveConnectionGroup(ConnectionGroup group)
     {
-        if (ActiveState is null || ActiveConnectionGroup is null)
+        if (ActiveStateInEditor is null || ActiveConnectionGroup is null)
         {
             return;
         }
 
-        ActiveState.ConnectionGroups.Remove(group);
+        ActiveStateInEditor.ConnectionGroups.Remove(group);
         ActiveConnectionGroup = null;
     }
 
     private string PointClass(ConnectionPoint point) =>
-        ReferenceEquals(point, SelectedPoint) ? "connection-point is-selected" : "connection-point";
+        ReferenceEquals(point, SelectedPointInEditor) ? "connection-point is-selected" : "connection-point";
 
     private void AddRemovePointToGroup(ConnectionGroup group, ConnectionPoint? selectedPoint)
     {
@@ -238,11 +244,11 @@ public partial class PartEditor : ComponentBase
             EditedPart.Height = 500;
         }
 
-        SelectedPoint = null;
-        ActiveState = EditedPart.ActiveState is { } activeState && EditedPart.States.Contains(activeState)
+        SelectedPointInEditor = null;
+        ActiveStateInEditor = EditedPart.ActiveState is { } activeState && EditedPart.States.Contains(activeState)
             ? activeState
             : EditedPart.States.FirstOrDefault();
-        EditedPart.ActiveState = ActiveState;
+        EditedPart.ActiveState = ActiveStateInEditor;
         ActiveConnectionGroup = null;
         CancelPointDrag(new PointerEventArgs());
     }

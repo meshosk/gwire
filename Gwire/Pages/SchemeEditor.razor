@@ -1,6 +1,5 @@
 ﻿@page "/scheme-editor"
 @using Gwire.Models
-@using Gwire.Models.Base
 @inject Gwire.Services.GwirePartsService GwireParts
 
 <PageTitle>Gwire - The scheme editor</PageTitle>
@@ -20,21 +19,21 @@
             </button>
         </div>
         <button type="button" class="btn btn-outline-danger me-2" @onclick="DeleteSelectedPart"
-                disabled="@(Circuit.SelectedPart is null || history.IsFrozen)">
+                disabled="@(SelectedPart is null || history.IsFrozen)">
             <i class="fa-solid fa-trash me-1" aria-hidden="true"></i>Delete selected
         </button>
         <button type="button" class="btn btn-primary" @onclick="AddCable" disabled="@history.IsFrozen">
             <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add cable
         </button>
         <div class="input-group scheme-editor-part-picker">
-            <select class="form-select" aria-label="Part to add" @bind="selectedPartIndex" disabled="@(GwireParts.Parts.Count == 0)">
+            <select class="form-select" aria-label="Part to add" @bind="selectedPartForAddIndex" disabled="@(GwireParts.Parts.Count == 0)">
                 <option value="-1">Select a part</option>
-                @for (var index = 0; index < GwireParts.Parts.Count; index++)
+                @foreach (var (part, index) in GwireParts.Parts.Select((part, index) => (part, index)))
                 {
-                    <option value="@index">@(GwireParts.Parts[index] is CircuitPart part ? part.DisplayName : GwireParts.Parts[index].Name)</option>
+                    <option value="@index">@part.DisplayName</option>
                 }
             </select>
-            <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartIndex < 0 || history.IsFrozen)">
+            <button type="button" class="btn btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartForAddIndex < 0 || history.IsFrozen)">
                 <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
         </div>
     </div>
@@ -50,16 +49,16 @@
                 </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#scheme-grid)" />
-            @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, Circuit.SelectedPart)))
+            @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
             {
                 <CircuitPartRenderer @key="part" CircuitPart="part" History="history"
-                                     @bind-IsSelected:get="ReferenceEquals(part, Circuit.SelectedPart)"
+                                     @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
                                      @bind-IsSelected:set="value => SetPartSelection(part, value)" />
             }
-            @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, Circuit.SelectedPart)))
+            @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
             {
                 <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history"
-                                   @bind-IsSelected:get="ReferenceEquals(cable, Circuit.SelectedPart)"
+                                   @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
                                    @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
             }
         </svg>
