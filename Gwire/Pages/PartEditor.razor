@@ -7,52 +7,65 @@
 
 <PageTitle>Gwire - The part editor</PageTitle>
 
-<div class="part-editor">
+<NavigationLock ConfirmExternalNavigation="HasUnsavedChanges" OnBeforeInternalNavigation="ConfirmNavigationAsync" />
+
+<div class="part-editor" @ref="editorElement" tabindex="0">
+    <div class="part-editor-toolbar d-flex flex-wrap align-items-center gap-2 border-bottom bg-body-tertiary px-2 py-2"
+         role="toolbar" aria-label="Part editor toolbar">
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="NewPart">
+            <i class="fa-solid fa-file-circle-plus me-1" aria-hidden="true"></i>New part
+        </button>
+        <label class="btn btn-sm btn-outline-primary mb-0" for="part-import">
+            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
+        </label>
+        <InputFile id="part-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportPartAsync" />
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ExportPartAsync">
+            <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
+        </button>
+        <div class="input-group input-group-sm part-editor-part-picker">
+            <select class="form-select" aria-label="Part to edit" @bind="selectedPartId" disabled="@(!AvailableParts.Any())">
+                <option value="">Select a part to edit</option>
+                @foreach (var part in AvailableParts)
+                {
+                    <option value="@part.Id">@part.DisplayName</option>
+                }
+            </select>
+            <button type="button" class="btn btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">
+                <i class="fa-solid fa-folder-open me-1" aria-hidden="true"></i>Open
+            </button>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService">
+            <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)">
+            <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>Undo
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)">
+            <i class="fa-solid fa-rotate-right me-1" aria-hidden="true"></i>Redo
+        </button>
+    </div>
 	<div class="part-editor-layout">
 		<aside class="editor-sidebar">
 			<div class="editor-controls">
 	            <section class="card shadow-sm point-panel p-2">
-		            <div class="d-flex flex-wrap gap-2 mb-3">
-			            <label class="btn btn-sm btn-outline-primary mb-0" for="part-import">
-				            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
-			            </label>
-			            <InputFile id="part-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportPartAsync" />
-			            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ExportPartAsync">
-			                <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
-			            </button>
-			            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService">
-			                <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")
-			            </button>
-		            </div>
-			<div class="input-group input-group-sm mb-3">
-				<select class="form-select" aria-label="Part to edit" @bind="selectedPartId" disabled="@(!AvailableParts.Any())">
-					<option value="">Select a part to edit</option>
-					@foreach (var part in AvailableParts)
-					{
-						<option value="@part.Id">@part.DisplayName</option>
-					}
-				</select>
-				<button type="button" class="btn btn-sm btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">Load</button>
-			</div>
-
 		            <BootstrapTabs>
 			            <BootstrapTab Title="Part">
 				            <div class="mb-3">
 					            <label for="part-name" class="form-label">Title</label>
-					            <input class="form-control" id="part-name" @bind="@this.EditedPart.Name" aria-label="Part name" />
+					            <input class="form-control" id="part-name" @bind:get="EditedPart.Name" @bind:set="value => ExecuteEdit(() => EditedPart.Name = value ?? string.Empty)" aria-label="Part name" />
 				            </div>
 			               <div class="mb-3">
 			                  <label for="part-description" class="form-label">Description</label>
-			                  <textarea class="form-control" @bind="@this.EditedPart.Description" id="part-description" rows="3"></textarea>
+			                  <textarea class="form-control" @bind:get="EditedPart.Description" @bind:set="value => ExecuteEdit(() => EditedPart.Description = value ?? string.Empty)" id="part-description" rows="3"></textarea>
 			               </div>
 			               <div class="row g-2 mb-3">
 			                  <div class="col-6">
 			                     <label for="part-width" class="form-label">Width (px)</label>
-			                     <input id="part-width" class="form-control" type="number" @bind="EditedPart.Width" />
+			                     <input id="part-width" class="form-control" type="number" @bind:get="EditedPart.Width" @bind:set="value => ExecuteEdit(() => EditedPart.Width = value)" />
 			                  </div>
 			                  <div class="col-6">
 			                     <label for="part-height" class="form-label">Height (px)</label>
-			                     <input id="part-height" class="form-control" type="number" @bind="EditedPart.Height" />
+			                     <input id="part-height" class="form-control" type="number" @bind:get="EditedPart.Height" @bind:set="value => ExecuteEdit(() => EditedPart.Height = value)" />
 			                  </div>
 			               </div>
 			               <div class="mb-3">
@@ -65,7 +78,7 @@
 			                           <option value="@tag">@tag</option>
 			                        }
 			                     </select>
-			                     <button type="button" class="btn btn-outline-primary" @onclick="AddTag" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
+			                     <button type="button" class="btn btn-outline-primary" @onclick="() => ExecuteEdit(AddTag)" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
 			                  </div>
 			                  @if (EditedPart.Tags.Count > 0)
 			                  {
@@ -74,7 +87,7 @@
 			                        {
 			                           <span class="badge text-bg-secondary d-flex align-items-center gap-1">
 			                              @tag
-			                              <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => RemoveTag(tag)"></button>
+			                              <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => ExecuteEdit(() => RemoveTag(tag))"></button>
 			                           </span>
 			                        }
 			                     </div>
@@ -89,7 +102,7 @@
 			                     <InputFile id="part-svg-import" class="visually-hidden" accept="image/svg+xml,.svg" OnChange="ImportSvgAsync" />
 			                     @if (!string.IsNullOrWhiteSpace(EditedPart.SvgMarkup))
 			                     {
-			                        <button type="button" class="btn btn-outline-danger" @onclick="RemoveSvg">Remove SVG</button>
+			                        <button type="button" class="btn btn-outline-danger" @onclick="() => ExecuteEdit(RemoveSvg)">Remove SVG</button>
 			                     }
 			                  </div>
 			               </div>
@@ -98,11 +111,11 @@
 			                  <div class="row g-2 mb-3">
 			                     <div class="col-6">
 			                        <label class="form-label" for="svg-x">SVG X</label>
-				                        <input id="svg-x" class="form-control" type="number" @bind:get="EditedPart.SvgLocalPosition.X" @bind:set="(float value) => EditedPart.SvgLocalPosition = new Point(value, EditedPart.SvgLocalPosition.Y)" />
+				                        <input id="svg-x" class="form-control" type="number" @bind:get="EditedPart.SvgLocalPosition.X" @bind:set="(float value) => ExecuteEdit(() => EditedPart.SvgLocalPosition = new Point(value, EditedPart.SvgLocalPosition.Y))" />
 			                     </div>
 			                     <div class="col-6">
 			                        <label class="form-label" for="svg-y">SVG Y</label>
-				                        <input id="svg-y" class="form-control" type="number" @bind:get="EditedPart.SvgLocalPosition.Y" @bind:set="(float value) => EditedPart.SvgLocalPosition = new Point(EditedPart.SvgLocalPosition.X, value)" />
+				                        <input id="svg-y" class="form-control" type="number" @bind:get="EditedPart.SvgLocalPosition.Y" @bind:set="(float value) => ExecuteEdit(() => EditedPart.SvgLocalPosition = new Point(EditedPart.SvgLocalPosition.X, value))" />
 			                     </div>
 			                  </div>
 			               }
@@ -110,7 +123,7 @@
 			            <BootstrapTab Title="Points">
 				            <div class="mb-1">
 					            <div class="d-grid gap-2">
-						            <button type="button" class="btn btn-primary" @onclick="AddPoint">Add connection point</button>
+						            <button type="button" class="btn btn-primary" @onclick="() => ExecuteEdit(AddPoint)">Add connection point</button>
 					            </div>
 				            </div>
 
@@ -118,18 +131,18 @@
 					            {
 						            <div class="mt-3">
 							            <label class="form-label" for="point-label">Point name</label>
-							            <input id="point-label" class="form-control mb-3" @bind="@this.SelectedPointInEditor.Label"/>
+							            <input id="point-label" class="form-control mb-3" @bind:get="SelectedPointInEditor.Label" @bind:set="value => ExecuteEdit(() => SelectedPointInEditor.Label = value ?? string.Empty)"/>
 							            <div class="row g-2 mb-3">
 								            <div class="col-6">
 									            <label class="form-label" for="point-x">X</label>
-								            <input id="point-x" class="form-control" type="number" @bind:get="SelectedPointInEditor.LocalPosition.X" @bind:set="(float value) => SelectedPointInEditor.LocalPosition = new Point(value, SelectedPointInEditor.LocalPosition.Y)"/>
+								            <input id="point-x" class="form-control" type="number" @bind:get="SelectedPointInEditor.LocalPosition.X" @bind:set="(float value) => ExecuteEdit(() => SelectedPointInEditor.LocalPosition = new Point(value, SelectedPointInEditor.LocalPosition.Y))"/>
 								            </div>
 								            <div class="col-6">
 									            <label class="form-label" for="point-y">Y</label>
-								            <input id="point-y" class="form-control" type="number" @bind:get="SelectedPointInEditor.LocalPosition.Y" @bind:set="(float value) => SelectedPointInEditor.LocalPosition = new Point(SelectedPointInEditor.LocalPosition.X, value)"/>
+								            <input id="point-y" class="form-control" type="number" @bind:get="SelectedPointInEditor.LocalPosition.Y" @bind:set="(float value) => ExecuteEdit(() => SelectedPointInEditor.LocalPosition = new Point(SelectedPointInEditor.LocalPosition.X, value))"/>
 								            </div>
 							            </div>
-							            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="RemoveSelectedPoint">Delete selected Point</button>
+							            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(RemoveSelectedPoint)">Delete selected Point</button>
 							            </div>
 					            }
 
@@ -138,7 +151,7 @@
 
 				            <div class="mb-1">
 					            <div class="d-grid gap-2">
-						            <button type="button" class="btn btn-primary" @onclick="AddState">Add state</button>
+						            <button type="button" class="btn btn-primary" @onclick="() => ExecuteEdit(AddState)">Add state</button>
 								</div>
 				            </div>
 					            @if (EditedPart.States.Count > 0) {
@@ -146,12 +159,13 @@
 										<BootstrapTabs>
 							            @foreach (PartState state in this.EditedPart.States)
 							            {
-							            <BootstrapTab Title="@state.Label" OnClick="() => SelectActiveState(state)">
+							            <BootstrapTab @key="state" Title="@state.Label" OnClick="() => SelectActiveState(state)">
 									            <label class="form-label" for="state-label">State name</label>
-									            <input id="state-label" class="form-control mb-4" @bind="state.Label"/>
+									            <input id="state-label" class="form-control mb-4" @bind:get="state.Label" @bind:set="value => ExecuteEdit(() => state.Label = value ?? string.Empty)"/>
 
 									            <div class="d-grid gap-2">
-										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => AddConnectionGroup(state)">Add group</button>
+										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => AddConnectionGroup(state))">Add group</button>
+										            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveState(state))">Remove state</button>
 									            </div>
 
 									            @if (state.ConnectionGroups.Count > 0 ){
@@ -160,7 +174,7 @@
 
 												            @foreach (var group in state.ConnectionGroups.WithIndex())
 												            {
-																<BootstrapTab Title="@($"Group {group.Index}")">
+																<BootstrapTab @key="group.Item" Title="@($"Group {group.Index}")">
 														            <div class="m-2">
 															            Connected:
 															            @foreach (var connectedPin in group.Item.ConnectedPints)
@@ -169,8 +183,8 @@
 															            }
 														            </div>
 														            <div class="d-flex flex-wrap gap-2">
-															            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => AddRemovePointToGroup(group.Item, SelectedPointInEditor)">Selected point to group</button>
-															            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveActiveConnectionGroup(group.Item)">Remove group</button>
+															            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => ExecuteEdit(() => AddRemovePointToGroup(group.Item, SelectedPointInEditor))">Selected point to group</button>
+															            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveActiveConnectionGroup(group.Item))">Remove group</button>
 														            </div>
 													            </BootstrapTab>
 												            }
@@ -199,8 +213,9 @@
                  @onpointermove="MoveDraggedItem"
                  @onpointerup="EndPointDrag"
                  @onpointercancel="CancelPointDrag"
-                 @onpointerleave="CancelPointDrag">
-            <Gwire.Components.PartSvgBackground @bind-Part="EditedPart">
+                 @onpointerleave="EndPointDrag">
+            <Gwire.Components.PartSvgBackground @key="EditedPart" @bind-Part="EditedPart"
+                                                EditStarted="BeginEdit" EditCompleted="CompleteEdit" EditCanceled="CancelEdit">
 
                         @if (ActiveStateInEditor is { } state)
                         {

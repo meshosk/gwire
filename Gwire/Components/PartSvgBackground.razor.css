@@ -1,9 +1,11 @@
-.part-svg-background {
-    cursor: grab;
+.part-move-edge {
+    fill: transparent;
+    pointer-events: all;
 }
 
-.part-svg-background:active {
-    cursor: grabbing;
+.part-move-edge,
+.part-svg-background {
+    cursor: move;
 }
 
 .part-outline {

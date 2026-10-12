@@ -1,20 +1,44 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Serialization;
+using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 
 namespace Gwire.Pages;
 
 public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 {
-    private readonly Circuit Circuit = new();
+    private Circuit Circuit = new();
     internal List<SourceGroundPair> SourceGroundPairs { get; } = [new()];
-    private readonly UndoRedoHistory history = new();
+    private UndoRedoHistory history = new();
     private ElementReference editorElement;
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
     private float zoom = 1;
+    private bool showDetails;
+    private string selectedTag = string.Empty;
+
+    private IReadOnlyList<string> AvailableTags => GwireParts.Tags
+        .Where(tag => !Circuit.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        .ToList();
+
+    private void ToggleDetails() => showDetails = !showDetails;
+
+    private void AddTag()
+    {
+        if (string.IsNullOrWhiteSpace(selectedTag) || !AvailableTags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        Circuit.Tags.Add(selectedTag);
+        selectedTag = string.Empty;
+    }
+
+    private void RemoveTag(string tag) => Circuit.Tags.Remove(tag);
 
     private int ZoomPercentage => (int)MathF.Round(zoom * 100);
 
@@ -30,6 +54,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private MessageService MessageService { get; set; } = default!;
 
     protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
 
@@ -100,6 +127,73 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
+    private void NewScheme()
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+
+        SetCircuit(new Circuit());
+    }
+
+    private void SetCircuit(Circuit circuit)
+    {
+        history.Changed -= HandleHistoryChanged;
+        history = new();
+        history.Changed += HandleHistoryChanged;
+        Circuit = circuit;
+        SourceGroundPairs.Clear();
+        SelectedPart = null;
+        selectedPartForAddIndex = -1;
+        selectedTag = string.Empty;
+    }
+
+    private async Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs)
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+
+        try
+        {
+            var circuit = await ObjectJsonSerializer.ImportAsync<Circuit>(eventArgs.File);
+            if (history.IsFrozen)
+            {
+                return;
+            }
+
+            SetCircuit(circuit);
+            MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        {
+            MessageService.Show("Scheme import failed", "The selected file does not contain valid scheme JSON or could not be read.", MessageType.Danger);
+        }
+    }
+
+    private async Task ExportSchemeAsync()
+    {
+        if (history.IsFrozen)
+        {
+            return;
+        }
+
+        await using var stream = new MemoryStream();
+        await ObjectJsonSerializer.ExportAsync<Circuit>(Circuit, stream);
+        stream.Position = 0;
+
+        using var streamReference = new DotNetStreamReference(stream);
+        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(Circuit.Name), streamReference);
+    }
+
+    private static string CreateFileName(string name)
+    {
+        var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
+        return string.IsNullOrWhiteSpace(safeName) ? "scheme.json" : $"{safeName}.scheme.json";
+    }
+
     private void ClearSelection() => SelectedPart = null;
 
     private void SetPartSelection(BaseCircuitPart part, bool isSelected)
@@ -132,8 +226,11 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         history.Execute(new AddSourceGroundPairAction(SourceGroundPairs, pair));
     }
 
-    private void SetPairColor(SourceGroundPair pair, string color)
+    private void SetPairColor(SourceGroundPair pair, string? color)
     {
+
+        color = string.IsNullOrWhiteSpace(color) ? "red" : color; // yeah default is red :D
+
         if (!history.IsFrozen && !string.Equals(pair.LineColor, color, StringComparison.OrdinalIgnoreCase))
         {
             history.Execute(new ChangePairColorAction(pair, pair.LineColor, color));

@@ -10,6 +10,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddScoped<GwirePartsService>();
 builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<ConfirmationService>();
 
 var host = builder.Build();
 await host.Services.GetRequiredService<GwirePartsService>().InitializeAsync();

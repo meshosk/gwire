@@ -8,6 +8,7 @@ public sealed class UndoRedoHistory
 
     public event Action? Changed;
 
+    public bool HasEntries => undoActions.Count > 0 || redoActions.Count > 0;
     public bool IsFrozen => freezeCount > 0;
     public bool CanUndo => !IsFrozen && undoActions.Count > 0;
     public bool CanRedo => !IsFrozen && redoActions.Count > 0;

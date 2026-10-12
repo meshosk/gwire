@@ -2,7 +2,7 @@ window.gwire = window.gwire || {};
 
 window.gwire.enableUndoRedoShortcuts = (element, receiver) => {
     const focusCanvas = (event) => {
-        if (event.target.closest(".scheme-editor-canvas")) {
+        if (event.target.closest(".scheme-editor-canvas, .editor-canvas-panel")) {
             element.focus({ preventScroll: true });
         }
     };
@@ -11,7 +11,8 @@ window.gwire.enableUndoRedoShortcuts = (element, receiver) => {
             return;
         }
         if ((event.key === "Backspace" || event.key === "Delete") &&
-            !event.ctrlKey && !event.metaKey && !event.altKey) {
+            !event.ctrlKey && !event.metaKey && !event.altKey &&
+            element.classList.contains("scheme-editor")) {
             event.preventDefault();
             await receiver.invokeMethodAsync("DeleteSelectedPart");
             return;
