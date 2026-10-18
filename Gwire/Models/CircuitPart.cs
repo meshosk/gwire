@@ -36,6 +36,12 @@ public sealed class CircuitPart : BaseCircuitPart
     /// SVG markup used as the visual background of the part.
     /// </summary>
     public string SvgMarkup { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Rotation of the SVG background in degrees around the center of the crop rectangle.
+    /// </summary>
+    public int SvgRotation { get; set; }
+
     /// <summary>
     /// Top-left position of the SVG background in the part's local coordinate system.
     /// </summary>

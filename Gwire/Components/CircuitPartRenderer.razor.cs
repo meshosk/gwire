@@ -43,6 +43,8 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
 
     protected virtual Point PartPosition => CircuitPart.SchemePosition;
 
+    private string SvgTransform => FormattableString.Invariant($"rotate({CircuitPart.SvgRotation} {CircuitPart.Width / 2d} {CircuitPart.Height / 2d})");
+
     private string PartTransform => FormattableString.Invariant($"translate({PartPosition.X} {PartPosition.Y})");
 
     private string? SvgImageSource => string.IsNullOrWhiteSpace(CircuitPart.SvgMarkup)

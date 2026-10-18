@@ -118,6 +118,10 @@
 				                        <input id="svg-y" class="form-control" type="number" @bind:get="EditedPart.SvgLocalPosition.Y" @bind:set="(float value) => ExecuteEdit(() => EditedPart.SvgLocalPosition = new Point(EditedPart.SvgLocalPosition.X, value))" />
 			                     </div>
 			                  </div>
+			                  <div class="mb-3">
+			                     <label class="form-label" for="svg-rotation">SVG rotation (degrees)</label>
+			                     <input id="svg-rotation" class="form-control" type="number" @bind:get="EditedPart.SvgRotation" @bind:set="value => ExecuteEdit(() => EditedPart.SvgRotation = value)" />
+			                  </div>
 			               }
 			            </BootstrapTab>
 			            <BootstrapTab Title="Points">

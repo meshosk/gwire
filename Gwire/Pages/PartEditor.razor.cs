@@ -383,6 +383,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             {
                 EditedPart.SvgMarkup = svgMarkup;
                 EditedPart.SvgLocalPosition = new Point();
+                EditedPart.SvgRotation = 0;
             });
             MessageService.Show("SVG background imported", "SVG background imported successfully.", MessageType.Success);
         }
@@ -398,6 +399,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     {
         EditedPart.SvgMarkup = string.Empty;
         EditedPart.SvgLocalPosition = new Point();
+        EditedPart.SvgRotation = 0;
     }
 
     /// <summary>
