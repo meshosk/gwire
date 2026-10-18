@@ -97,3 +97,27 @@
 }
 
 
+
+.part-value {
+    cursor: grab;
+}
+
+.part-value:active {
+    cursor: grabbing;
+}
+
+.value-handle {
+    fill: #f0ad00;
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.value-label {
+    fill: #17324a;
+    stroke: #fff;
+    stroke-width: 3;
+    paint-order: stroke;
+    font-size: 15px;
+    font-weight: 600;
+    user-select: none;
+}

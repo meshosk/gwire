@@ -24,3 +24,18 @@
     stroke-width: 3;
     pointer-events: none;
 }
+
+.circuit-part-value {
+    fill: #17324a;
+    stroke: #fff;
+    stroke-width: 3;
+    paint-order: stroke;
+    font-size: 15px;
+    font-weight: 600;
+    user-select: none;
+    cursor: grab;
+}
+
+.circuit-part-value:active {
+    cursor: grabbing;
+}

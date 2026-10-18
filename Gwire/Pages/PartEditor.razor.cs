@@ -70,6 +70,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     #region Drags
 
     private ConnectionPoint? draggedPoint;
+    private long? valueDragPointerId;
     private Point dragOffset;
     private bool pointWasDragged;
 
@@ -88,8 +89,32 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         pointWasDragged = false;
     }
 
+    private void StartValueDrag(PointerEventArgs eventArgs)
+    {
+        if (pendingEdit is not null || eventArgs.Button != 0 || !eventArgs.IsPrimary)
+        {
+            return;
+        }
+
+        BeginEdit();
+        valueDragPointerId = eventArgs.PointerId;
+        var pointer = new Point(eventArgs);
+        dragOffset = new Point(pointer.X - EditedPart.ValuePosition.X, pointer.Y - EditedPart.ValuePosition.Y);
+    }
+
     private void EndPointDrag(PointerEventArgs eventArgs)
     {
+        if (valueDragPointerId is not null)
+        {
+            if (valueDragPointerId == eventArgs.PointerId)
+            {
+                MoveDraggedItem(eventArgs);
+                CompleteEdit();
+                ResetPointDrag();
+            }
+            return;
+        }
+
         if (draggedPoint is not null && !pointWasDragged && ActiveConnectionGroup is not null)
         {
             if (!ActiveConnectionGroup.ConnectedPints.Remove(draggedPoint))
@@ -107,6 +132,16 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private void CancelPointDrag(PointerEventArgs eventArgs)
     {
+        if (valueDragPointerId is not null)
+        {
+            if (valueDragPointerId == eventArgs.PointerId)
+            {
+                CancelEdit();
+                ResetPointDrag();
+            }
+            return;
+        }
+
         if (draggedPoint is not null)
         {
             CancelEdit();
@@ -117,12 +152,23 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private void ResetPointDrag()
     {
         draggedPoint = null;
+        valueDragPointerId = null;
         dragOffset = new Point();
         pointWasDragged = false;
     }
 
     private void MoveDraggedItem(PointerEventArgs eventArgs)
     {
+        if (valueDragPointerId is not null)
+        {
+            if (valueDragPointerId == eventArgs.PointerId)
+            {
+                var pointer = new Point(eventArgs);
+                EditedPart.ValuePosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
+            }
+            return;
+        }
+
         if (draggedPoint is not null)
         {
             var pointer = new Point(eventArgs);

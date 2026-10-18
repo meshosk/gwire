@@ -23,6 +23,12 @@
         </svg>
     }
 
+    @if (CircuitPart.HasValue)
+    {
+        <svg:text x="@CircuitPart.ValuePosition.X" y="@(CircuitPart.ValuePosition.Y + 14)"
+                  text-anchor="middle" dominant-baseline="hanging" class="circuit-part-value">@CircuitPart.Value</svg:text>
+    }
+
     <g class="circuit-part-points">
         @foreach (var point in CircuitPart.Points)
         {
