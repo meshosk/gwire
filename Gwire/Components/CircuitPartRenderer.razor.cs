@@ -1,5 +1,6 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
@@ -25,8 +26,10 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
         [Inject]
         private IJSRuntime JS { get; set; } = default!;
     
-        [Parameter, EditorRequired]
-        public UndoRedoHistory History { get; set; } = default!;
+        [Inject]
+        private UndoRedoService UndoRedoService { get; set; } = default!;
+
+        private UndoRedoService.UndoRedoHistoryWrapper History => UndoRedoService.getHistory(HistoryIds.SchemeEditor);
     
         [Parameter]
         public EventCallback OnDelete { get; set; }
@@ -89,7 +92,9 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
     {
         if (!History.IsFrozen && !ReferenceEquals(CircuitPart.ActiveState, state))
         {
-            History.Execute(new ChangePartStateAction(CircuitPart, state));
+            var action = new ChangePartStateAction(CircuitPart, state);
+            action.Redo();
+            History.addRedoAction(action);
         }
     }
 
@@ -134,7 +139,7 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
         OnDragEnding();
         if (HasDragChanges)
         {
-            History.Record(CreateMoveAction());
+            History.addRedoAction(CreateMoveAction());
         }
         ResetDrag();
     }

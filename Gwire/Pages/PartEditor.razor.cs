@@ -2,6 +2,7 @@ using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
 using Gwire.Services;
+using Gwire.UndoRedo;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
@@ -330,7 +331,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         }
         else
         {
-            history = new();
+            history.Clear();
         }
         selectedPartId = EditedPart.Id;
         MessageService.Show("Part saved", savedAsCopy ? "Part saved as your own copy." : "Part saved to the parts service.", MessageType.Success);
@@ -364,7 +365,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private void SetEditedPart(CircuitPart part)
     {
         pendingEdit = null;
-        history = new();
+        history.Clear();
         EditedPart = part;
 
         if (EditedPart.Width <= 0)

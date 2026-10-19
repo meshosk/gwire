@@ -11,6 +11,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<GwirePartsService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<ConfirmationService>();
+builder.Services.AddScoped<UndoRedoService>();
 
 var host = builder.Build();
 await host.Services.GetRequiredService<GwirePartsService>().InitializeAsync();

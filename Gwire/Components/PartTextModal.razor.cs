@@ -1,4 +1,5 @@
 using Gwire.Models;
+using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
@@ -18,8 +19,11 @@ public partial class PartTextModal : ComponentBase, IAsyncDisposable
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
-    [Parameter, EditorRequired]
-    public UndoRedoHistory History { get; set; } = default!;
+    [Inject]
+    private UndoRedoService UndoRedoService { get; set; } = default!;
+
+    private UndoRedoService.UndoRedoHistoryWrapper History => UndoRedoService.getHistory(HistoryIds.SchemeEditor);
+
 
     [Parameter]
     public CircuitPart? Part { get; set; }
@@ -96,7 +100,7 @@ public partial class PartTextModal : ComponentBase, IAsyncDisposable
         {
             var action = new ChangePartValueAction(part, draftValue);
             action.Redo();
-            History.Record(action);
+            History.addRedoAction(action);
         }
         await PartChanged.InvokeAsync(null);
     }

@@ -140,7 +140,7 @@
                 <rect width="100%" height="100%" fill="url(#scheme-grid)" />
                 @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
                 {
-                    <CircuitPartRenderer @key="part" CircuitPart="part" History="history" Zoom="zoom" 
+                    <CircuitPartRenderer @key="part" CircuitPart="part" Zoom="zoom"
                         OnDelete="() => DeletePart(part)" 
                         OnEditText="value => editedTextPart = value"
                                          @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
@@ -148,15 +148,15 @@
                 }
                 @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
                 {
-                    <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" History="history" Zoom="zoom" 
+                    <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" Zoom="zoom"
                     OnDelete="() => DeletePart(cable)"
                                        @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
                                        @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
                 }
                 @foreach (var pair in SourceGroundPairs)
                 {
-                    <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
-                    <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" History="history" Zoom="zoom" />
+                    <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
+                    <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
                 }
                 <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
             </svg>
@@ -164,4 +164,4 @@
     </div>
 </div>
 
-<PartTextModal @bind-Part="editedTextPart" History="history" />
+<PartTextModal @bind-Part="editedTextPart" />

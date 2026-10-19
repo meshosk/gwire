@@ -1,4 +1,5 @@
 using Gwire.Models;
+using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
@@ -25,8 +26,11 @@ public partial class CableBendPoints : IDisposable
     [Parameter, EditorRequired]
     public CablePart CablePart { get; set; } = default!;
 
-    [Parameter, EditorRequired]
-    public UndoRedoHistory History { get; set; } = default!;
+    [Inject]
+    private UndoRedoService UndoRedoService { get; set; } = default!;
+
+    private UndoRedoService.UndoRedoHistoryWrapper History => UndoRedoService.getHistory(HistoryIds.SchemeEditor);
+
 
     [Parameter]
     public bool IsSelected { get; set; }
@@ -78,7 +82,7 @@ public partial class CableBendPoints : IDisposable
         var action = new ChangeCableRouteAction(CablePart, dragStartPoints, CablePart.BendPoints);
         if (action.HasChanges)
         {
-            History.Record(action);
+            History.addRedoAction(action);
         }
         ResetDrag();
     }
