@@ -12,6 +12,7 @@ namespace Gwire.Pages;
 
 public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 {
+    private CircuitPart? editedTextPart;
     private Circuit Circuit = new();
     internal List<SourceGroundPair> SourceGroundPairs { get; } = [new()];
     private UndoRedoHistory history = new();

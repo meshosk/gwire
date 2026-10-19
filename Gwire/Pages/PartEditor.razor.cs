@@ -182,6 +182,9 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     #endregion
 
+    private void SetCustomTextEnabled(bool enabled) =>
+        ExecuteEdit(() => EditedPart.CustomTextValue = enabled ? "value" : null);
+
     private void AddPoint()
     {
         var count = EditedPart.Points.Count;

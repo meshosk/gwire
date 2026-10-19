@@ -60,15 +60,15 @@
 			               </div>
                     <div class="form-check mb-3">
                         <input id="part-has-value" class="form-check-input" type="checkbox"
-                               @bind:get="EditedPart.HasValue" @bind:set="value => ExecuteEdit(() => EditedPart.HasValue = value)" />
+                               @bind:get="@(EditedPart.CustomTextValue is not null)" @bind:set="SetCustomTextEnabled" />
                         <label class="form-check-label" for="part-has-value">Editable value</label>
                     </div>
-                    @if (EditedPart.HasValue)
+                    @if (EditedPart.CustomTextValue is not null)
                     {
                         <div class="mb-3">
                             <label class="form-label" for="part-value">Example value</label>
-                            <input id="part-value" class="form-control" @bind:get="EditedPart.Value"
-                                   @bind:set="value => ExecuteEdit(() => EditedPart.Value = value ?? string.Empty)" />
+                            <input id="part-value" class="form-control" @bind:get="EditedPart.CustomTextValue"
+                                   @bind:set="value => ExecuteEdit(() => EditedPart.CustomTextValue = value ?? string.Empty)" />
                         </div>
                     }
 			               <div class="row g-2 mb-3">
@@ -263,14 +263,14 @@
                                       @onpointerdown="(eventArgs) => StartPointDrag(point, eventArgs)">@point.Label</svg:text>
                         }
 
-                @if (EditedPart.HasValue)
+                @if (EditedPart.CustomTextValue is not null)
                 {
                     <g class="part-value" @onpointerdown="StartValueDrag" @onpointerdown:stopPropagation="true">
                         <circle cx="@EditedPart.ValuePosition.X" cy="@EditedPart.ValuePosition.Y" r="7" class="value-handle">
                             <title>Drag to position the value</title>
                         </circle>
                         <svg:text x="@EditedPart.ValuePosition.X" y="@(EditedPart.ValuePosition.Y + 14)"
-                                  text-anchor="middle" dominant-baseline="hanging" class="value-label">@EditedPart.Value</svg:text>
+                                  text-anchor="middle" dominant-baseline="hanging" class="value-label">@EditedPart.CustomTextValue</svg:text>
                     </g>
                 }
 

@@ -38,14 +38,9 @@ public sealed class CircuitPart : BaseCircuitPart
     public string SvgMarkup { get; set; } = string.Empty;
 
     /// <summary>
-    /// Whether this part displays an editable value.
+    /// Example text in the catalog and the actual text in a scheme. Null means this part has no editable text.
     /// </summary>
-    public bool HasValue { get; set; }
-
-    /// <summary>
-    /// Example value in the catalog and the actual value in a scheme.
-    /// </summary>
-    public string Value { get; set; } = "value";
+    public string? CustomTextValue { get; set; }
 
     /// <summary>
     /// Local anchor position of the horizontally centered value text.

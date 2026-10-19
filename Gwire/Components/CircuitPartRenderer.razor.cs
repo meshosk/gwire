@@ -41,6 +41,9 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
         public CircuitPart CircuitPart { get; set; } = default!;
 #endregion
 
+    [Parameter]
+    public EventCallback<CircuitPart> OnEditText { get; set; }
+
     protected virtual Point PartPosition => CircuitPart.SchemePosition;
 
     private string SvgTransform => FormattableString.Invariant($"rotate({CircuitPart.SvgRotation} {CircuitPart.Width / 2d} {CircuitPart.Height / 2d})");

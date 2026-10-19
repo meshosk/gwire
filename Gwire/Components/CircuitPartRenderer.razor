@@ -23,10 +23,10 @@
         </svg>
     }
 
-    @if (CircuitPart.HasValue)
+    @if (CircuitPart.CustomTextValue is not null)
     {
         <svg:text x="@CircuitPart.ValuePosition.X" y="@(CircuitPart.ValuePosition.Y + 14)"
-                  text-anchor="middle" dominant-baseline="hanging" class="circuit-part-value">@CircuitPart.Value</svg:text>
+                  text-anchor="middle" dominant-baseline="hanging" class="circuit-part-value">@CircuitPart.CustomTextValue</svg:text>
     }
 
     <g class="circuit-part-points">
@@ -45,7 +45,7 @@
     }
 </g>
 
-@if (OnDelete.HasDelegate || CircuitPart.States.Count > 1)
+@if (OnDelete.HasDelegate || CircuitPart.States.Count > 1 || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
 {
     <SvgContextMenu Target="@("#" + elementReferenceId)">
         @if (CircuitPart.States.Count > 1)
@@ -53,16 +53,22 @@
             <SvgContextSubmenu Label="State" Disabled="@History.IsFrozen">
                 @foreach (var state in CircuitPart.States)
                 {
-                    <SvgContextMenuItem @key="state" OnClick="() => SetActiveState(state)" CanExecute="_ => !History.IsFrozen"
+                    <SvgContextMenuItem @key="state" OnClick="() => SetActiveState(state)" Disabled="@History.IsFrozen"
                                         IsChecked="@ReferenceEquals(CircuitPart.ActiveState, state)">
                         @state.Label
                     </SvgContextMenuItem>
                 }
             </SvgContextSubmenu>
         }
+        @if (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate)
+        {
+            <SvgContextMenuItem OnClick="() => OnEditText.InvokeAsync(CircuitPart)" Disabled="@History.IsFrozen">
+                Edit text…
+            </SvgContextMenuItem>
+        }
         @if (OnDelete.HasDelegate)
         {
-            <SvgContextMenuItem OnClick="() => OnDelete.InvokeAsync()" CanExecute="_ => !History.IsFrozen">
+            <SvgContextMenuItem OnClick="() => OnDelete.InvokeAsync()" Disabled="@History.IsFrozen">
                 Delete
             </SvgContextMenuItem>
         }

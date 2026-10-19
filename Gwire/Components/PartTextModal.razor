@@ -1,0 +1,18 @@
+<div @ref="modalElement" class="modal fade" tabindex="-1" aria-labelledby="part-text-modal-title">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <form class="modal-content" @onsubmit="SaveAsync" @onsubmit:preventDefault="true">
+            <div class="modal-header">
+                <h5 class="modal-title" id="part-text-modal-title">Edit text</h5>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="CancelAsync" disabled="@responding"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label" for="part-text-value">Text</label>
+                <input id="part-text-value" class="form-control" @bind="draftValue" @bind:event="oninput" disabled="@responding" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CancelAsync" disabled="@responding">Cancel</button>
+                <button type="submit" class="btn btn-primary" disabled="@responding">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
