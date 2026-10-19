@@ -2,6 +2,7 @@ using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
 using Gwire.Services;
+using Gwire.UndoRedo;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
@@ -59,6 +60,8 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     
     
     private string selectedTag = string.Empty;
+    private bool showTagSuggestions;
+    private int activeTagSuggestionIndex;
     private Guid? selectedPartId;
 
     private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts;
@@ -67,9 +70,15 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         .Where(tag => !EditedPart.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
         .ToList();
 
+    private IReadOnlyList<string> TagSuggestions => AvailableTags
+        .Where(tag => tag.Contains(selectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
+        .Take(8)
+        .ToList();
+
     #region Drags
 
     private ConnectionPoint? draggedPoint;
+    private long? valueDragPointerId;
     private Point dragOffset;
     private bool pointWasDragged;
 
@@ -88,8 +97,32 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         pointWasDragged = false;
     }
 
+    private void StartValueDrag(PointerEventArgs eventArgs)
+    {
+        if (pendingEdit is not null || eventArgs.Button != 0 || !eventArgs.IsPrimary)
+        {
+            return;
+        }
+
+        BeginEdit();
+        valueDragPointerId = eventArgs.PointerId;
+        var pointer = new Point(eventArgs);
+        dragOffset = new Point(pointer.X - EditedPart.ValuePosition.X, pointer.Y - EditedPart.ValuePosition.Y);
+    }
+
     private void EndPointDrag(PointerEventArgs eventArgs)
     {
+        if (valueDragPointerId is not null)
+        {
+            if (valueDragPointerId == eventArgs.PointerId)
+            {
+                MoveDraggedItem(eventArgs);
+                CompleteEdit();
+                ResetPointDrag();
+            }
+            return;
+        }
+
         if (draggedPoint is not null && !pointWasDragged && ActiveConnectionGroup is not null)
         {
             if (!ActiveConnectionGroup.ConnectedPints.Remove(draggedPoint))
@@ -107,6 +140,16 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private void CancelPointDrag(PointerEventArgs eventArgs)
     {
+        if (valueDragPointerId is not null)
+        {
+            if (valueDragPointerId == eventArgs.PointerId)
+            {
+                CancelEdit();
+                ResetPointDrag();
+            }
+            return;
+        }
+
         if (draggedPoint is not null)
         {
             CancelEdit();
@@ -117,12 +160,23 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private void ResetPointDrag()
     {
         draggedPoint = null;
+        valueDragPointerId = null;
         dragOffset = new Point();
         pointWasDragged = false;
     }
 
     private void MoveDraggedItem(PointerEventArgs eventArgs)
     {
+        if (valueDragPointerId is not null)
+        {
+            if (valueDragPointerId == eventArgs.PointerId)
+            {
+                var pointer = new Point(eventArgs);
+                EditedPart.ValuePosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
+            }
+            return;
+        }
+
         if (draggedPoint is not null)
         {
             var pointer = new Point(eventArgs);
@@ -135,6 +189,9 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     }
 
     #endregion
+
+    private void SetCustomTextEnabled(bool enabled) =>
+        ExecuteEdit(() => EditedPart.CustomTextValue = enabled ? "value" : null);
 
     private void AddPoint()
     {
@@ -188,15 +245,65 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         EditedPart.ActiveState = state;
     }
 
-    private void AddTag()
+    private void ResetTagSuggestions()
     {
-        if (string.IsNullOrWhiteSpace(selectedTag) || !GwireParts.Tags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        activeTagSuggestionIndex = 0;
+        showTagSuggestions = true;
+    }
+
+    private void CloseTagSuggestions() => showTagSuggestions = false;
+
+    private void HandleTagKeyDown(KeyboardEventArgs eventArgs)
+    {
+        if (eventArgs.Key == "Escape")
+        {
+            CloseTagSuggestions();
+            return;
+        }
+
+        if (eventArgs.Key is not ("ArrowDown" or "ArrowUp" or "Enter"))
         {
             return;
         }
 
-        EditedPart.Tags.Add(selectedTag);
+        var suggestions = TagSuggestions;
+        if (suggestions.Count == 0)
+        {
+            return;
+        }
+
+        if (!showTagSuggestions)
+        {
+            ResetTagSuggestions();
+            return;
+        }
+
+        switch (eventArgs.Key)
+        {
+            case "ArrowDown":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + 1) % suggestions.Count;
+                break;
+            case "ArrowUp":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + suggestions.Count - 1) % suggestions.Count;
+                break;
+            case "Enter":
+                AddTag(suggestions[Math.Clamp(activeTagSuggestionIndex, 0, suggestions.Count - 1)]);
+                break;
+        }
+    }
+
+    private void AddTag(string selected)
+    {
+        var tag = AvailableTags.FirstOrDefault(tag =>
+            string.Equals(tag, selected, StringComparison.OrdinalIgnoreCase));
+        if (tag is null)
+        {
+            return;
+        }
+
+        ExecuteEdit(() => EditedPart.Tags.Add(tag));
         selectedTag = string.Empty;
+        ResetTagSuggestions();
     }
 
     private void RemoveTag(string tag)
@@ -281,7 +388,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         }
         else
         {
-            history = new();
+            history.Clear();
         }
         selectedPartId = EditedPart.Id;
         MessageService.Show("Part saved", savedAsCopy ? "Part saved as your own copy." : "Part saved to the parts service.", MessageType.Success);
@@ -315,8 +422,11 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private void SetEditedPart(CircuitPart part)
     {
         pendingEdit = null;
-        history = new();
+        history.Clear();
         EditedPart = part;
+        selectedTag = string.Empty;
+        activeTagSuggestionIndex = 0;
+        CloseTagSuggestions();
 
         if (EditedPart.Width <= 0)
         {
@@ -383,6 +493,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             {
                 EditedPart.SvgMarkup = svgMarkup;
                 EditedPart.SvgLocalPosition = new Point();
+                EditedPart.SvgRotation = 0;
             });
             MessageService.Show("SVG background imported", "SVG background imported successfully.", MessageType.Success);
         }
@@ -398,6 +509,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     {
         EditedPart.SvgMarkup = string.Empty;
         EditedPart.SvgLocalPosition = new Point();
+        EditedPart.SvgRotation = 0;
     }
 
     /// <summary>

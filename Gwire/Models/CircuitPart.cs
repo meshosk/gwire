@@ -36,6 +36,22 @@ public sealed class CircuitPart : BaseCircuitPart
     /// SVG markup used as the visual background of the part.
     /// </summary>
     public string SvgMarkup { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Example text in the catalog and the actual text in a scheme. Null means this part has no editable text.
+    /// </summary>
+    public string? CustomTextValue { get; set; }
+
+    /// <summary>
+    /// Local anchor position of the horizontally centered value text.
+    /// </summary>
+    public Point ValuePosition { get; set; } = new(120, 80);
+
+    /// <summary>
+    /// Rotation of the SVG background in degrees around the center of the crop rectangle.
+    /// </summary>
+    public int SvgRotation { get; set; }
+
     /// <summary>
     /// Top-left position of the SVG background in the part's local coordinate system.
     /// </summary>
@@ -91,6 +107,7 @@ public sealed class CircuitPart : BaseCircuitPart
         var clone = (CircuitPart)base.Clone();
         clone.SvgLocalPosition = SvgLocalPosition.Copy();
         clone.SchemePosition = SchemePosition.Copy();
+        clone.ValuePosition = ValuePosition.Copy();
         clone.Width = Width;
         clone.Height = Height;
         clone.Tags = [.. Tags];

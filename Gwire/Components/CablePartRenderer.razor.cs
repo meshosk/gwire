@@ -1,5 +1,6 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
@@ -27,8 +28,11 @@ public partial class CablePartRenderer : IDisposable
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
-    [Parameter, EditorRequired]
-    public UndoRedoHistory History { get; set; } = default!;
+    [Inject]
+    private UndoRedoService UndoRedoService { get; set; } = default!;
+
+    private UndoRedoService.UndoRedoHistoryWrapper History => UndoRedoService.getHistory(HistoryIds.SchemeEditor);
+
 
     [Parameter]
     public EventCallback OnDelete { get; set; }
@@ -68,7 +72,9 @@ public partial class CablePartRenderer : IDisposable
 
         var bends = CablePart.BendPoints.ToList();
         bends.Insert(bend.Index, bend.Position);
-        History.Execute(new ChangeCableRouteAction(CablePart, CablePart.BendPoints, bends));
+        var action = new ChangeCableRouteAction(CablePart, CablePart.BendPoints, bends);
+        action.Redo();
+        History.addRedoAction(action);
     }
 
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -204,7 +210,7 @@ public partial class CablePartRenderer : IDisposable
             var action = new MoveCablePointAction(draggedPoint, dragStartPoint, dragStartConnections);
             if (action.HasChanges)
             {
-                History.Record(action);
+                History.addRedoAction(action);
             }
         }
         ResetDrag();

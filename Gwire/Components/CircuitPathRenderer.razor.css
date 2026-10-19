@@ -5,3 +5,7 @@
     stroke-linejoin: round;
     pointer-events: none;
 }
+
+.circuit-short-outline {
+    stroke-width: 7;
+}

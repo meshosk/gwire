@@ -1,4 +1,5 @@
 using Gwire.Models;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -57,9 +58,10 @@ public sealed class GwirePartsService(HttpClient httpClient)
         var tags = await tagsTask;
 
         Tags.Clear();
-        Tags.AddRange(tags);
+    
+        Tags.AddRange(tags.Where(t => t is not null));
         Parts.Clear();
-        Parts.AddRange(parts);
+        Parts.AddRange(parts.Where(p => p is not null));
     }
 
     private async Task<List<string>> LoadTagsAsync(string tagsFile)
@@ -70,8 +72,15 @@ public sealed class GwirePartsService(HttpClient httpClient)
         }
 
         var tagsUrl = new Uri(new Uri(IndexUrl), tagsFile).AbsoluteUri;
-        return await httpClient.GetFromJsonAsync<List<string>>(tagsUrl)
-            ?? throw new InvalidDataException("The Gwire parts catalog tags file is empty.");
+        try {
+            return await httpClient.GetFromJsonAsync<List<string>>(tagsUrl) ?? [];
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            Trace.WriteLine($"The Gwire parts catalog tags file '{tagsFile}' was not found. No tags will be available.");
+            return [];
+        }
+
     }
 
     private async Task<List<CircuitPart>> LoadPartsAsync(string partsDirectory, string partsIndexFile)
@@ -83,16 +92,39 @@ public sealed class GwirePartsService(HttpClient httpClient)
 
         var partsIndexUrl = new Uri(new Uri(IndexUrl), partsIndexFile).AbsoluteUri;
         var partsDirectoryUrl = new Uri(new Uri(IndexUrl), partsDirectory);
-        var partFiles = await httpClient.GetFromJsonAsync<List<string>>(partsIndexUrl)
-            ?? throw new InvalidDataException("The Gwire parts catalog parts index is empty.");
+        var partFiles = new List<string>();
+        try
+        {
+            partFiles = await httpClient.GetFromJsonAsync<List<string>>(partsIndexUrl);
+            if (partFiles is null)
+            {
+                partFiles = [];
+                Trace.WriteLine($"The Gwire parts catalog parts index file '{partsIndexFile}' is empty. No parts will be available.");
+            }
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            Trace.WriteLine($"The Gwire parts catalog parts index file '{partsIndexFile}' was not found. No parts will be available.");
+        }
 
         var parts = await Task.WhenAll(partFiles.Select(async partFile =>
         {
             var partUrl = new Uri(partsDirectoryUrl, partFile).AbsoluteUri;
-            var part = await httpClient.GetFromJsonAsync<CircuitPart>(partUrl, PartJsonOptions)
-                ?? throw new InvalidDataException($"The Gwire parts catalog part '{partFile}' is empty.");
-            part.IsFromRepo = true;
-            return part;
+            try {
+                var part = await httpClient.GetFromJsonAsync<CircuitPart>(partUrl, PartJsonOptions);
+                if (part is null)
+                {
+                    Trace.WriteLine($"The Gwire parts catalog part '{partFile}' is empty. It will be skipped.");
+                    return null;
+                }
+
+                part!.IsFromRepo = true;
+                return part;
+            } catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Trace.WriteLine($"The Gwire parts catalog part '{partFile}' was not found. It will be skipped.");
+            }
+            return null;
         }));
 
         return [.. parts];

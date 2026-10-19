@@ -1,4 +1,5 @@
 using Gwire.Models;
+using Gwire.Services;
 using Gwire.UndoRedo;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -14,7 +15,11 @@ public partial class PartEditor
         ReferenceHandler = ReferenceHandler.Preserve
     };
 
-    private UndoRedoHistory history = new();
+    [Inject]
+    private UndoRedoService UndoRedoService { get; set; } = default!;
+
+    private UndoRedoService.UndoRedoHistoryWrapper history => UndoRedoService.getHistory(HistoryIds.PartEditor);
+
     private PartSnapshot? pendingEdit;
     private ElementReference editorElement;
     private DotNetObjectReference<PartEditor>? shortcutReference;
@@ -36,6 +41,10 @@ public partial class PartEditor
         }
     }
 
+    protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
+
+    private void HandleHistoryChanged() => StateHasChanged();
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -56,7 +65,6 @@ public partial class PartEditor
         {
             history.Undo();
         }
-        StateHasChanged();
     }
 
     private PartSnapshot CaptureSnapshot() => new(
@@ -88,7 +96,7 @@ public partial class PartEditor
             // Compare the cloned graphs so unchanged values and clicks do not create history entries.
             if (JsonSerializer.Serialize(before.Part, snapshotOptions) != JsonSerializer.Serialize(after.Part, snapshotOptions))
             {
-                history.Record(new SnapshotAction(this, before));
+                history.addRedoAction(new SnapshotAction(this, before));
             }
         }
         catch
@@ -148,6 +156,8 @@ public partial class PartEditor
 
     public async ValueTask DisposeAsync()
     {
+        history.Changed -= HandleHistoryChanged;
+        history.Clear();
         if (shortcutReference is not null)
         {
             await JS.InvokeVoidAsync("gwire.disableUndoRedoShortcuts", editorElement);
