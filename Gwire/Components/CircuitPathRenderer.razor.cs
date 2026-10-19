@@ -26,7 +26,40 @@ public partial class CircuitPathRenderer : IDisposable
         return point;
     }
 
-    private string? GetPathPoints(SourceGroundPair pair)
+    private IEnumerable<string> GetPathPoints(SourceGroundPair pair)
+    {
+        var source = GetCircuitPoint(pair, pair.PowerSource);
+        if (source is null)
+        {
+            yield break;
+        }
+
+        var visited = new HashSet<ConnectionPoint> { source };
+        var connections = new HashSet<(ConnectionPoint, ConnectionPoint)>();
+        var pending = new Queue<ConnectionPoint>();
+        pending.Enqueue(source);
+
+        while (pending.TryDequeue(out var point))
+        {
+            foreach (var connected in point.GetConnectedPoints(point).Concat(point.Owner.GetConnectedPoints(point)))
+            {
+                if (visited.Add(connected))
+                {
+                    pending.Enqueue(connected);
+                }
+
+                // Render every reachable connection, including loops, once in either direction.
+                if (connections.Contains((connected, point)) || !connections.Add((point, connected)))
+                {
+                    continue;
+                }
+
+                yield return GetPolylinePoints([point, connected]);
+            }
+        }
+    }
+
+    private string? GetShortCircuitPathPoints(SourceGroundPair pair)
     {
         var source = GetCircuitPoint(pair, pair.PowerSource);
         var ground = GetCircuitPoint(pair, pair.Ground);
@@ -34,12 +67,13 @@ public partial class CircuitPathRenderer : IDisposable
         {
             return null;
         }
-        var path = source.FindPathTo(ground);
-        if (path.Count == 0)
-        {
-            return null;
-        }
 
+        var path = source.FindPathTo(ground);
+        return path.Count == 0 ? null : GetPolylinePoints(path);
+    }
+
+    private string GetPolylinePoints(IReadOnlyList<ConnectionPoint> path)
+    {
         var positions = new List<Point> { SourceGroundPair.GetPointPosition(path[0], SourceGroundPairs) };
         for (var index = 1; index < path.Count; index++)
         {
@@ -57,6 +91,9 @@ public partial class CircuitPathRenderer : IDisposable
         return string.Join(" ", positions.Select(position =>
             FormattableString.Invariant($"{position.X},{position.Y}")));
     }
+
+    private static string GetInvertedColor(string color) =>
+        $"#{(Convert.ToInt32(color[1..], 16) ^ 0xFFFFFF):X6}";
 
     protected override void OnParametersSet()
     {

@@ -60,12 +60,19 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     
     
     private string selectedTag = string.Empty;
+    private bool showTagSuggestions;
+    private int activeTagSuggestionIndex;
     private Guid? selectedPartId;
 
     private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts;
 
     private IReadOnlyList<string> AvailableTags => GwireParts.Tags
         .Where(tag => !EditedPart.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        .ToList();
+
+    private IReadOnlyList<string> TagSuggestions => AvailableTags
+        .Where(tag => tag.Contains(selectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
+        .Take(8)
         .ToList();
 
     #region Drags
@@ -238,15 +245,65 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         EditedPart.ActiveState = state;
     }
 
-    private void AddTag()
+    private void ResetTagSuggestions()
     {
-        if (string.IsNullOrWhiteSpace(selectedTag) || !GwireParts.Tags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        activeTagSuggestionIndex = 0;
+        showTagSuggestions = true;
+    }
+
+    private void CloseTagSuggestions() => showTagSuggestions = false;
+
+    private void HandleTagKeyDown(KeyboardEventArgs eventArgs)
+    {
+        if (eventArgs.Key == "Escape")
+        {
+            CloseTagSuggestions();
+            return;
+        }
+
+        if (eventArgs.Key is not ("ArrowDown" or "ArrowUp" or "Enter"))
         {
             return;
         }
 
-        EditedPart.Tags.Add(selectedTag);
+        var suggestions = TagSuggestions;
+        if (suggestions.Count == 0)
+        {
+            return;
+        }
+
+        if (!showTagSuggestions)
+        {
+            ResetTagSuggestions();
+            return;
+        }
+
+        switch (eventArgs.Key)
+        {
+            case "ArrowDown":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + 1) % suggestions.Count;
+                break;
+            case "ArrowUp":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + suggestions.Count - 1) % suggestions.Count;
+                break;
+            case "Enter":
+                AddTag(suggestions[Math.Clamp(activeTagSuggestionIndex, 0, suggestions.Count - 1)]);
+                break;
+        }
+    }
+
+    private void AddTag(string selected)
+    {
+        var tag = AvailableTags.FirstOrDefault(tag =>
+            string.Equals(tag, selected, StringComparison.OrdinalIgnoreCase));
+        if (tag is null)
+        {
+            return;
+        }
+
+        ExecuteEdit(() => EditedPart.Tags.Add(tag));
         selectedTag = string.Empty;
+        ResetTagSuggestions();
     }
 
     private void RemoveTag(string tag)
@@ -367,6 +424,9 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         pendingEdit = null;
         history.Clear();
         EditedPart = part;
+        selectedTag = string.Empty;
+        activeTagSuggestionIndex = 0;
+        CloseTagSuggestions();
 
         if (EditedPart.Width <= 0)
         {

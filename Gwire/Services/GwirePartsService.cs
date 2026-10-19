@@ -115,9 +115,10 @@ public sealed class GwirePartsService(HttpClient httpClient)
                 if (part is null)
                 {
                     Trace.WriteLine($"The Gwire parts catalog part '{partFile}' is empty. It will be skipped.");
-
+                    return null;
                 }
-                part.IsFromRepo = true;
+
+                part!.IsFromRepo = true;
                 return part;
             } catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {

@@ -83,16 +83,37 @@
 			               </div>
 			               <div class="mb-3">
 			                  <label for="part-tag" class="form-label">Tags</label>
-			                  <div class="input-group">
-			                     <select class="form-select" id="part-tag" @bind="selectedTag" disabled="@(AvailableTags.Count == 0)">
-			                        <option value="">Select a tag</option>
-			                        @foreach (var tag in AvailableTags)
-			                        {
-			                           <option value="@tag">@tag</option>
-			                        }
-			                     </select>
-			                     <button type="button" class="btn btn-outline-primary" @onclick="() => ExecuteEdit(AddTag)" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
-			                  </div>
+                          <div class="position-relative" @onkeydown="HandleTagKeyDown">
+                              <input class="form-control" id="part-tag" placeholder="Search existing tags" autocomplete="off"
+                                     role="combobox" aria-autocomplete="list" aria-controls="part-tag-options"
+                                     aria-expanded="@(showTagSuggestions && TagSuggestions.Count > 0 ? "true" : "false")"
+                                     aria-activedescendant="@(showTagSuggestions && TagSuggestions.Count > 0 ? $"part-tag-option-{activeTagSuggestionIndex}" : null)"
+                                     @bind="selectedTag" @bind:event="oninput" @bind:after="ResetTagSuggestions"
+                                     @onfocus="ResetTagSuggestions" @onblur="CloseTagSuggestions"
+                                     onkeydown="if (['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) event.preventDefault();"
+                                     disabled="@(AvailableTags.Count == 0)" />
+                              @if (showTagSuggestions)
+                              {
+                                  var suggestions = TagSuggestions;
+                                  <div id="part-tag-options" class="tag-suggestions list-group shadow-sm" role="listbox" aria-label="Existing tags">
+                                      @for (var index = 0; index < suggestions.Count; index++)
+                                      {
+                                          var suggestionIndex = index;
+                                          var tag = suggestions[index];
+                                          <button type="button" id="part-tag-option-@index" tabindex="-1" role="option"
+                                                  class="list-group-item list-group-item-action @(index == activeTagSuggestionIndex ? "active" : null)"
+                                                  aria-selected="@(index == activeTagSuggestionIndex ? "true" : "false")"
+                                                  @onmousedown:preventDefault="true"
+                                                  @onmouseover="() => activeTagSuggestionIndex = suggestionIndex"
+                                                  @onclick="() => AddTag(tag)">@tag</button>
+                                      }
+                                      @if (suggestions.Count == 0)
+                                      {
+                                          <div class="list-group-item text-body-secondary" role="status">No matching tags.</div>
+                                      }
+                                  </div>
+                              }
+                          </div>
 			                  @if (EditedPart.Tags.Count > 0)
 			                  {
 			                     <div class="d-flex flex-wrap gap-2 mt-2">
