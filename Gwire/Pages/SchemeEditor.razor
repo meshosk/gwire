@@ -1,5 +1,6 @@
 ﻿@page "/scheme-editor"
 @using Gwire.Models
+@using Microsoft.AspNetCore.Components.Sections
 @inject Gwire.Services.GwirePartsService GwireParts
 
 <PageTitle>Gwire - The scheme editor</PageTitle>
@@ -159,6 +160,7 @@
                     <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
                 }
                 <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
+                <SectionOutlet SectionName="svg-context-menu" />
             </svg>
         </div>
     </div>
