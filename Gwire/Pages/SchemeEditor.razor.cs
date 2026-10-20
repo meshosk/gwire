@@ -6,7 +6,9 @@ using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using System.Text.Json;
 
 namespace Gwire.Pages;
 
@@ -62,6 +64,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     [Inject]
     private MessageService MessageService { get; set; } = default!;
+
+    [Inject]
+    private ILogger<SchemeEditor> Logger { get; set; } = default!;
 
     protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
 
@@ -186,12 +191,20 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        await using var stream = new MemoryStream();
-        await ObjectJsonSerializer.ExportAsync<Circuit>(Circuit, stream);
-        stream.Position = 0;
+        try
+        {
+            await using var stream = new MemoryStream();
+            await ObjectJsonSerializer.ExportAsync<Circuit>(Circuit, stream);
+            stream.Position = 0;
 
-        using var streamReference = new DotNetStreamReference(stream);
-        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(Circuit.Name), streamReference);
+            using var streamReference = new DotNetStreamReference(stream);
+            await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(Circuit.Name), streamReference);
+        }
+        catch (Exception exception) when (exception is JsonException or IOException or JSException)
+        {
+            Logger.LogError(exception, "Scheme export failed.");
+            MessageService.Show("Scheme export failed", "The scheme could not be exported. Your scheme is still open; see the browser console for details.", MessageType.Danger);
+        }
     }
 
     private static string CreateFileName(string name)

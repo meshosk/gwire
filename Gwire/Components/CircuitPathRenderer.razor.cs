@@ -59,17 +59,95 @@ public partial class CircuitPathRenderer : IDisposable
         }
     }
 
-    private string? GetShortCircuitPathPoints(SourceGroundPair pair)
+    private IReadOnlyList<string> GetShortCircuitPathPoints(SourceGroundPair pair)
     {
         var source = GetCircuitPoint(pair, pair.PowerSource);
         var ground = GetCircuitPoint(pair, pair.Ground);
         if (source is null || ground is null)
         {
-            return null;
+            return [];
+        }
+        if (ReferenceEquals(source, ground))
+        {
+            return [GetPolylinePoints([source])];
         }
 
-        var path = source.FindPathTo(ground);
-        return path.Count == 0 ? null : GetPolylinePoints(path);
+        var discovery = new Dictionary<ConnectionPoint, int>();
+        var lowest = new Dictionary<ConnectionPoint, int>();
+        var reachesGround = new HashSet<ConnectionPoint>();
+        var edges = new Stack<(ConnectionPoint From, ConnectionPoint To)>();
+        var pending = new Stack<(ConnectionPoint Point, ConnectionPoint? Parent, ConnectionPoint[] Neighbors, int NextIndex)>();
+        var paths = new List<string>();
+
+        void AddPoint(ConnectionPoint point, ConnectionPoint? parent)
+        {
+            discovery[point] = discovery.Count;
+            lowest[point] = discovery[point];
+            if (ReferenceEquals(point, ground))
+            {
+                reachesGround.Add(point);
+            }
+            var neighbors = point.GetConnectedPoints(point)
+                .Concat(point.Owner.GetConnectedPoints(point)).Distinct().ToArray();
+            pending.Push((point, parent, neighbors, 0));
+        }
+
+        // Biconnected blocks on the source-to-ground branch contain exactly the edges on simple paths.
+        // Collect their edges once instead of enumerating exponentially many overlapping paths.
+        AddPoint(source, null);
+        while (pending.TryPop(out var frame))
+        {
+            var (point, parent, neighbors, nextIndex) = frame;
+            if (nextIndex < neighbors.Length)
+            {
+                pending.Push((point, parent, neighbors, nextIndex + 1));
+                var connected = neighbors[nextIndex];
+                if (ReferenceEquals(connected, parent))
+                {
+                    continue;
+                }
+                if (!discovery.TryGetValue(connected, out var connectedOrder))
+                {
+                    edges.Push((point, connected));
+                    AddPoint(connected, point);
+                }
+                else if (connectedOrder < discovery[point])
+                {
+                    edges.Push((point, connected));
+                    lowest[point] = Math.Min(lowest[point], connectedOrder);
+                }
+                continue;
+            }
+
+            if (parent is null)
+            {
+                continue;
+            }
+            var containsGround = reachesGround.Contains(point);
+            if (containsGround)
+            {
+                reachesGround.Add(parent);
+            }
+            lowest[parent] = Math.Min(lowest[parent], lowest[point]);
+            if (lowest[point] < discovery[parent])
+            {
+                continue;
+            }
+
+            // A block attached through only one point cannot lead to ground unless ground is in its subtree.
+            (ConnectionPoint From, ConnectionPoint To) edge;
+            do
+            {
+                edge = edges.Pop();
+                if (containsGround)
+                {
+                    paths.Add(GetPolylinePoints([edge.From, edge.To]));
+                }
+            }
+            while (!ReferenceEquals(edge.From, parent) || !ReferenceEquals(edge.To, point));
+        }
+
+        return paths;
     }
 
     private string GetPolylinePoints(IReadOnlyList<ConnectionPoint> path)

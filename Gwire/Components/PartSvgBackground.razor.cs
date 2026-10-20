@@ -35,8 +35,6 @@ public partial class PartSvgBackground
     [Parameter]
     public EventCallback EditCanceled { get; set; }
 
-    private string SvgTransform => FormattableString.Invariant($"rotate({Part.SvgRotation} {Part.Width / 2d} {Part.Height / 2d})");
-
     private string CropTransform => FormattableString.Invariant($"translate({Part.SvgLocalPosition.X} {Part.SvgLocalPosition.Y})");
 
     private bool IsBackgroundInteractionActive =>

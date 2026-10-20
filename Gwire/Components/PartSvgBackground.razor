@@ -18,13 +18,8 @@
     @if (ImageSource is { } imageSource)
     {
         <svg x="@Part.SvgLocalPosition.X" y="@Part.SvgLocalPosition.Y"
-             width="@Part.Width" height="@Part.Height" overflow="hidden">
-            <image href="@imageSource"
-                   x="0" y="0"
-                   width="100%" height="100%"
-                   transform="@SvgTransform"
-                   preserveAspectRatio="xMidYMid meet"
-                   class="part-svg-background" />
+             width="@Part.Width" height="@Part.Height" overflow="hidden" class="part-svg-background">
+            <SvgBackground Source="@imageSource" Width="Part.Width" Height="Part.Height" Rotation="Part.SvgRotation" />
         </svg>
     }
 
