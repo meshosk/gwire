@@ -1,3 +1,4 @@
+using Gwire.Models;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,6 +14,8 @@ public static class ObjectJsonSerializer
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
+        // Retain support for previously exported, deeply nested files.
+        MaxDepth = 1024,
         ReferenceHandler = ReferenceHandler.Preserve
     };
 
@@ -26,6 +29,12 @@ public static class ObjectJsonSerializer
     {
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(output);
+
+        if (value is Circuit circuit)
+        {
+            await CircuitJsonSerializer.ExportAsync(circuit, output);
+            return;
+        }
 
         await JsonSerializer.SerializeAsync(output, value, Options);
     }
@@ -43,6 +52,11 @@ public static class ObjectJsonSerializer
         try
         {
             await using var stream = file.OpenReadStream();
+            if (typeof(T) == typeof(Circuit))
+            {
+                return (T)(object)await CircuitJsonSerializer.ImportAsync(stream, Options);
+            }
+
             var value = await JsonSerializer.DeserializeAsync<T>(stream, Options)
                 ?? throw new InvalidDataException("The JSON file does not contain a part.");
 

@@ -11,15 +11,8 @@
    
     @if (SvgImageSource is { } svgImageSource)
     {
-        <svg x="@CircuitPart.SvgLocalPosition.X" y="@CircuitPart.SvgLocalPosition.Y" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden">
-            <image href="@svgImageSource"
-                   x="0"
-                   y="0"
-                   width="@CircuitPart.Width"
-                   height="@CircuitPart.Height"
-                   transform="@SvgTransform"
-                   preserveAspectRatio="xMidYMid meet"
-                   class="circuit-part-svg" />
+        <svg x="@CircuitPart.SvgLocalPosition.X" y="@CircuitPart.SvgLocalPosition.Y" width="@CircuitPart.Width" height="@CircuitPart.Height" overflow="hidden" class="circuit-part-svg">
+            <SvgBackground Source="@svgImageSource" Width="CircuitPart.Width" Height="CircuitPart.Height" Rotation="CircuitPart.SvgRotation" />
         </svg>
     }
 

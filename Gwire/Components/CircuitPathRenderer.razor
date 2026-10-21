@@ -10,11 +10,18 @@
 
 @foreach (var pair in SourceGroundPairs)
 {
-    @if (GetShortCircuitPathPoints(pair) is { } points)
+    var paths = GetShortCircuitPathPoints(pair);
+    @if (paths.Count > 0)
     {
         <g @key="pair.Ground" aria-hidden="true">
-            <polyline points="@points" stroke="@pair.LineColor" class="circuit-path circuit-short-outline" />
-            <polyline points="@points" stroke="@GetInvertedColor(pair.LineColor)" class="circuit-path" />
+            @foreach (var points in paths)
+            {
+                <polyline points="@points" stroke="@pair.LineColor" class="circuit-path circuit-short-outline" />
+            }
+            @foreach (var points in paths)
+            {
+                <polyline points="@points" stroke="@GetInvertedColor(pair.LineColor)" class="circuit-path" />
+            }
         </g>
     }
 }
