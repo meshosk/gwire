@@ -83,6 +83,18 @@
 			               </div>
 			               <div class="mb-3">
 			                  <label for="part-tag" class="form-label">Tags</label>
+			                  @if (EditedPart.Tags.Count > 0)
+			                  {
+			                     <div class="d-flex flex-wrap gap-2 mb-2">
+			                        @foreach (var tag in EditedPart.Tags)
+			                        {
+			                           <span class="badge text-bg-secondary d-flex align-items-center gap-1">
+			                              @tag
+			                              <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => ExecuteEdit(() => RemoveTag(tag))"></button>
+			                           </span>
+			                        }
+			                     </div>
+			                  }
                           <div class="position-relative" @onkeydown="HandleTagKeyDown">
                               <input class="form-control" id="part-tag" placeholder="Search existing tags" autocomplete="off"
                                      role="combobox" aria-autocomplete="list" aria-controls="part-tag-options"
@@ -114,18 +126,6 @@
                                   </div>
                               }
                           </div>
-			                  @if (EditedPart.Tags.Count > 0)
-			                  {
-			                     <div class="d-flex flex-wrap gap-2 mt-2">
-			                        @foreach (var tag in EditedPart.Tags)
-			                        {
-			                           <span class="badge text-bg-secondary d-flex align-items-center gap-1">
-			                              @tag
-			                              <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => ExecuteEdit(() => RemoveTag(tag))"></button>
-			                           </span>
-			                        }
-			                     </div>
-			                  }
 			               </div>
 			               <div class="mb-3">
 			                  <label class="form-label">SVG background</label>

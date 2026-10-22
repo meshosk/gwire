@@ -101,19 +101,9 @@
                     </div>
                     <div class="mb-3">
                         <label for="circuit-tag" class="form-label">Tags</label>
-                        <div class="input-group">
-                            <select id="circuit-tag" class="form-select" @bind="selectedTag" disabled="@(AvailableTags.Count == 0)">
-                                <option value="">Select a tag</option>
-                                @foreach (var tag in AvailableTags)
-                                {
-                                    <option value="@tag">@tag</option>
-                                }
-                            </select>
-                            <button type="button" class="btn btn-outline-primary" @onclick="AddTag" disabled="@string.IsNullOrWhiteSpace(selectedTag)">Add tag</button>
-                        </div>
                         @if (Circuit.Tags.Count > 0)
                         {
-                            <div class="d-flex flex-wrap gap-2 mt-2">
+                            <div class="d-flex flex-wrap gap-2 mb-2">
                                 @foreach (var tag in Circuit.Tags)
                                 {
                                     <span class="badge text-bg-secondary d-flex align-items-center gap-1">
@@ -123,6 +113,37 @@
                                 }
                             </div>
                         }
+                        <div class="position-relative" @onkeydown="HandleTagKeyDown">
+                            <input class="form-control" id="circuit-tag" placeholder="Search existing tags" autocomplete="off"
+                                   role="combobox" aria-autocomplete="list" aria-controls="circuit-tag-options"
+                                   aria-expanded="@(showTagSuggestions && TagSuggestions.Count > 0 ? "true" : "false")"
+                                   aria-activedescendant="@(showTagSuggestions && TagSuggestions.Count > 0 ? $"circuit-tag-option-{activeTagSuggestionIndex}" : null)"
+                                   @bind="selectedTag" @bind:event="oninput" @bind:after="ResetTagSuggestions"
+                                   @onfocus="ResetTagSuggestions" @onblur="CloseTagSuggestions"
+                                   onkeydown="if (['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) event.preventDefault();"
+                                   disabled="@(AvailableTags.Count == 0)" />
+                            @if (showTagSuggestions)
+                            {
+                                var suggestions = TagSuggestions;
+                                <div id="circuit-tag-options" class="tag-suggestions list-group shadow-sm" role="listbox" aria-label="Existing tags">
+                                    @for (var index = 0; index < suggestions.Count; index++)
+                                    {
+                                        var suggestionIndex = index;
+                                        var tag = suggestions[index];
+                                        <button type="button" id="circuit-tag-option-@index" tabindex="-1" role="option"
+                                                class="list-group-item list-group-item-action @(index == activeTagSuggestionIndex ? "active" : null)"
+                                                aria-selected="@(index == activeTagSuggestionIndex ? "true" : "false")"
+                                                @onmousedown:preventDefault="true"
+                                                @onmouseover="() => activeTagSuggestionIndex = suggestionIndex"
+                                                @onclick="() => AddTag(tag)">@tag</button>
+                                    }
+                                    @if (suggestions.Count == 0)
+                                    {
+                                        <div class="list-group-item text-body-secondary" role="status">No matching tags.</div>
+                                    }
+                                </div>
+                            }
+                        </div>
                     </div>
                 </section>
             </aside>

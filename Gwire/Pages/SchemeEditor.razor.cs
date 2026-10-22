@@ -6,6 +6,7 @@ using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System.Text.Json;
@@ -27,22 +28,79 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private float zoom = 1;
     private bool showDetails;
     private string selectedTag = string.Empty;
+    private bool showTagSuggestions;
+    private int activeTagSuggestionIndex;
 
     private IReadOnlyList<string> AvailableTags => GwireParts.Tags
         .Where(tag => !Circuit.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
         .ToList();
 
+    private IReadOnlyList<string> TagSuggestions => AvailableTags
+        .Where(tag => tag.Contains(selectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
+        .Take(8)
+        .ToList();
+
     private void ToggleDetails() => showDetails = !showDetails;
 
-    private void AddTag()
+    private void ResetTagSuggestions()
     {
-        if (string.IsNullOrWhiteSpace(selectedTag) || !AvailableTags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        activeTagSuggestionIndex = 0;
+        showTagSuggestions = true;
+    }
+
+    private void CloseTagSuggestions() => showTagSuggestions = false;
+
+    private void HandleTagKeyDown(KeyboardEventArgs eventArgs)
+    {
+        if (eventArgs.Key == "Escape")
+        {
+            CloseTagSuggestions();
+            return;
+        }
+
+        if (eventArgs.Key is not ("ArrowDown" or "ArrowUp" or "Enter"))
         {
             return;
         }
 
-        Circuit.Tags.Add(selectedTag);
+        var suggestions = TagSuggestions;
+        if (suggestions.Count == 0)
+        {
+            return;
+        }
+
+        if (!showTagSuggestions)
+        {
+            ResetTagSuggestions();
+            return;
+        }
+
+        switch (eventArgs.Key)
+        {
+            case "ArrowDown":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + 1) % suggestions.Count;
+                break;
+            case "ArrowUp":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + suggestions.Count - 1) % suggestions.Count;
+                break;
+            case "Enter":
+                AddTag(suggestions[Math.Clamp(activeTagSuggestionIndex, 0, suggestions.Count - 1)]);
+                break;
+        }
+    }
+
+    private void AddTag(string selected)
+    {
+        var tag = AvailableTags.FirstOrDefault(tag =>
+            string.Equals(tag, selected, StringComparison.OrdinalIgnoreCase));
+        if (tag is null)
+        {
+            return;
+        }
+
+        Circuit.Tags.Add(tag);
         selectedTag = string.Empty;
+        ResetTagSuggestions();
     }
 
     private void RemoveTag(string tag) => Circuit.Tags.Remove(tag);
@@ -158,6 +216,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         SelectedPart = null;
         selectedPartForAddIndex = -1;
         selectedTag = string.Empty;
+        activeTagSuggestionIndex = 0;
+        CloseTagSuggestions();
     }
 
     private async Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs)
