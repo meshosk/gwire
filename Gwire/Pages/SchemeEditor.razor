@@ -75,18 +75,13 @@
                     </span>
                 </button>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddSourceGroundPair" disabled="@history.IsFrozen" title="Add source-ground pair" aria-label="Add source-ground pair">
-                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            <button type="button" class="btn btn-sm btn-outline-primary @(showSourceGroundPair ? "active" : null)"
+                    @onclick="ToggleSourceGroundPair" disabled="@history.IsFrozen"
+                    aria-pressed="@(showSourceGroundPair ? "true" : "false")"
+                    title="@(showSourceGroundPair ? "Hide measurement pair" : "Show measurement pair")"
+                    aria-label="@(showSourceGroundPair ? "Hide measurement pair" : "Show measurement pair")">
+                <i class="fa-solid fa-bolt" aria-hidden="true"></i>
             </button>
-            @foreach (var (pair, index) in SourceGroundPairs.Select((pair, index) => (pair, index)))
-            {
-                <label @key="pair" class="d-flex align-items-center gap-2">
-                    Pair @(index + 1)
-                    <input type="color" class="form-control form-control-color" title="Path color"
-                           aria-label="@($"Path color for pair {index + 1}")"
-                           @bind:get="pair.LineColor" @bind:set="color => SetPairColor(pair, color)" disabled="@history.IsFrozen" />
-                </label>
-            }
         </div>
     </div>
 </SectionContent>
@@ -169,7 +164,7 @@
                         <path d="M 25 0 L 0 0 0 25" fill="none" class="scheme-grid" />
                     </pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#scheme-grid)" />
+                <rect id="scheme-editor-background" width="100%" height="100%" fill="url(#scheme-grid)" />
                 @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
                 {
                     <CircuitPartRenderer @key="part" CircuitPart="part" Zoom="zoom"
@@ -185,17 +180,35 @@
                                        @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
                                        @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
                 }
-                @foreach (var pair in SourceGroundPairs)
+                @if (showSourceGroundPair)
                 {
-                    <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
-                    <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
+                    @foreach (var pair in SourceGroundPairs)
+                    {
+                        <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
+                        <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
+                    }
+                    <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
                 }
-                <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
                 <SectionOutlet SectionName="svg-context-menu" />
             </svg>
         </div>
     </div>
 </div>
+
+@if (SelectedPart is null)
+{
+    <SvgContextMenu Target="#scheme-editor-background">
+        <SvgContextMenuItem OnClick="SearchPartsAsync" Disabled="@(history.IsFrozen || GwireParts.Parts.Count == 0 || PartSearchIsShown)">
+            Add part
+        </SvgContextMenuItem>
+        <SvgContextMenuItem OnClick="AddCable" Disabled="@history.IsFrozen">
+            Add cable
+        </SvgContextMenuItem>
+        <SvgContextMenuItem OnClick="ToggleSourceGroundPair" Disabled="@history.IsFrozen">
+            @(showSourceGroundPair ? "Hide measurement pair" : "Show measurement pair")
+        </SvgContextMenuItem>
+    </SvgContextMenu>
+}
 
 <PartTextModal @bind-Part="editedTextPart" />
 

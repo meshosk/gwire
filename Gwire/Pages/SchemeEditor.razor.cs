@@ -28,6 +28,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
     private float zoom = 1;
     private bool showDetails;
+    private bool showSourceGroundPair = true;
     private string selectedTag = string.Empty;
     private bool showTagSuggestions;
     private int activeTagSuggestionIndex;
@@ -265,6 +266,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         Circuit = circuit;
         unchangedSchemeDetails = (circuit.Name, circuit.Description, circuit.Tags.ToArray());
         SourceGroundPairs.Clear();
+        SourceGroundPairs.Add(new SourceGroundPair());
+        showSourceGroundPair = true;
         SelectedPart = null;
         selectedTag = string.Empty;
         activeTagSuggestionIndex = 0;
@@ -346,36 +349,11 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void AddSourceGroundPair()
+    private void ToggleSourceGroundPair()
     {
-        if (history.IsFrozen)
+        if (!history.IsFrozen)
         {
-            return;
-        }
-        var color = ConnectionGroup.GetLineColor(SourceGroundPairs.Count);
-        while (SourceGroundPairs.Any(candidate => string.Equals(candidate.LineColor, color, StringComparison.OrdinalIgnoreCase)))
-        {
-            color = $"#{Random.Shared.Next(0x1000000):x6}";
-        }
-        var pair = new SourceGroundPair { LineColor = color };
-        var offset = SourceGroundPairs.Count * 110;
-        pair.PowerSource.MoveTo(new Point(pair.PowerSource.SchemePosition.X, pair.PowerSource.SchemePosition.Y + offset));
-        pair.Ground.MoveTo(new Point(pair.Ground.SchemePosition.X, pair.Ground.SchemePosition.Y + offset));
-        var action = new AddSourceGroundPairAction(SourceGroundPairs, pair);
-        action.Redo();
-        history.addRedoAction(action);
-    }
-
-    private void SetPairColor(SourceGroundPair pair, string? color)
-    {
-
-        color = string.IsNullOrWhiteSpace(color) ? "red" : color; // yeah default is red :D
-
-        if (!history.IsFrozen && !string.Equals(pair.LineColor, color, StringComparison.OrdinalIgnoreCase))
-        {
-            var action = new ChangePairColorAction(pair, pair.LineColor, color);
-            action.Redo();
-            history.addRedoAction(action);
+            showSourceGroundPair = !showSourceGroundPair;
         }
     }
 
@@ -417,6 +395,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
 
         PartSearchIsShown = true;
+        StateHasChanged();
         var selectedPart = await partSearchOptions.Result;
 
         if (selectedPart is null || history.IsFrozen)

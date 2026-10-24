@@ -48,14 +48,9 @@ public partial class SvgContextMenu : IAsyncDisposable
 
     internal async Task ExecuteAsync(EventCallback<Point> action)
     {
-        try
-        {
-            await action.InvokeAsync(menuOpenPosition);
-        }
-        finally
-        {
-            await DismissAsync();
-        }
+        var position = menuOpenPosition;
+        await DismissAsync();
+        await action.InvokeAsync(position);
     }
 
     private async Task DismissAsync()
