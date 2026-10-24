@@ -44,6 +44,13 @@ window.gwire = window.gwire || {};
             this.svg.setAttribute("preserveAspectRatio", "none");
             this.resizeObserver = new ResizeObserver(() => this.updateView());
             this.resizeObserver.observe(this.svg);
+            // Blazor may remove the editor before .NET disposal can resolve its element reference.
+            this.removalObserver = new MutationObserver(() => {
+                if (!editor.isConnected) {
+                    window.gwire.disableSchemePan(editor);
+                }
+            });
+            this.removalObserver.observe(document.body, { childList: true, subtree: true });
             this.updateView();
             this.updateMode();
         }
@@ -196,6 +203,7 @@ window.gwire = window.gwire || {};
         dispose() {
             this.controller.abort();
             this.resizeObserver.disconnect();
+            this.removalObserver.disconnect();
             if (this.pointerId !== null && this.svg.hasPointerCapture(this.pointerId)) {
                 this.svg.releasePointerCapture(this.pointerId);
             }
@@ -209,10 +217,13 @@ window.gwire = window.gwire || {};
     };
 
     window.gwire.setSchemeZoom = (editor, zoom) => {
-        editor.gwireSchemePan?.setZoom(zoom);
+        editor?.gwireSchemePan?.setZoom(zoom);
     };
 
     window.gwire.disableSchemePan = (editor) => {
+        if (!editor) {
+            return;
+        }
         editor.gwireSchemePan?.dispose();
         delete editor.gwireSchemePan;
     };

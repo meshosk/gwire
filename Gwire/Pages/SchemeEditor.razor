@@ -25,6 +25,10 @@
                 <button type="button" class="btn btn-sm btn-outline-primary " @onclick="ExportSchemeAsync" disabled="@history.IsFrozen" title="Export JSON" aria-label="Export JSON">
                     <i class="fa-solid fa-file-export" aria-hidden="true"></i>
                 </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ExportPdfAsync"
+                        disabled="@(history.IsFrozen || Circuit.Parts.Count == 0)" title="Export PDF" aria-label="Export PDF">
+                    <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+                </button>
             </div>
             <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="scheme-pan-toggle"
                     aria-label="Pan mode" aria-pressed="false" title="Edit mode (hold Space to pan)">
@@ -166,21 +170,23 @@
                     </pattern>
                 </defs>
                 <rect id="scheme-editor-background" width="100%" height="100%" fill="url(#scheme-grid)" />
-                @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
-                {
-                    <CircuitPartRenderer @key="part" CircuitPart="part" Zoom="zoom"
-                        OnDelete="() => DeletePart(part)" 
-                        OnEditText="value => editedTextPart = value"
-                                         @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
-                                         @bind-IsSelected:set="value => SetPartSelection(part, value)" />
-                }
-                @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
-                {
-                    <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" Zoom="zoom"
-                    OnDelete="() => DeletePart(cable)"
-                                       @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
-                                       @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
-                }
+                <g data-pdf-content>
+                    @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
+                    {
+                        <CircuitPartRenderer @key="part" CircuitPart="part" Zoom="zoom"
+                            OnDelete="() => DeletePart(part)"
+                            OnEditText="value => editedTextPart = value"
+                                             @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
+                                             @bind-IsSelected:set="value => SetPartSelection(part, value)" />
+                    }
+                    @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
+                    {
+                        <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" Zoom="zoom"
+                        OnDelete="() => DeletePart(cable)"
+                                           @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
+                                           @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
+                    }
+                </g>
                 @if (showSourceGroundPair)
                 {
                     @foreach (var pair in SourceGroundPairs)
@@ -210,6 +216,18 @@
         </SvgContextMenuItem>
     </SvgContextMenu>
 }
+
+<div @ref="pdfExportModal" class="modal" tabindex="-1" aria-labelledby="pdf-export-title" aria-describedby="pdf-export-description">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" aria-busy="true">
+            <div class="modal-body text-center py-4" role="status">
+                <div class="spinner-border text-primary mb-3" aria-hidden="true"></div>
+                <h2 class="h5" id="pdf-export-title">@(isLoadingScheme ? "Loading scheme…" : "Exporting PDF…")</h2>
+                <p class="mb-0 text-body-secondary" id="pdf-export-description">@(isLoadingScheme ? "Please wait while the selected scheme is being loaded from the repository." : "Please wait while your PDF is being prepared.")</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <PartTextModal @bind-Part="editedTextPart" />
 

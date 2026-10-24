@@ -36,7 +36,7 @@ ___TODO___:
 - [ ] Wiring diagram snapshots for experimentation
 - [x] Custom wire colours
 - [x] Wiring diagram library
-- [ ] Wiring diagram PDF export
+- [x] Wiring diagram PDF export
 - [x] Wiring diagram circuit routing from coils
 - [ ] Make it a PWA
 - [ ] Create an app wrapper and release it on GitHub for Electron or a similar platform
