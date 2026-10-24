@@ -9,10 +9,10 @@
 <SectionContent SectionName="editor-toolbar">
     <div class="scheme-editor-toolbar" aria-label="Scheme editor toolbar">
         <div class="scheme-editor-toolbar-actions">
+            <button type="button" class="btn btn-sm btn-outline-primary me-2" @onclick="NewScheme" disabled="@history.IsFrozen" title="New scheme" aria-label="New scheme">
+                <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
+            </button>
             <div class="input-group input-group-sm scheme-editor-zoom me-2" role="group" aria-label="Zoom">
-                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="NewScheme" disabled="@history.IsFrozen" title="New scheme" aria-label="New scheme">
-                    <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
-                </button>
                 <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SearchSchemesAsync"
                         disabled="@(GwireParts.Schemes.Count == 0 || history.IsFrozen || SchemeSearchIsShown)" 
                         title="Get scheme from repo" aria-label="Get scheme from repo">

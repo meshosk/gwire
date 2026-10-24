@@ -1,3 +1,4 @@
+using Gwire.Components.SearchDialog;
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
@@ -62,7 +63,8 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private string selectedTag = string.Empty;
     private bool showTagSuggestions;
     private int activeTagSuggestionIndex;
-    private Guid? selectedPartId;
+    private SearchOptions<CircuitPart> partSearchOptions = default!;
+    private bool PartSearchIsShown;
 
     private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts;
 
@@ -74,6 +76,28 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         .Where(tag => tag.Contains(selectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
         .Take(8)
         .ToList();
+
+    protected override void OnInitialized()
+    {
+        history.Changed += HandleHistoryChanged;
+        partSearchOptions = new SearchOptions<CircuitPart>(
+            (part, tags, textTerms) =>
+            {
+                var name = part.Name.ToLowerInvariant();
+                var description = part.Description.ToLowerInvariant();
+                var partTags = part.Tags.Select(tag => tag.ToLowerInvariant()).ToHashSet();
+
+                return tags.Count(tag => partTags.Contains(tag.ToLowerInvariant()))
+                    + textTerms.Select(term => term.ToLowerInvariant())
+                        .Count(term => name.Contains(term) || description.Contains(term));
+            },
+            part => part.DisplayName)
+        {
+            Title = "Open part",
+            Items = GwireParts.Parts,
+            AvailableTags = GwireParts.Tags
+        };
+    }
 
     #region Drags
 
@@ -390,7 +414,6 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         {
             history.Clear();
         }
-        selectedPartId = EditedPart.Id;
         MessageService.Show("Part saved", savedAsCopy ? "Part saved as your own copy." : "Part saved to the parts service.", MessageType.Success);
     }
 
@@ -402,20 +425,25 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         }
 
         SetEditedPart(new CircuitPart());
-        selectedPartId = null;
         selectedTag = string.Empty;
     }
 
     private async Task LoadSelectedPart()
     {
-        var part = AvailableParts.FirstOrDefault(candidate => candidate.Id == selectedPartId);
-        if (part is null || !await ConfirmDiscardChangesAsync())
+        if (PartSearchIsShown || !await ConfirmDiscardChangesAsync())
+        {
+            return;
+        }
+
+        PartSearchIsShown = true;
+        StateHasChanged();
+        var part = await partSearchOptions.Result;
+        if (part is null)
         {
             return;
         }
 
         SetEditedPart(part.Clone());
-        selectedPartId = part.Id;
         MessageService.Show("Part loaded", "Part loaded for editing.", MessageType.Success);
     }
 
@@ -458,7 +486,6 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             }
 
             SetEditedPart(part);
-            selectedPartId = null;
             MessageService.Show("Part imported", "Part imported successfully.", MessageType.Success);
         }
         catch (Exception exception) when (exception is InvalidDataException or IOException)
