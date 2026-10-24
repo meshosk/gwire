@@ -18,12 +18,41 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
     private bool showTagSuggestions;
     private int activeTagSuggestionIndex;
     private bool responding;
+    private bool showRequested;
 
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public SearchOptions Options { get; set; } = default!;
+
+    [Parameter]
+    public bool Visible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        var previousVisible = Visible;
+        await base.SetParametersAsync(parameters);
+        if (previousVisible == Visible)
+        {
+            return;
+        }
+
+        showRequested = Visible;
+        if (Visible)
+        {
+            responding = false;
+            selectedMatch = null;
+            UpdateResults();
+        }
+        else if (module is not null)
+        {
+            await module.InvokeVoidAsync("hide", modalElement, 0);
+        }
+    }
 
     private IReadOnlyList<string> TagSuggestions => draftValue.StartsWith('#')
         ? Options.AvailableTags
@@ -38,15 +67,16 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (!showRequested)
         {
             return;
         }
 
+        showRequested = false;
         try
         {
-            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/SearchDialog/SearchDialog.razor.js");
-            receiver = DotNetObjectReference.Create(this);
+            module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/SearchDialog/SearchDialog.razor.js");
+            receiver ??= DotNetObjectReference.Create(this);
             await module.InvokeVoidAsync("show", modalElement, receiver);
         }
         catch
@@ -177,8 +207,9 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
     }
 
     [JSInvokable]
-    public void Complete(int result)
+    public async Task Complete(int result)
     {
+        await VisibleChanged.InvokeAsync(false);
         if (result == 1 && selectedMatch is { } match)
         {
             Options.Select(match);

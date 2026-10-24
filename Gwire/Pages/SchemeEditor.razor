@@ -1,5 +1,6 @@
 ﻿@page "/scheme-editor"
 @using Gwire.Models
+@using Gwire.Components.SearchDialog
 @using Microsoft.AspNetCore.Components.Sections
 @inject Gwire.Services.GwirePartsService GwireParts
 
@@ -51,17 +52,10 @@
         <button type="button" class="btn btn-sm btn-primary" @onclick="AddCable" disabled="@history.IsFrozen">
             <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add cable
         </button>
-        <div class="input-group input-group-sm scheme-editor-part-picker">
-            <select class="form-select" aria-label="Part to add" @bind="selectedPartForAddIndex" disabled="@(GwireParts.Parts.Count == 0)">
-                <option value="-1">Select a part</option>
-                @foreach (var (part, index) in GwireParts.Parts.Select((part, index) => (part, index)))
-                {
-                    <option value="@index">@part.DisplayName</option>
-                }
-            </select>
-            <button type="button" class="btn btn-sm btn-primary" @onclick="AddSelectedPart" disabled="@(selectedPartForAddIndex < 0 || history.IsFrozen)">
-                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add</button>
-        </div>
+        <button type="button" class="btn btn-sm btn-primary ms-2" @onclick="SearchPartsAsync"
+                disabled="@(GwireParts.Parts.Count == 0 || history.IsFrozen || PartSearchIsShown)">
+            <i class="fa-solid fa-magnifying-glass me-1" aria-hidden="true"></i>Add part
+        </button>
         <button type="button" class="btn btn-sm btn-outline-secondary ms-2" @onclick="ToggleDetails"
                 aria-expanded="@(showDetails ? "true" : "false")" aria-controls="scheme-editor-details">
             <i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>Details
@@ -188,3 +182,5 @@
 </div>
 
 <PartTextModal @bind-Part="editedTextPart" />
+
+<SearchDialog Options="partSearchOptions" @bind-Visible="PartSearchIsShown" />

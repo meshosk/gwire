@@ -6,7 +6,7 @@ namespace Gwire.Components.SearchDialog;
 /// </summary>
 public sealed class SearchOptions<T> : SearchOptions
 {
-    private readonly TaskCompletionSource<T?> completion =
+    private TaskCompletionSource<T?> completion =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public SearchOptions(Func<T, IEnumerable<string>, IEnumerable<string>, int> relevanceFunc, Func<T, string> textFunc)
@@ -28,7 +28,14 @@ public sealed class SearchOptions<T> : SearchOptions
     public Task<T?> Result => completion.Task;
 
     internal override void Select(SearchItem item) =>
-        completion.TrySetResult(((SearchItem<T>)item).Item);
+        Complete(((SearchItem<T>)item).Item);
 
-    internal override void Cancel() => completion.TrySetResult(default);
+    internal override void Cancel() => Complete(default);
+
+    private void Complete(T? result)
+    {
+        var pending = completion;
+        completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        pending.TrySetResult(result);
+    }
 }

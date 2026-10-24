@@ -39,14 +39,13 @@
                     </div>
                 }
                 <label for="@inputId" class="form-label">Search</label>
-                <div class="position-relative">
+                <div class="position-relative" onkeydown="if (event.target.tagName === 'INPUT' && ['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) event.preventDefault();">
                     <input id="@inputId" class="form-control" placeholder="Enter text or #tag" autocomplete="off"
                            role="combobox" aria-autocomplete="list" aria-controls="@suggestionsId"
                            aria-expanded="@(showTagSuggestions ? "true" : "false")"
                            aria-activedescendant="@(showTagSuggestions && TagSuggestions.Count > 0 ? $"{suggestionsId}-{activeTagSuggestionIndex}" : null)"
                            @bind="draftValue" @bind:event="oninput" @bind:after="ResetTagSuggestions"
                            @onfocus="ResetTagSuggestions" @onblur="CloseTagSuggestions" @onkeydown="HandleKeyDown"
-                           onkeydown="if (['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) event.preventDefault();"
                            disabled="@responding" />
                     @if (showTagSuggestions)
                     {

@@ -2,7 +2,7 @@ namespace Gwire.Components.SearchDialog;
 
 /// <summary>
 /// Common settings and search state used by the dialog independently of the item type.
-/// Create a new dialog instance for each opening and pass its Options parameter once.
+/// Reuse the same options and dialog instance across openings.
 /// </summary>
 public abstract class SearchOptions
 {

@@ -1,3 +1,4 @@
+using Gwire.Components.SearchDialog;
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
@@ -107,10 +108,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     private int ZoomPercentage => (int)MathF.Round(zoom * 100);
 
-    /// <summary>
-    /// Index of the part selected in the "Add part" dropdown. -1 if no part is selected.
-    /// </summary>
-    private int selectedPartForAddIndex = -1;
+    private SearchOptions<CircuitPart> partSearchOptions = default!;
+    private bool PartSearchIsShown;
 
     /// <summary>
     /// The currently selected part in the scheme editor, or null if no part is selected.
@@ -126,7 +125,16 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     [Inject]
     private ILogger<SchemeEditor> Logger { get; set; } = default!;
 
-    protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
+    protected override void OnInitialized()
+    {
+        history.Changed += HandleHistoryChanged;
+        partSearchOptions = new SearchOptions<CircuitPart>(GetPartRelevance, part => part.DisplayName)
+        {
+            Title = "Add part",
+            Items = GwireParts.Parts,
+            AvailableTags = GwireParts.Tags
+        };
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -214,7 +222,6 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         Circuit = circuit;
         SourceGroundPairs.Clear();
         SelectedPart = null;
-        selectedPartForAddIndex = -1;
         selectedTag = string.Empty;
         activeTagSuggestionIndex = 0;
         CloseTagSuggestions();
@@ -332,16 +339,29 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         history.addRedoAction(action);
     }
 
-    private void AddSelectedPart()
+    private async Task SearchPartsAsync()
     {
-        if (history.IsFrozen || selectedPartForAddIndex < 0 || selectedPartForAddIndex >= GwireParts.Parts.Count)
+        if (history.IsFrozen || PartSearchIsShown)
         {
             return;
         }
 
-        var action = AddPartAction.CreatePart(Circuit, this, GwireParts.Parts[selectedPartForAddIndex]);
+        PartSearchIsShown = true;
+        var selectedPart = await partSearchOptions.Result;
+
+        if (selectedPart is null || history.IsFrozen)
+        {
+            return;
+        }
+
+        var action = AddPartAction.CreatePart(Circuit, this, selectedPart);
         action.Redo();
         history.addRedoAction(action);
     }
+
+    private static int GetPartRelevance(CircuitPart part, IEnumerable<string> tags, IEnumerable<string> textTerms) =>
+        tags.Count(tag => part.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        + textTerms.Count(term => part.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+            || part.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
 
 }

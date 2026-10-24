@@ -123,10 +123,10 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
         var partFiles = new List<string>();
         try
         {
-            partFiles = await httpClient.GetFromJsonAsync<List<string>>(partsIndexUrl);
-            if (partFiles is null)
+            var loadedPartFiles = await httpClient.GetFromJsonAsync<List<string>>(partsIndexUrl);
+            partFiles = loadedPartFiles ?? [];
+            if (loadedPartFiles is null)
             {
-                partFiles = [];
                 Trace.WriteLine($"The Gwire parts catalog parts index file '{partsIndexFile}' is empty. No parts will be available.");
             }
         }
@@ -146,7 +146,7 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
                     return null;
                 }
 
-                part!.IsFromRepo = true;
+                part.IsFromRepo = true;
                 return part;
             } catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -155,6 +155,6 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
             return null;
         }));
 
-        return [.. parts];
+        return [.. parts.OfType<CircuitPart>()];
     }
 }
