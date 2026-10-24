@@ -155,6 +155,7 @@ public partial class PartEditor
     public async ValueTask DisposeAsync()
     {
         history.Changed -= HandleHistoryChanged;
+        GwireParts.Changed -= HandleRepositoryChanged;
         history.Clear();
         if (shortcutReference is not null)
         {

@@ -33,6 +33,10 @@
         <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService" title="@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")" aria-label="@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")">
             <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
         </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ReloadRepository" disabled="@history.IsFrozen"
+                title="Reload repository data" aria-label="Reload repository data">
+            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+        </button>
         <div class="btn-group btn-group-sm" role="group" aria-label="Edit history">
             <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)" title="Undo" aria-label="Undo">
                 <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
@@ -204,6 +208,7 @@
 
 									            <div class="d-grid gap-2">
 										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => AddConnectionGroup(state))">Add group</button>
+										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => CopyState(state))">Create copy</button>
 										            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveState(state))">Remove state</button>
 									            </div>
 
@@ -218,7 +223,11 @@
 															            Connected:
 															            @foreach (var connectedPin in group.Item.ConnectedPints)
 															            {
-																            <span class="badge text-bg-secondary">@connectedPin.Label</span>
+																            <span class="badge text-bg-secondary d-inline-flex align-items-center gap-1">
+																                @connectedPin.Label
+																                <button type="button" class="btn-close btn-close-white" aria-label="Remove @connectedPin.Label from group"
+																                        @onclick="() => ExecuteEdit(() => group.Item.ConnectedPints.Remove(connectedPin))"></button>
+																            </span>
 															            }
 														            </div>
 														            <div class="d-flex flex-wrap gap-2">

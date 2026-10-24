@@ -15,6 +15,9 @@ namespace Gwire.Pages;
 
 public partial class PartEditor : ComponentBase, IAsyncDisposable
 {
+    [CascadingParameter(Name = "ReloadRepository")]
+    public EventCallback ReloadRepository { get; set; }
+
     [Inject]
     private IJSRuntime JS { get; set; } = default!;
 
@@ -77,9 +80,12 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         .Take(8)
         .ToList();
 
+    private void HandleRepositoryChanged() => StateHasChanged();
+
     protected override void OnInitialized()
     {
         history.Changed += HandleHistoryChanged;
+        GwireParts.Changed += HandleRepositoryChanged;
         partSearchOptions = new SearchOptions<CircuitPart>(
             (part, tags, textTerms) =>
             {
@@ -242,6 +248,19 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         EditedPart.States.Add(state);
         SelectActiveState(state);
         ActiveConnectionGroup = null;
+    }
+
+    private void CopyState(PartState state)
+    {
+        var copy = new PartState
+        {
+            Label = $"{state.Label} copy",
+            ConnectionGroups = state.ConnectionGroups.Select(group => new ConnectionGroup
+            {
+                ConnectedPints = group.ConnectedPints.ToList()
+            }).ToList()
+        };
+        EditedPart.States.Add(copy);
     }
 
     private void RemoveState(PartState state)
