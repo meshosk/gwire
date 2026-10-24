@@ -1,7 +1,6 @@
 .cable-line {
     fill: none;
     stroke-linejoin: round;
-    stroke: #3d647a;
     stroke-linecap: round;
     stroke-width: 4;
     pointer-events: stroke;
@@ -26,9 +25,10 @@
     fill: #ffc107;
 }
 
-.cable-line.cable-selected {
+.cable-selection-outline {
     stroke: #ffc107;
-    stroke-width: 6;
+    stroke-width: 8;
+    pointer-events: none;
 }
 
 .cable-connection-point.cable-selected {

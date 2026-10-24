@@ -60,6 +60,18 @@ public partial class CablePartRenderer : IDisposable
         ? Task.CompletedTask
         : IsSelectedChanged.InvokeAsync(true);
 
+    private void ChangeColor(string color)
+    {
+        if (History.IsFrozen || color == CablePart.Color)
+        {
+            return;
+        }
+
+        var action = new ChangeCableColorAction(CablePart, CablePart.Color, color);
+        action.Redo();
+        History.addRedoAction(action);
+    }
+
     private bool CanAddBendPoint(Point position) =>
         !History.IsFrozen && CablePart.FindBendPointInsertion(position) is not null;
 

@@ -14,8 +14,9 @@
                     <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
                 </button>
                 <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SearchSchemesAsync"
-                        disabled="@(GwireParts.Schemes.Count == 0 || history.IsFrozen || SchemeSearchIsShown)" title="Open scheme" aria-label="Open scheme">
-                    <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+                        disabled="@(GwireParts.Schemes.Count == 0 || history.IsFrozen || SchemeSearchIsShown)" 
+                        title="Get scheme from repo" aria-label="Get scheme from repo">
+                    <i class="fa-solid fa-cloud-arrow-down"  aria-hidden="true"></i>
                 </button>
                 <label class="btn btn-sm btn-outline-primary @(history.IsFrozen ? "disabled" : null)" for="scheme-import" title="Import JSON" aria-label="Import JSON">
                     <i class="fa-solid fa-file-import" aria-hidden="true"></i>

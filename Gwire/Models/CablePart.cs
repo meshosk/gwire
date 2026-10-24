@@ -7,6 +7,8 @@ namespace Gwire.Models;
 /// </summary>
 public sealed class CablePart : BaseCircuitPart
 {
+    public string Color { get; set; } = "#000000";
+
     /// <summary>
     /// Ordered bend points in scheme coordinates, between the two electrical endpoints.
     /// </summary>
