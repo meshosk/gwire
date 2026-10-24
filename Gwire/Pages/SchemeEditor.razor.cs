@@ -450,6 +450,18 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
+    private void DuplicatePart(CircuitPart part)
+    {
+        if (history.IsFrozen || !Circuit.Parts.Contains(part))
+        {
+            return;
+        }
+
+        var action = AddPartAction.CreatePart(Circuit, this, part);
+        action.Redo();
+        history.addRedoAction(action);
+    }
+
     private async Task SearchPartsAsync()
     {
         if (history.IsFrozen || PartSearchIsShown)

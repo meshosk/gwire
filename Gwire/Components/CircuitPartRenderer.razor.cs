@@ -35,6 +35,9 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
         public EventCallback OnDelete { get; set; }
 
         [Parameter]
+        public EventCallback OnDuplicate { get; set; }
+
+        [Parameter]
         public bool IsSelected { get; set; }
     
         [Parameter]

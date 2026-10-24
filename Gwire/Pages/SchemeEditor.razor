@@ -175,6 +175,7 @@
                     {
                         <CircuitPartRenderer @key="part" CircuitPart="part" Zoom="zoom"
                             OnDelete="() => DeletePart(part)"
+                            OnDuplicate="() => DuplicatePart(part)"
                             OnEditText="value => editedTextPart = value"
                                              @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
                                              @bind-IsSelected:set="value => SetPartSelection(part, value)" />

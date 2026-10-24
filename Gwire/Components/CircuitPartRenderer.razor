@@ -38,7 +38,7 @@
     }
 </g>
 
-@if (OnDelete.HasDelegate || CircuitPart.States.Count > 1 || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
+@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.States.Count > 1 || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
 {
     <SvgContextMenu Target="@("#" + elementReferenceId)">
         @if (CircuitPart.States.Count > 1)
@@ -57,6 +57,12 @@
         {
             <SvgContextMenuItem OnClick="() => OnEditText.InvokeAsync(CircuitPart)" Disabled="@History.IsFrozen">
                 Edit text…
+            </SvgContextMenuItem>
+        }
+        @if (OnDuplicate.HasDelegate)
+        {
+            <SvgContextMenuItem OnClick="() => OnDuplicate.InvokeAsync()" Disabled="@History.IsFrozen">
+                Duplicate
             </SvgContextMenuItem>
         }
         @if (OnDelete.HasDelegate)
