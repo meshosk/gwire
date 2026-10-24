@@ -1,0 +1,26 @@
+<div @ref="modalElement" class="modal" tabindex="-1" aria-labelledby="repository-loading-title" aria-describedby="repository-loading-description">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" aria-busy="@(Error is null ? "true" : "false")">
+            <div class="modal-body text-center py-4" role="status" aria-live="polite">
+                @if (Error is null)
+                {
+                    <div class="spinner-border text-primary mb-3" aria-hidden="true"></div>
+                    <h2 class="h5" id="repository-loading-title">Loading repository data…</h2>
+                    <p class="mb-0 text-body-secondary" id="repository-loading-description">Please wait while parts, tags, and the scheme catalog are being loaded.</p>
+                }
+                else
+                {
+                    <h2 class="h5" id="repository-loading-title">Repository unavailable</h2>
+                    <p class="mb-0 text-body-secondary" id="repository-loading-description">@Error</p>
+                }
+            </div>
+            @if (Error is not null)
+            {
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="ContinueRequested">Continue without repository</button>
+                    <button type="button" class="btn btn-primary" @onclick="LoadRequested">Retry</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

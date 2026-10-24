@@ -15,5 +15,4 @@ builder.Services.AddScoped<UndoRedoService>();
 builder.Services.AddScoped<SchemePdfExporter>();
 
 var host = builder.Build();
-await host.Services.GetRequiredService<GwirePartsService>().InitializeAsync();
 await host.RunAsync();

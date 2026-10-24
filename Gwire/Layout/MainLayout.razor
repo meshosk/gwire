@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Sections
 
-<div class="app-shell">
+<div class="app-shell" inert="@(canUseApp ? null : string.Empty)">
     <header class="app-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Main toolbar">
         <nav class="border-end pe-2" aria-label="Editors">
             <NavLink href="scheme-editor" class="btn btn-sm btn-outline-secondary" title="Scheme editor" aria-label="Scheme editor">
@@ -17,9 +17,17 @@
     </header>
 
     <main class="workspace">
-        @Body
+        @if (canUseApp)
+        {
+            @Body
+        }
     </main>
 </div>
 
 <MessageToasts />
 <ConfirmationModal />
+
+@if (!canUseApp)
+{
+    <RepositoryLoadingDialog Error="@repositoryError" LoadRequested="LoadRepositoryAsync" ContinueRequested="ContinueWithoutRepository" />
+}
