@@ -93,6 +93,7 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
             .OrderByDescending(item => hasFilters ? item.Relevance(Options.Tags, Options.TextTerms) : 0)
             .Take(5)
             .ToList();
+            StateHasChanged();
     }
 
     private void ResetTagSuggestions()
@@ -170,6 +171,13 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
         CloseTagSuggestions();
         activeTagSuggestionIndex = 0;
         UpdateResults();
+    }
+
+    private void ClearFilters()
+    {
+        Options.Tags.Clear();
+        Options.TextTerms.Clear();
+        ClearInput();
     }
 
     private void RemoveTag(string tag)

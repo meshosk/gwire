@@ -9,8 +9,14 @@
                 <div class="list-group mb-3" aria-label="Search results" aria-live="polite">
                     @foreach (var match in results)
                     {
+                        var score = Options.Tags.Count > 0 || Options.TextTerms.Count > 0
+                            ? match.Relevance(Options.Tags, Options.TextTerms)
+                            : 0;
                         <div class="list-group-item d-flex align-items-center justify-content-between gap-2">
-                            <span class="search-result-text">@match.Text</span>
+                            <span class="search-result-text">
+                                <span class="badge text-bg-secondary me-2" title="Relevance score"
+                                      aria-label="@($"Relevance score: {score}")">@score</span>@match.Text
+                            </span>
                             <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => SelectAsync(match)" disabled="@responding">Select</button>
                         </div>
                     }
@@ -25,7 +31,7 @@
                         @foreach (var tag in Options.Tags)
                         {
                             <span class="badge text-bg-secondary d-flex align-items-center gap-1">
-                                @tag
+                                #@tag
                                 <button type="button" class="btn-close btn-close-white" aria-label="Remove @tag tag" @onclick="() => RemoveTag(tag)" disabled="@responding"></button>
                             </span>
                         }
@@ -38,7 +44,15 @@
                         }
                     </div>
                 }
-                <label for="@inputId" class="form-label">Search</label>
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <label for="@inputId" class="form-label mb-0">Search</label>
+                    @if (Options.Tags.Count > 0 || Options.TextTerms.Count > 0)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ClearFilters" disabled="@responding">
+                            <i class="fa-solid fa-filter-circle-xmark me-1" aria-hidden="true"></i>Clear all filters
+                        </button>
+                    }
+                </div>
                 <div class="position-relative" onkeydown="if (event.target.tagName === 'INPUT' && ['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) event.preventDefault();">
                     <input id="@inputId" class="form-control" placeholder="Enter text or #tag" autocomplete="off"
                            role="combobox" aria-autocomplete="list" aria-controls="@suggestionsId"

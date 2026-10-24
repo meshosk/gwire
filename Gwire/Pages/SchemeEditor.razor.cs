@@ -128,7 +128,18 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     protected override void OnInitialized()
     {
         history.Changed += HandleHistoryChanged;
-        partSearchOptions = new SearchOptions<CircuitPart>(GetPartRelevance, part => part.DisplayName)
+        partSearchOptions = new SearchOptions<CircuitPart>(
+            (part, tags, textTerms) =>
+            {
+                var name = part.Name.ToLowerInvariant();
+                var description = part.Description.ToLowerInvariant();
+                var partTags = part.Tags.Select(tag => tag.ToLowerInvariant()).ToHashSet();
+
+                return tags.Count(tag => partTags.Contains(tag.ToLowerInvariant()))
+                    + textTerms.Select(term => term.ToLowerInvariant())
+                        .Count(term => name.Contains(term) || description.Contains(term));
+            },
+            part => part.DisplayName)
         {
             Title = "Add part",
             Items = GwireParts.Parts,
@@ -358,10 +369,5 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         action.Redo();
         history.addRedoAction(action);
     }
-
-    private static int GetPartRelevance(CircuitPart part, IEnumerable<string> tags, IEnumerable<string> textTerms) =>
-        tags.Count(tag => part.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
-        + textTerms.Count(term => part.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
-            || part.Description.Contains(term, StringComparison.OrdinalIgnoreCase));
 
 }
