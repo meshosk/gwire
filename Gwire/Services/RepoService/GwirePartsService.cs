@@ -35,6 +35,20 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
     /// </summary>
     public List<GwireSchemeInfo> Schemes { get; } = [];
 
+    private Uri? schemesDirectoryUrl;
+
+    public async Task<Stream> LoadSchemeAsync(GwireSchemeInfo scheme)
+    {
+        ArgumentNullException.ThrowIfNull(scheme);
+        if (schemesDirectoryUrl is null)
+        {
+            throw new InvalidDataException("The catalog does not specify a schemes directory.");
+        }
+
+        var schemeUrl = new Uri(schemesDirectoryUrl, scheme.File);
+        return await httpClient.GetStreamAsync(schemeUrl);
+    }
+
     public void SavePart(CircuitPart part)
     {
         // no nulls 
@@ -63,6 +77,10 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
         var parts = await LoadPartsAsync(index.PartsDirectory, index.PartsIndex);
         var tags = await tagsTask;
         var schemes = await schemesTask;
+
+        schemesDirectoryUrl = string.IsNullOrWhiteSpace(index.SchemesDirectory)
+            ? null
+            : new Uri(new Uri(IndexUrl), index.SchemesDirectory);
 
         Tags.Clear();
     

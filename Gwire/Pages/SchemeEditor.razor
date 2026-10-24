@@ -6,63 +6,77 @@
 
 <PageTitle>Gwire - The scheme editor</PageTitle>
 
-<div @ref="editorElement" class="scheme-editor" tabindex="0">
-    <div class="scheme-editor-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Scheme editor toolbar">
-        <button type="button" class="btn btn-sm btn-outline-primary me-2" @onclick="NewScheme" disabled="@history.IsFrozen">
-            <i class="fa-solid fa-file-circle-plus me-1" aria-hidden="true"></i>New scheme
-        </button>
-        <label class="btn btn-sm btn-outline-primary me-2 mb-0 @(history.IsFrozen ? "disabled" : null)" for="scheme-import">
-            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
-        </label>
-        <InputFile id="scheme-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportSchemeAsync" disabled="@history.IsFrozen" />
-        <button type="button" class="btn btn-sm btn-outline-primary me-2" @onclick="ExportSchemeAsync" disabled="@history.IsFrozen">
-            <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary me-2" data-scheme-pan-toggle
-                aria-label="Pan mode" aria-pressed="false" title="Edit mode (hold Space to pan)">
-            <i class="fa-solid fa-computer-mouse" aria-hidden="true"></i>
-        </button>
-        <div class="input-group input-group-sm scheme-editor-zoom me-2" role="group" aria-label="Zoom">
-            <button type="button" class="btn btn-sm btn-outline-secondary" title="Zoom in" aria-label="Zoom in"
-                    @onclick="() => SetZoomAsync(zoom + 0.1f)" disabled="@(zoom >= 2f || history.IsFrozen)">
+<SectionContent SectionName="editor-toolbar">
+    <div class="scheme-editor-toolbar" aria-label="Scheme editor toolbar">
+        <div class="scheme-editor-toolbar-actions">
+            <div class="input-group input-group-sm scheme-editor-zoom me-2" role="group" aria-label="Zoom">
+                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="NewScheme" disabled="@history.IsFrozen" title="New scheme" aria-label="New scheme">
+                    <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SearchSchemesAsync"
+                        disabled="@(GwireParts.Schemes.Count == 0 || history.IsFrozen || SchemeSearchIsShown)" title="Open scheme" aria-label="Open scheme">
+                    <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+                </button>
+                <label class="btn btn-sm btn-outline-primary @(history.IsFrozen ? "disabled" : null)" for="scheme-import" title="Import JSON" aria-label="Import JSON">
+                    <i class="fa-solid fa-file-import" aria-hidden="true"></i>
+                </label>
+                <InputFile id="scheme-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportSchemeAsync" disabled="@history.IsFrozen" />
+                <button type="button" class="btn btn-sm btn-outline-primary " @onclick="ExportSchemeAsync" disabled="@history.IsFrozen" title="Export JSON" aria-label="Export JSON">
+                    <i class="fa-solid fa-file-export" aria-hidden="true"></i>
+                </button>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="scheme-pan-toggle"
+                    aria-label="Pan mode" aria-pressed="false" title="Edit mode (hold Space to pan)">
+                <i class="fa-solid fa-computer-mouse" aria-hidden="true"></i>
+            </button>
+            <div class="input-group input-group-sm scheme-editor-zoom position-fixed bottom-0 end-0 m-3 z-3" role="group" aria-label="Zoom">
+                <button type="button" class="btn btn-sm btn-outline-secondary" title="Zoom in" aria-label="Zoom in"
+                        @onclick="() => SetZoomAsync(zoom + 0.1f)" disabled="@(zoom >= 2f || history.IsFrozen)">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" title="Zoom out" aria-label="Zoom out"
+                        @onclick="() => SetZoomAsync(zoom - 0.1f)" disabled="@(zoom <= 0.2f || history.IsFrozen)">
+                    <i class="fa-solid fa-minus" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" title="Reset zoom to 100%" aria-label="Reset zoom to 100%"
+                        @onclick="() => SetZoomAsync(1f)" disabled="@history.IsFrozen">
+                    <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                </button>
+                <input type="number" class="form-control text-center" min="20" max="200" step="1" inputmode="numeric"
+                       aria-label="Zoom percentage" @bind:get="ZoomPercentage" @bind:set="SetZoomPercentageAsync"
+                       disabled="@history.IsFrozen" />
+            </div>
+            <div class="btn-group btn-group-sm me-2" role="group" aria-label="Edit history">
+                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)" title="Undo" aria-label="Undo">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)" title="Redo" aria-label="Redo">
+                    <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2" role="group" aria-label="Source-ground pairs">
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ToggleDetails"
+                    aria-expanded="@(showDetails ? "true" : "false")" aria-controls="scheme-editor-details" title="Details" aria-label="Details">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            </button>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Add parts">
+                <button type="button" class="btn btn-sm btn-primary" @onclick="AddCable" disabled="@history.IsFrozen" title="Add cable" aria-label="Add cable">
+                    <span class="add-cable-icon" aria-hidden="true">
+                        <i class="fa-solid fa-plug"></i>
+                        <i class="fa-solid fa-plus add-cable-plus"></i>
+                    </span>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" @onclick="SearchPartsAsync"
+                        disabled="@(GwireParts.Parts.Count == 0 || history.IsFrozen || PartSearchIsShown)" title="Add part" aria-label="Add part">
+                    <span class="add-part-icon" aria-hidden="true">
+                        <i class="fa-solid fa-microchip"></i>
+                        <i class="fa-solid fa-plus add-part-plus"></i>
+                    </span>
+                </button>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddSourceGroundPair" disabled="@history.IsFrozen" title="Add source-ground pair" aria-label="Add source-ground pair">
                 <i class="fa-solid fa-plus" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" title="Zoom out" aria-label="Zoom out"
-                    @onclick="() => SetZoomAsync(zoom - 0.1f)" disabled="@(zoom <= 0.2f || history.IsFrozen)">
-                <i class="fa-solid fa-minus" aria-hidden="true"></i>
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" title="Reset zoom to 100%" aria-label="Reset zoom to 100%"
-                    @onclick="() => SetZoomAsync(1f)" disabled="@history.IsFrozen">100%</button>
-            <input type="number" class="form-control text-center" min="20" max="200" step="1" inputmode="numeric"
-                   aria-label="Zoom percentage" @bind:get="ZoomPercentage" @bind:set="SetZoomPercentageAsync"
-                   disabled="@history.IsFrozen" />
-        </div>
-        <div class="btn-group btn-group-sm me-2" role="group" aria-label="Edit history">
-            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)">
-                <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>Undo
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)">
-                <i class="fa-solid fa-rotate-right me-1" aria-hidden="true"></i>Redo
-            </button>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-danger me-2" @onclick="DeleteSelectedPart"
-                disabled="@(SelectedPart is null || history.IsFrozen)">
-            <i class="fa-solid fa-trash me-1" aria-hidden="true"></i>Delete selected
-        </button>
-        <button type="button" class="btn btn-sm btn-primary" @onclick="AddCable" disabled="@history.IsFrozen">
-            <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add cable
-        </button>
-        <button type="button" class="btn btn-sm btn-primary ms-2" @onclick="SearchPartsAsync"
-                disabled="@(GwireParts.Parts.Count == 0 || history.IsFrozen || PartSearchIsShown)">
-            <i class="fa-solid fa-magnifying-glass me-1" aria-hidden="true"></i>Add part
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" @onclick="ToggleDetails"
-                aria-expanded="@(showDetails ? "true" : "false")" aria-controls="scheme-editor-details">
-            <i class="fa-solid fa-circle-info me-1" aria-hidden="true"></i>Details
-        </button>
-        <div class="d-flex flex-wrap align-items-center gap-2 mt-2" role="group" aria-label="Source-ground pairs">
-            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="AddSourceGroundPair" disabled="@history.IsFrozen">
-                <i class="fa-solid fa-plus me-1" aria-hidden="true"></i>Add source-ground pair
             </button>
             @foreach (var (pair, index) in SourceGroundPairs.Select((pair, index) => (pair, index)))
             {
@@ -75,7 +89,9 @@
             }
         </div>
     </div>
+</SectionContent>
 
+<div @ref="editorElement" class="scheme-editor" tabindex="0">
     <div class="scheme-editor-content">
         @if (showDetails)
         {
@@ -184,3 +200,5 @@
 <PartTextModal @bind-Part="editedTextPart" />
 
 <SearchDialog Options="partSearchOptions" @bind-Visible="PartSearchIsShown" />
+
+<SearchDialog Options="schemeSearchOptions" @bind-Visible="SchemeSearchIsShown" />

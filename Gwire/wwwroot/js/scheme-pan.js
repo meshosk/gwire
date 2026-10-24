@@ -20,7 +20,7 @@ window.gwire = window.gwire || {};
             this.editor = editor;
             this.receiver = receiver;
             this.svg = editor.querySelector(".scheme-editor-canvas");
-            this.toggle = editor.querySelector("[data-scheme-pan-toggle]");
+            this.toggle = document.getElementById("scheme-pan-toggle");
             this.icon = this.toggle.querySelector("i");
             this.grid = this.svg.querySelector('rect[fill="url(#scheme-grid)"]');
             this.controller = new AbortController();
@@ -77,7 +77,7 @@ window.gwire = window.gwire || {};
             // Leave text input, modified shortcuts, and unrelated controls to their own handlers.
             if (event.code !== "Space" || event.ctrlKey || event.metaKey || event.altKey ||
                 event.target.closest("input, textarea, select, [contenteditable]") ||
-                (event.target.closest("button, a") && event.target.closest("[data-scheme-pan-toggle]") !== this.toggle &&
+                (event.target.closest("button, a") && event.target.closest("#scheme-pan-toggle") !== this.toggle &&
                  !this.svg.matches(":hover"))) {
                 return;
             }

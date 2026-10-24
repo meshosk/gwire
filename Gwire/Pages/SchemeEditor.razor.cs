@@ -110,6 +110,21 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     private SearchOptions<CircuitPart> partSearchOptions = default!;
     private bool PartSearchIsShown;
+    private SearchOptions<GwireSchemeInfo> schemeSearchOptions = default!;
+    private bool SchemeSearchIsShown;
+    private (string Name, string Description, string[] Tags) unchangedSchemeDetails = (string.Empty, string.Empty, []);
+
+    [Inject]
+    private ConfirmationService ConfirmationService { get; set; } = default!;
+
+    private bool HasUnsavedChanges => history.HasEntries
+        || Circuit.Name != unchangedSchemeDetails.Name
+        || Circuit.Description != unchangedSchemeDetails.Description
+        || !Circuit.Tags.SequenceEqual(unchangedSchemeDetails.Tags);
+
+    private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
+        await ConfirmationService.ShowAsync("Unsaved changes",
+            "This scheme has unsaved changes. Do you want to discard them and continue?") == ConfirmationResult.YES;
 
     /// <summary>
     /// The currently selected part in the scheme editor, or null if no part is selected.
@@ -143,6 +158,23 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         {
             Title = "Add part",
             Items = GwireParts.Parts,
+            AvailableTags = GwireParts.Tags
+        };
+        schemeSearchOptions = new SearchOptions<GwireSchemeInfo>(
+            (scheme, tags, textTerms) =>
+            {
+                var name = scheme.Name.ToLowerInvariant();
+                var description = scheme.Description.ToLowerInvariant();
+                var schemeTags = scheme.Tags.Select(tag => tag.ToLowerInvariant()).ToHashSet();
+
+                return tags.Count(tag => schemeTags.Contains(tag.ToLowerInvariant()))
+                    + textTerms.Select(term => term.ToLowerInvariant())
+                        .Count(term => name.Contains(term) || description.Contains(term));
+            },
+            scheme => string.IsNullOrWhiteSpace(scheme.Name) ? scheme.File : scheme.Name)
+        {
+            Title = "Open scheme",
+            Items = GwireParts.Schemes,
             AvailableTags = GwireParts.Tags
         };
     }
@@ -217,9 +249,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void NewScheme()
+    private async Task NewScheme()
     {
-        if (history.IsFrozen)
+        if (history.IsFrozen || !await ConfirmDiscardChangesAsync() || history.IsFrozen)
         {
             return;
         }
@@ -231,6 +263,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     {
         history.Clear();
         Circuit = circuit;
+        unchangedSchemeDetails = (circuit.Name, circuit.Description, circuit.Tags.ToArray());
         SourceGroundPairs.Clear();
         SelectedPart = null;
         selectedTag = string.Empty;
@@ -238,28 +271,36 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         CloseTagSuggestions();
     }
 
-    private async Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs)
+    private Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs) =>
+        ImportSchemeAsync(() => Task.FromResult(eventArgs.File.OpenReadStream()));
+
+    private async Task ImportSchemeAsync(Func<Task<Stream>> openJsonStream)
     {
         if (history.IsFrozen)
         {
             return;
         }
 
+        Circuit circuit;
+        history.Freeze();
         try
         {
-            var circuit = await ObjectJsonSerializer.ImportAsync<Circuit>(eventArgs.File);
-            if (history.IsFrozen)
-            {
-                return;
-            }
-
-            SetCircuit(circuit);
-            MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
+            await using var stream = await openJsonStream();
+            circuit = await ObjectJsonSerializer.ImportAsync<Circuit>(stream);
         }
-        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        catch (Exception exception) when (exception is HttpRequestException or InvalidDataException or IOException or TaskCanceledException)
         {
-            MessageService.Show("Scheme import failed", "The selected file does not contain valid scheme JSON or could not be read.", MessageType.Danger);
+            Logger.LogError(exception, "Scheme import failed.");
+            MessageService.Show("Scheme import failed", "The scheme JSON could not be read or does not contain a valid scheme.", MessageType.Danger);
+            return;
         }
+        finally
+        {
+            history.Unfreeze();
+        }
+
+        SetCircuit(circuit);
+        MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
     }
 
     private async Task ExportSchemeAsync()
@@ -348,6 +389,24 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         var action = AddPartAction.CreateCable(Circuit, this);
         action.Redo();
         history.addRedoAction(action);
+    }
+
+    private async Task SearchSchemesAsync()
+    {
+        if (history.IsFrozen || SchemeSearchIsShown || !await ConfirmDiscardChangesAsync() || history.IsFrozen)
+        {
+            return;
+        }
+
+        SchemeSearchIsShown = true;
+        StateHasChanged();
+        var scheme = await schemeSearchOptions.Result;
+        if (scheme is null || history.IsFrozen)
+        {
+            return;
+        }
+
+        await ImportSchemeAsync(() => GwireParts.LoadSchemeAsync(scheme));
     }
 
     private async Task SearchPartsAsync()

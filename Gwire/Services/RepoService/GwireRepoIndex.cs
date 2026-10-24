@@ -15,5 +15,8 @@ public sealed class GwireRepoIndex
 
     public string PartsIndex { get; set; } = string.Empty;
 
+    [JsonPropertyName("schemesDir")]
+    public string SchemesDirectory { get; set; } = string.Empty;
+
     public string SchemesIndex { get; set; } = string.Empty;
 }

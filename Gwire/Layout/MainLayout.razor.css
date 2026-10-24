@@ -5,21 +5,29 @@
 }
 
 .app-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: center;
     min-height: 3.5rem;
 }
 
-.toolbar-button {
-    width: 2.5rem;
-    height: 2.5rem;
-    display: inline-grid;
-    place-items: center;
-    padding: 0;
+.editor-toolbar-content {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    grid-template-rows: subgrid;
+    align-self: stretch;
+    min-width: 0;
 }
 
-.toolbar-button svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    fill: currentColor;
+.app-toolbar nav {
+    display: grid;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    grid-template-rows: subgrid;
+    align-self: stretch;
+    align-items: center;
 }
 
 .workspace {

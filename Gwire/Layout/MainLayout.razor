@@ -1,19 +1,21 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Sections
+
 <div class="app-shell">
-
-    <header class="app-toolbar navbar border-bottom bg-body-tertiary px-2" aria-label="Main toolbar">
-        <div class="d-flex gap-1">
-
-	        <a href="scheme-editor" class="btn btn-outline-secondary toolbar-button" title="Scheme editor">
-		        Scheme editor
-	        </a>
-	        <a href="part-editor" class="btn btn-outline-secondary toolbar-button" title="New" aria-label="New">
-		        Parts editor
-	        </a>
-	      
+    <header class="app-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Main toolbar">
+        <nav class="border-end pe-2" aria-label="Editors">
+            <NavLink href="scheme-editor" class="btn btn-sm btn-outline-secondary" title="Scheme editor" aria-label="Scheme editor">
+                <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+            </NavLink>
+            <NavLink href="part-editor" class="btn btn-sm btn-outline-secondary" title="Parts editor" aria-label="Parts editor">
+                <i class="fa-solid fa-microchip" aria-hidden="true"></i>
+            </NavLink>
+        </nav>
+        <div class="editor-toolbar-content">
+            <SectionOutlet SectionName="editor-toolbar" />
         </div>
     </header>
-     
+
     <main class="workspace">
         @Body
     </main>

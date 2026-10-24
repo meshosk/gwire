@@ -4,23 +4,24 @@
 @using Gwire.Extensions
 @using Gwire.Models
 @using Gwire.Models.Base
+@using Microsoft.AspNetCore.Components.Sections
 
 <PageTitle>Gwire - The part editor</PageTitle>
 
 <NavigationLock ConfirmExternalNavigation="HasUnsavedChanges" OnBeforeInternalNavigation="ConfirmNavigationAsync" />
 
-<div class="part-editor" @ref="editorElement" tabindex="0">
-    <div class="part-editor-toolbar d-flex flex-wrap align-items-center gap-2 border-bottom bg-body-tertiary px-2 py-2"
+<SectionContent SectionName="editor-toolbar">
+    <div class="part-editor-toolbar d-flex flex-wrap align-items-center gap-2"
          role="toolbar" aria-label="Part editor toolbar">
-        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="NewPart">
-            <i class="fa-solid fa-file-circle-plus me-1" aria-hidden="true"></i>New part
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="NewPart" title="New part" aria-label="New part">
+            <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
         </button>
-        <label class="btn btn-sm btn-outline-primary mb-0" for="part-import">
-            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>Import JSON
+        <label class="btn btn-sm btn-outline-primary mb-0" for="part-import" title="Import JSON" aria-label="Import JSON">
+            <i class="fa-solid fa-file-import" aria-hidden="true"></i>
         </label>
         <InputFile id="part-import" class="visually-hidden" accept="application/json,.json" OnChange="ImportPartAsync" />
-        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ExportPartAsync">
-            <i class="fa-solid fa-file-export me-1" aria-hidden="true"></i>Export JSON
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ExportPartAsync" title="Export JSON" aria-label="Export JSON">
+            <i class="fa-solid fa-file-export" aria-hidden="true"></i>
         </button>
         <div class="input-group input-group-sm part-editor-part-picker">
             <select class="form-select" aria-label="Part to edit" @bind="selectedPartId" disabled="@(!AvailableParts.Any())">
@@ -30,20 +31,23 @@
                     <option value="@part.Id">@part.DisplayName</option>
                 }
             </select>
-            <button type="button" class="btn btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)">
-                <i class="fa-solid fa-folder-open me-1" aria-hidden="true"></i>Open
+            <button type="button" class="btn btn-outline-primary" @onclick="LoadSelectedPart" disabled="@(selectedPartId is null)" title="Open" aria-label="Open">
+                <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
             </button>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService">
-            <i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService" title="@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")" aria-label="@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")">
+            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)">
-            <i class="fa-solid fa-rotate-left me-1" aria-hidden="true"></i>Undo
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Undo" disabled="@(!history.CanUndo)" title="Undo" aria-label="Undo">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)">
-            <i class="fa-solid fa-rotate-right me-1" aria-hidden="true"></i>Redo
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="history.Redo" disabled="@(!history.CanRedo)" title="Redo" aria-label="Redo">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
         </button>
     </div>
+</SectionContent>
+
+<div class="part-editor" @ref="editorElement" tabindex="0">
 	<div class="part-editor-layout">
 		<aside class="editor-sidebar">
 			<div class="editor-controls">
