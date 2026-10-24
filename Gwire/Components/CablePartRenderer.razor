@@ -9,9 +9,9 @@
    @onpointercancel="CancelDrag">
     @if (IsSelected)
     {
-        <polyline points="@CablePath" class="cable-line cable-selection-outline" aria-hidden="true" />
+        <path d="@CablePath" class="cable-line cable-selection-outline" aria-hidden="true" />
     }
-    <polyline points="@CablePath" stroke="@CablePart.Color" class="cable-line" />
+    <path d="@CablePath" stroke="@CablePart.Color" class="cable-line" />
 
     <CableBendPoints CablePart="CablePart" IsSelected="IsSelected" Zoom="Zoom" />
 

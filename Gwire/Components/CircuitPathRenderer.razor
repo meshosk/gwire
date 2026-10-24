@@ -3,7 +3,7 @@
     <g @key="pair" stroke="@pair.LineColor" aria-label="Connections reachable from power source">
         @foreach (var points in GetPathPoints(pair))
         {
-            <polyline points="@points" class="circuit-path" />
+            <path d="@points" class="circuit-path" />
         }
     </g>
 }
@@ -16,11 +16,11 @@
         <g @key="pair.Ground" aria-hidden="true">
             @foreach (var points in paths)
             {
-                <polyline points="@points" stroke="@pair.LineColor" class="circuit-path circuit-short-outline" />
+                <path d="@points" stroke="@pair.LineColor" class="circuit-path circuit-short-outline" />
             }
             @foreach (var points in paths)
             {
-                <polyline points="@points" stroke="@GetInvertedColor(pair.LineColor)" class="circuit-path" />
+                <path d="@points" stroke="@GetInvertedColor(pair.LineColor)" class="circuit-path" />
             }
         </g>
     }

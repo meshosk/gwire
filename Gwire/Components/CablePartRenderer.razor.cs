@@ -49,12 +49,7 @@ public partial class CablePartRenderer : IDisposable
     [Parameter, EditorRequired]
     public Circuit Circuit { get; set; } = default!;
 
-    private IEnumerable<Point> RoutePoints => CablePart.BendPoints
-        .Prepend(CablePart.Points[0].LocalPosition)
-        .Append(CablePart.Points[1].LocalPosition);
-
-    private string CablePath => string.Join(" ", RoutePoints.Select(point =>
-        FormattableString.Invariant($"{point.X},{point.Y}")));
+    private string CablePath => CablePart.GetPathData();
 
     private Task SelectContextTarget() => History.IsFrozen || IsSelected
         ? Task.CompletedTask
@@ -83,7 +78,7 @@ public partial class CablePartRenderer : IDisposable
         }
 
         var bends = CablePart.BendPoints.ToList();
-        bends.Insert(bend.Index, bend.Position);
+        bends.Insert(bend.Index, new CableBendPoint(bend.Position.X, bend.Position.Y));
         var action = new ChangeCableRouteAction(CablePart, CablePart.BendPoints, bends);
         action.Redo();
         History.addRedoAction(action);

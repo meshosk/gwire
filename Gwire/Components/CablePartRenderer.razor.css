@@ -1,6 +1,6 @@
 .cable-line {
     fill: none;
-    stroke-linejoin: round;
+    stroke-linejoin: miter;
     stroke-linecap: round;
     stroke-width: 4;
     pointer-events: stroke;

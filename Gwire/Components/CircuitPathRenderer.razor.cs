@@ -152,22 +152,24 @@ public partial class CircuitPathRenderer : IDisposable
 
     private string GetPolylinePoints(IReadOnlyList<ConnectionPoint> path)
     {
-        var positions = new List<Point> { SourceGroundPair.GetPointPosition(path[0], SourceGroundPairs) };
+        var start = SourceGroundPair.GetPointPosition(path[0], SourceGroundPairs);
+        var data = new System.Text.StringBuilder(FormattableString.Invariant($"M {start.X},{start.Y}"));
         for (var index = 1; index < path.Count; index++)
         {
             var previous = path[index - 1];
             var current = path[index];
             if (previous.Owner is CablePart cable && ReferenceEquals(current.Owner, cable))
             {
-                positions.AddRange(ReferenceEquals(previous, cable.Points[0])
-                    ? cable.BendPoints
-                    : cable.BendPoints.AsEnumerable().Reverse());
+                data.Append(' ').Append(cable.GetPathData(!ReferenceEquals(previous, cable.Points[0])));
             }
-            positions.Add(SourceGroundPair.GetPointPosition(current, SourceGroundPairs));
+            else
+            {
+                var position = SourceGroundPair.GetPointPosition(current, SourceGroundPairs);
+                data.Append(FormattableString.Invariant($" L {position.X},{position.Y}"));
+            }
         }
 
-        return string.Join(" ", positions.Select(position =>
-            FormattableString.Invariant($"{position.X},{position.Y}")));
+        return data.ToString();
     }
 
     private static string GetInvertedColor(string color) =>

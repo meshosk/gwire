@@ -3,15 +3,15 @@ using Gwire.Models;
 namespace Gwire.UndoRedo.Actions;
 
 /// <summary>
-/// Restores a cable's bend points when a point is added or moved.
+/// Restores a cable's bend points, including their corner styles.
 /// </summary>
 public sealed class ChangeCableRouteAction : IUndoableAction
 {
     private readonly CablePart cable;
-    private readonly Point[] before;
-    private readonly Point[] after;
+    private readonly CableBendPoint[] before;
+    private readonly CableBendPoint[] after;
 
-    public ChangeCableRouteAction(CablePart cable, IEnumerable<Point> before, IEnumerable<Point> after)
+    public ChangeCableRouteAction(CablePart cable, IEnumerable<CableBendPoint> before, IEnumerable<CableBendPoint> after)
     {
         this.cable = cable;
         this.before = before.ToArray();
@@ -23,7 +23,7 @@ public sealed class ChangeCableRouteAction : IUndoableAction
     public void Undo() => Restore(before);
     public void Redo() => Restore(after);
 
-    private void Restore(Point[] points)
+    private void Restore(CableBendPoint[] points)
     {
         cable.BendPoints = points.Select(point => point.Copy()).ToList();
         cable.NotifyChanged();
