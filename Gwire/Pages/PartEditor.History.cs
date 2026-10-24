@@ -41,8 +41,6 @@ public partial class PartEditor
         }
     }
 
-    protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
-
     private void HandleHistoryChanged() => StateHasChanged();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

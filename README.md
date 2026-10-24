@@ -1,4 +1,4 @@
-﻿# Gwire
+﻿<h1><img src="logo/logo-wrap.png" alt="Gwire logo" width="64" /> Gwire</h1>
 
 As a guitar player who can modify and set up my instruments reasonably well, I have often been frustrated by guitar wiring diagrams. I simply want to find suitable diagrams and use them. However, there are several common problems:
 
@@ -23,24 +23,24 @@ __Migrated to a pure .NET 10 Blazor client app__
 ___TODO___:
 
 - [x] Move from JavaScript to .NET
-- [ ] Circuit parts editor
-- [ ] Circuit parts import/export
-- [ ] Circuit parts library
-- [ ] Circuit parts undo/redo
-- [ ] App icon
+- [x] Circuit parts editor
+- [x] Circuit parts import/export
+- [x] Circuit parts library
+- [x] Circuit parts undo/redo
+- [x] App icon
 - [ ] App design
 - [ ] UX improvements
-- [ ] Wiring diagram editor
-- [ ] Wiring diagram editor import/export
-- [ ] Wiring diagram editor undo/redo
+- [x] Wiring diagram editor
+- [x] Wiring diagram editor import/export
+- [x] Wiring diagram editor undo/redo
 - [ ] Wiring diagram snapshots for experimentation
-- [ ] Custom wire colours
-- [ ] Wiring diagram library
-- [ ] Wiring diagram PDF export
-- [ ] Wiring diagram circuit routing from coils
+- [x] Custom wire colours
+- [x] Wiring diagram library
+- [x] Wiring diagram PDF export
+- [x] Wiring diagram circuit routing from coils
 - [ ] Make it a PWA
 - [ ] Create an app wrapper and release it on GitHub for Electron or a similar platform
-- [ ] Add parts and wiring diagrams to a library, possibly in a separate repository
+- [x] Add parts and wiring diagrams to a library, possibly in a separate repository
 - [ ] Add a manual, wiki, or how-to guide
 
 ## VS Code development

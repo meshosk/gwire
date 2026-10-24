@@ -25,9 +25,11 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private UndoRedoService.UndoRedoHistoryWrapper history => UndoRedoService.getHistory(HistoryIds.SchemeEditor);
 
     private ElementReference editorElement;
+    private ElementReference pdfExportModal;
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
     private float zoom = 1;
     private bool showDetails;
+    private bool isLoadingScheme;
     private bool showSourceGroundPair = true;
     private string selectedTag = string.Empty;
     private bool showTagSuggestions;
@@ -242,6 +244,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     {
         history.Changed -= HandleHistoryChanged;
         history.Clear();
+        await JS.InvokeVoidAsync("gwire.hidePdfExportProgress", pdfExportModal);
         if (shortcutReference is not null)
         {
             await JS.InvokeVoidAsync("gwire.disableSchemePan", editorElement);
@@ -304,6 +307,40 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
         SetCircuit(circuit);
         MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
+    }
+
+    [Inject]
+    private SchemePdfExporter PdfExporter { get; set; } = default!;
+
+    private async Task ExportPdfAsync()
+    {
+        if (history.IsFrozen || Circuit.Parts.Count == 0)
+        {
+            return;
+        }
+
+        history.Freeze();
+        try
+        {
+            await JS.InvokeVoidAsync("gwire.showPdfExportProgress", pdfExportModal);
+            await PdfExporter.ExportAsync(editorElement, Circuit.Name);
+        }
+        catch (JSException exception)
+        {
+            Logger.LogError(exception, "Scheme PDF export failed.");
+            MessageService.Show("PDF export failed", "The PDF could not be created. Please try again; see the browser console for details.", MessageType.Danger);
+        }
+        finally
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("gwire.hidePdfExportProgress", pdfExportModal);
+            }
+            finally
+            {
+                history.Unfreeze();
+            }
+        }
     }
 
     private async Task ExportSchemeAsync()
@@ -391,7 +428,38 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        await ImportSchemeAsync(() => GwireParts.LoadSchemeAsync(scheme));
+        isLoadingScheme = true;
+        try
+        {
+            await ImportSchemeAsync(async () =>
+            {
+                await JS.InvokeVoidAsync("gwire.showPdfExportProgress", pdfExportModal);
+                return await GwireParts.LoadSchemeAsync(scheme);
+            });
+        }
+        finally
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("gwire.hidePdfExportProgress", pdfExportModal);
+            }
+            finally
+            {
+                isLoadingScheme = false;
+            }
+        }
+    }
+
+    private void DuplicatePart(CircuitPart part)
+    {
+        if (history.IsFrozen || !Circuit.Parts.Contains(part))
+        {
+            return;
+        }
+
+        var action = AddPartAction.CreatePart(Circuit, this, part);
+        action.Redo();
+        history.addRedoAction(action);
     }
 
     private async Task SearchPartsAsync()

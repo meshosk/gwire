@@ -39,3 +39,6 @@ coverage
 *.ntvs*
 *.njsproj
 *.sw?
+
+# affinity locks
+*.af~lock~

@@ -74,7 +74,9 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
 
         var tagsTask = LoadTagsAsync(index.Tags);
         var schemesTask = LoadSchemesAsync(index.SchemesIndex);
-        var parts = await LoadPartsAsync(index.PartsDirectory, index.PartsIndex);
+        var partsTask = LoadPartsAsync(index.PartsDirectory, index.PartsIndex);
+        await Task.WhenAll(tagsTask, schemesTask, partsTask);
+        var parts = await partsTask;
         var tags = await tagsTask;
         var schemes = await schemesTask;
 

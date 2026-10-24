@@ -10,11 +10,6 @@
     flex: 0 0 auto;
 }
 
-.part-editor-part-picker {
-    flex: 0 1 24rem;
-    min-width: 0;
-}
-
 .part-editor-layout {
     display: grid;
     grid-template-columns: minmax(20rem, 32%) minmax(0, 1fr);
