@@ -1,4 +1,4 @@
-﻿# Gwire
+﻿<h1><img src="logo/logo-wrap.svg" alt="Gwire logo" width="64" /> Gwire</h1>
 
 As a guitar player who can modify and set up my instruments reasonably well, I have often been frustrated by guitar wiring diagrams. I simply want to find suitable diagrams and use them. However, there are several common problems:
 

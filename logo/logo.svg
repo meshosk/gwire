@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <title>Gwire pickup logo</title>
+  <rect width="500" height="500" fill="#fff" />
+  <path d="M 100 295 V 135 A 50 50 0 0 1 200 135 V 355 A 50 50 0 0 0 300 355 V 135 A 50 50 0 0 1 400 135 V 295"
+        fill="none" stroke="#000" stroke-width="17" stroke-linecap="round" />
+  <g fill="#000">
+    <circle cx="150" cy="143" r="10.5" />
+    <circle cx="150" cy="183" r="10.5" />
+    <circle cx="150" cy="223" r="10.5" />
+    <circle cx="150" cy="263" r="10.5" />
+    <circle cx="150" cy="303" r="10.5" />
+    <circle cx="150" cy="343" r="10.5" />
+    <circle cx="250" cy="143" r="10.5" />
+    <circle cx="250" cy="183" r="10.5" />
+    <circle cx="250" cy="223" r="10.5" />
+    <circle cx="250" cy="263" r="10.5" />
+    <circle cx="250" cy="303" r="10.5" />
+    <circle cx="250" cy="343" r="10.5" />
+    <circle cx="350" cy="143" r="10.5" />
+    <circle cx="350" cy="183" r="10.5" />
+    <circle cx="350" cy="223" r="10.5" />
+    <circle cx="350" cy="263" r="10.5" />
+    <circle cx="350" cy="303" r="10.5" />
+    <circle cx="350" cy="343" r="10.5" />
+  </g>
+</svg>
