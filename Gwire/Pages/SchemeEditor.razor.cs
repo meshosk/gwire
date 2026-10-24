@@ -313,6 +313,13 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(Circuit.Name))
+        {
+            await JS.InvokeVoidAsync("alert", "Before exporting, add the scheme information and enter a scheme name.");
+            showDetails = true;
+            return;
+        }
+
         try
         {
             await using var stream = new MemoryStream();
