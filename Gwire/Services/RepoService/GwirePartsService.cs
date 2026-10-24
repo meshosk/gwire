@@ -10,7 +10,7 @@ namespace Gwire.Services;
 /// Service provides parts for scheme editor or for editing them in part editor
 /// </summary>
 /// <param name="httpClient"></param>
-public sealed class GwirePartsService(HttpClient httpClient)
+public sealed partial class GwirePartsService(HttpClient httpClient)
 {
     /// <summary>
     /// Where to search for repo index. 
@@ -29,6 +29,25 @@ public sealed class GwirePartsService(HttpClient httpClient)
     /// List of parts that can be used in the scheme editor. It contains user created parts and parts from the Gwire parts catalog repository. 
     /// </summary>
     public List<CircuitPart> Parts { get; } = [];
+
+    /// <summary>
+    /// Search metadata and file names from the repository's schemes index.
+    /// </summary>
+    public List<GwireSchemeInfo> Schemes { get; } = [];
+
+    private Uri? schemesDirectoryUrl;
+
+    public async Task<Stream> LoadSchemeAsync(GwireSchemeInfo scheme)
+    {
+        ArgumentNullException.ThrowIfNull(scheme);
+        if (schemesDirectoryUrl is null)
+        {
+            throw new InvalidDataException("The catalog does not specify a schemes directory.");
+        }
+
+        var schemeUrl = new Uri(schemesDirectoryUrl, scheme.File);
+        return await httpClient.GetStreamAsync(schemeUrl);
+    }
 
     public void SavePart(CircuitPart part)
     {
@@ -54,14 +73,41 @@ public sealed class GwirePartsService(HttpClient httpClient)
             ?? throw new InvalidDataException("The Gwire parts catalog index is empty.");
 
         var tagsTask = LoadTagsAsync(index.Tags);
+        var schemesTask = LoadSchemesAsync(index.SchemesIndex);
         var parts = await LoadPartsAsync(index.PartsDirectory, index.PartsIndex);
         var tags = await tagsTask;
+        var schemes = await schemesTask;
+
+        schemesDirectoryUrl = string.IsNullOrWhiteSpace(index.SchemesDirectory)
+            ? null
+            : new Uri(new Uri(IndexUrl), index.SchemesDirectory);
 
         Tags.Clear();
     
         Tags.AddRange(tags.Where(t => t is not null));
         Parts.Clear();
         Parts.AddRange(parts.Where(p => p is not null));
+        Schemes.Clear();
+        Schemes.AddRange(schemes.Where(s => s is not null));
+    }
+
+    private async Task<List<GwireSchemeInfo>> LoadSchemesAsync(string schemesIndexFile)
+    {
+        if (string.IsNullOrWhiteSpace(schemesIndexFile))
+        {
+            return [];
+        }
+
+        var schemesIndexUrl = new Uri(new Uri(IndexUrl), schemesIndexFile).AbsoluteUri;
+        try
+        {
+            return await httpClient.GetFromJsonAsync<List<GwireSchemeInfo>>(schemesIndexUrl) ?? [];
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            Trace.WriteLine($"The Gwire parts catalog schemes index file '{schemesIndexFile}' was not found. No schemes will be available.");
+            return [];
+        }
     }
 
     private async Task<List<string>> LoadTagsAsync(string tagsFile)
@@ -95,10 +141,10 @@ public sealed class GwirePartsService(HttpClient httpClient)
         var partFiles = new List<string>();
         try
         {
-            partFiles = await httpClient.GetFromJsonAsync<List<string>>(partsIndexUrl);
-            if (partFiles is null)
+            var loadedPartFiles = await httpClient.GetFromJsonAsync<List<string>>(partsIndexUrl);
+            partFiles = loadedPartFiles ?? [];
+            if (loadedPartFiles is null)
             {
-                partFiles = [];
                 Trace.WriteLine($"The Gwire parts catalog parts index file '{partsIndexFile}' is empty. No parts will be available.");
             }
         }
@@ -118,7 +164,7 @@ public sealed class GwirePartsService(HttpClient httpClient)
                     return null;
                 }
 
-                part!.IsFromRepo = true;
+                part.IsFromRepo = true;
                 return part;
             } catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -127,19 +173,6 @@ public sealed class GwirePartsService(HttpClient httpClient)
             return null;
         }));
 
-        return [.. parts];
-    }
-
-    /// <summary>
-    /// Reprezents the structure of the index.json file in the Gwire parts catalog repository.
-    /// </summary>
-    private sealed class GwireRepoIndex
-    {
-        public string Tags { get; set; } = string.Empty;
-
-        [JsonPropertyName("partsDir")]
-        public string PartsDirectory { get; set; } = string.Empty;
-
-        public string PartsIndex { get; set; } = string.Empty;
+        return [.. parts.OfType<CircuitPart>()];
     }
 }

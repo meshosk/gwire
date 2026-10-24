@@ -11,11 +11,13 @@ namespace Gwire.Components;
 public partial class CableBendPoints : IDisposable
 {
     private ElementReference element;
+    private readonly string elementId = $"cable-bends-{Guid.NewGuid():N}";
+    private int? contextIndex;
     private int? draggedIndex;
     private long? dragPointerId;
     private Point dragStartClient;
-    private Point dragStartPoint;
-    private Point[] dragStartPoints = [];
+    private CableBendPoint dragStartPoint;
+    private CableBendPoint[] dragStartPoints = [];
 
     [Parameter]
     public float Zoom { get; set; } = 1;
@@ -43,6 +45,23 @@ public partial class CableBendPoints : IDisposable
         }
     }
 
+    private void ChangeBendStyle(bool isRounded)
+    {
+        if (History.IsFrozen || contextIndex is not { } index || index >= CablePart.BendPoints.Count)
+        {
+            return;
+        }
+
+        var bends = CablePart.BendPoints.ToList();
+        bends[index] = bends[index] with { IsRounded = isRounded };
+        var action = new ChangeCableRouteAction(CablePart, CablePart.BendPoints, bends);
+        if (action.HasChanges)
+        {
+            action.Redo();
+            History.addRedoAction(action);
+        }
+    }
+
     private void StartDrag(int index, PointerEventArgs eventArgs)
     {
         if (!IsSelected || eventArgs.Button != 0 || !eventArgs.IsPrimary || dragPointerId is not null)
@@ -66,8 +85,8 @@ public partial class CableBendPoints : IDisposable
         }
 
         var pointer = new Point(eventArgs);
-        CablePart.BendPoints[index] = new Point(dragStartPoint.X + (pointer.X - dragStartClient.X) / Zoom,
-            dragStartPoint.Y + (pointer.Y - dragStartClient.Y) / Zoom);
+        CablePart.BendPoints[index] = new CableBendPoint(dragStartPoint.X + (pointer.X - dragStartClient.X) / Zoom,
+            dragStartPoint.Y + (pointer.Y - dragStartClient.Y) / Zoom, dragStartPoint.IsRounded);
         CablePart.NotifyChanged();
     }
 

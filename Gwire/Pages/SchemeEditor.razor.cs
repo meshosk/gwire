@@ -1,3 +1,4 @@
+using Gwire.Components.SearchDialog;
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
@@ -6,6 +7,7 @@ using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System.Text.Json;
@@ -26,33 +28,104 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
     private float zoom = 1;
     private bool showDetails;
+    private bool showSourceGroundPair = true;
     private string selectedTag = string.Empty;
+    private bool showTagSuggestions;
+    private int activeTagSuggestionIndex;
 
     private IReadOnlyList<string> AvailableTags => GwireParts.Tags
         .Where(tag => !Circuit.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
         .ToList();
 
+    private IReadOnlyList<string> TagSuggestions => AvailableTags
+        .Where(tag => tag.Contains(selectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
+        .Take(8)
+        .ToList();
+
     private void ToggleDetails() => showDetails = !showDetails;
 
-    private void AddTag()
+    private void ResetTagSuggestions()
     {
-        if (string.IsNullOrWhiteSpace(selectedTag) || !AvailableTags.Contains(selectedTag, StringComparer.OrdinalIgnoreCase))
+        activeTagSuggestionIndex = 0;
+        showTagSuggestions = true;
+    }
+
+    private void CloseTagSuggestions() => showTagSuggestions = false;
+
+    private void HandleTagKeyDown(KeyboardEventArgs eventArgs)
+    {
+        if (eventArgs.Key == "Escape")
+        {
+            CloseTagSuggestions();
+            return;
+        }
+
+        if (eventArgs.Key is not ("ArrowDown" or "ArrowUp" or "Enter"))
         {
             return;
         }
 
-        Circuit.Tags.Add(selectedTag);
+        var suggestions = TagSuggestions;
+        if (suggestions.Count == 0)
+        {
+            return;
+        }
+
+        if (!showTagSuggestions)
+        {
+            ResetTagSuggestions();
+            return;
+        }
+
+        switch (eventArgs.Key)
+        {
+            case "ArrowDown":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + 1) % suggestions.Count;
+                break;
+            case "ArrowUp":
+                activeTagSuggestionIndex = (activeTagSuggestionIndex + suggestions.Count - 1) % suggestions.Count;
+                break;
+            case "Enter":
+                AddTag(suggestions[Math.Clamp(activeTagSuggestionIndex, 0, suggestions.Count - 1)]);
+                break;
+        }
+    }
+
+    private void AddTag(string selected)
+    {
+        var tag = AvailableTags.FirstOrDefault(tag =>
+            string.Equals(tag, selected, StringComparison.OrdinalIgnoreCase));
+        if (tag is null)
+        {
+            return;
+        }
+
+        Circuit.Tags.Add(tag);
         selectedTag = string.Empty;
+        ResetTagSuggestions();
     }
 
     private void RemoveTag(string tag) => Circuit.Tags.Remove(tag);
 
     private int ZoomPercentage => (int)MathF.Round(zoom * 100);
 
-    /// <summary>
-    /// Index of the part selected in the "Add part" dropdown. -1 if no part is selected.
-    /// </summary>
-    private int selectedPartForAddIndex = -1;
+    private SearchOptions<CircuitPart> partSearchOptions = default!;
+    private bool PartSearchIsShown;
+    private SearchOptions<GwireSchemeInfo> schemeSearchOptions = default!;
+    private bool SchemeSearchIsShown;
+    private (string Name, string Description, string[] Tags) unchangedSchemeDetails = (string.Empty, string.Empty, []);
+
+    [Inject]
+    private ConfirmationService ConfirmationService { get; set; } = default!;
+
+    private bool HasUnsavedChanges => history.HasEntries
+        || Circuit.Name != unchangedSchemeDetails.Name
+        || Circuit.Description != unchangedSchemeDetails.Description
+        || !Circuit.Tags.SequenceEqual(unchangedSchemeDetails.Tags);
+
+    private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
+        await ConfirmationService.ShowAsync("Unsaved changes",
+            "This scheme has unsaved changes. Do you want to discard them and continue?") == ConfirmationResult.YES;
 
     /// <summary>
     /// The currently selected part in the scheme editor, or null if no part is selected.
@@ -68,7 +141,44 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     [Inject]
     private ILogger<SchemeEditor> Logger { get; set; } = default!;
 
-    protected override void OnInitialized() => history.Changed += HandleHistoryChanged;
+    protected override void OnInitialized()
+    {
+        history.Changed += HandleHistoryChanged;
+        partSearchOptions = new SearchOptions<CircuitPart>(
+            (part, tags, textTerms) =>
+            {
+                var name = part.Name.ToLowerInvariant();
+                var description = part.Description.ToLowerInvariant();
+                var partTags = part.Tags.Select(tag => tag.ToLowerInvariant()).ToHashSet();
+
+                return tags.Count(tag => partTags.Contains(tag.ToLowerInvariant()))
+                    + textTerms.Select(term => term.ToLowerInvariant())
+                        .Count(term => name.Contains(term) || description.Contains(term));
+            },
+            part => part.DisplayName)
+        {
+            Title = "Add part",
+            Items = GwireParts.Parts,
+            AvailableTags = GwireParts.Tags
+        };
+        schemeSearchOptions = new SearchOptions<GwireSchemeInfo>(
+            (scheme, tags, textTerms) =>
+            {
+                var name = scheme.Name.ToLowerInvariant();
+                var description = scheme.Description.ToLowerInvariant();
+                var schemeTags = scheme.Tags.Select(tag => tag.ToLowerInvariant()).ToHashSet();
+
+                return tags.Count(tag => schemeTags.Contains(tag.ToLowerInvariant()))
+                    + textTerms.Select(term => term.ToLowerInvariant())
+                        .Count(term => name.Contains(term) || description.Contains(term));
+            },
+            scheme => string.IsNullOrWhiteSpace(scheme.Name) ? scheme.File : scheme.Name)
+        {
+            Title = "Open scheme",
+            Items = GwireParts.Schemes,
+            AvailableTags = GwireParts.Tags
+        };
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -140,9 +250,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void NewScheme()
+    private async Task NewScheme()
     {
-        if (history.IsFrozen)
+        if (history.IsFrozen || !await ConfirmDiscardChangesAsync() || history.IsFrozen)
         {
             return;
         }
@@ -154,40 +264,59 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     {
         history.Clear();
         Circuit = circuit;
+        unchangedSchemeDetails = (circuit.Name, circuit.Description, circuit.Tags.ToArray());
         SourceGroundPairs.Clear();
+        SourceGroundPairs.Add(new SourceGroundPair());
+        showSourceGroundPair = true;
         SelectedPart = null;
-        selectedPartForAddIndex = -1;
         selectedTag = string.Empty;
+        activeTagSuggestionIndex = 0;
+        CloseTagSuggestions();
     }
 
-    private async Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs)
+    private Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs) =>
+        ImportSchemeAsync(() => Task.FromResult(eventArgs.File.OpenReadStream()));
+
+    private async Task ImportSchemeAsync(Func<Task<Stream>> openJsonStream)
     {
         if (history.IsFrozen)
         {
             return;
         }
 
+        Circuit circuit;
+        history.Freeze();
         try
         {
-            var circuit = await ObjectJsonSerializer.ImportAsync<Circuit>(eventArgs.File);
-            if (history.IsFrozen)
-            {
-                return;
-            }
-
-            SetCircuit(circuit);
-            MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
+            await using var stream = await openJsonStream();
+            circuit = await ObjectJsonSerializer.ImportAsync<Circuit>(stream);
         }
-        catch (Exception exception) when (exception is InvalidDataException or IOException)
+        catch (Exception exception) when (exception is HttpRequestException or InvalidDataException or IOException or TaskCanceledException)
         {
-            MessageService.Show("Scheme import failed", "The selected file does not contain valid scheme JSON or could not be read.", MessageType.Danger);
+            Logger.LogError(exception, "Scheme import failed.");
+            MessageService.Show("Scheme import failed", "The scheme JSON could not be read or does not contain a valid scheme.", MessageType.Danger);
+            return;
         }
+        finally
+        {
+            history.Unfreeze();
+        }
+
+        SetCircuit(circuit);
+        MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
     }
 
     private async Task ExportSchemeAsync()
     {
         if (history.IsFrozen)
         {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Circuit.Name))
+        {
+            await JS.InvokeVoidAsync("alert", "Before exporting, add the scheme information and enter a scheme name.");
+            showDetails = true;
             return;
         }
 
@@ -227,36 +356,11 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void AddSourceGroundPair()
+    private void ToggleSourceGroundPair()
     {
-        if (history.IsFrozen)
+        if (!history.IsFrozen)
         {
-            return;
-        }
-        var color = ConnectionGroup.GetLineColor(SourceGroundPairs.Count);
-        while (SourceGroundPairs.Any(candidate => string.Equals(candidate.LineColor, color, StringComparison.OrdinalIgnoreCase)))
-        {
-            color = $"#{Random.Shared.Next(0x1000000):x6}";
-        }
-        var pair = new SourceGroundPair { LineColor = color };
-        var offset = SourceGroundPairs.Count * 110;
-        pair.PowerSource.MoveTo(new Point(pair.PowerSource.SchemePosition.X, pair.PowerSource.SchemePosition.Y + offset));
-        pair.Ground.MoveTo(new Point(pair.Ground.SchemePosition.X, pair.Ground.SchemePosition.Y + offset));
-        var action = new AddSourceGroundPairAction(SourceGroundPairs, pair);
-        action.Redo();
-        history.addRedoAction(action);
-    }
-
-    private void SetPairColor(SourceGroundPair pair, string? color)
-    {
-
-        color = string.IsNullOrWhiteSpace(color) ? "red" : color; // yeah default is red :D
-
-        if (!history.IsFrozen && !string.Equals(pair.LineColor, color, StringComparison.OrdinalIgnoreCase))
-        {
-            var action = new ChangePairColorAction(pair, pair.LineColor, color);
-            action.Redo();
-            history.addRedoAction(action);
+            showSourceGroundPair = !showSourceGroundPair;
         }
     }
 
@@ -272,14 +376,41 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         history.addRedoAction(action);
     }
 
-    private void AddSelectedPart()
+    private async Task SearchSchemesAsync()
     {
-        if (history.IsFrozen || selectedPartForAddIndex < 0 || selectedPartForAddIndex >= GwireParts.Parts.Count)
+        if (history.IsFrozen || SchemeSearchIsShown || !await ConfirmDiscardChangesAsync() || history.IsFrozen)
         {
             return;
         }
 
-        var action = AddPartAction.CreatePart(Circuit, this, GwireParts.Parts[selectedPartForAddIndex]);
+        SchemeSearchIsShown = true;
+        StateHasChanged();
+        var scheme = await schemeSearchOptions.Result;
+        if (scheme is null || history.IsFrozen)
+        {
+            return;
+        }
+
+        await ImportSchemeAsync(() => GwireParts.LoadSchemeAsync(scheme));
+    }
+
+    private async Task SearchPartsAsync()
+    {
+        if (history.IsFrozen || PartSearchIsShown)
+        {
+            return;
+        }
+
+        PartSearchIsShown = true;
+        StateHasChanged();
+        var selectedPart = await partSearchOptions.Result;
+
+        if (selectedPart is null || history.IsFrozen)
+        {
+            return;
+        }
+
+        var action = AddPartAction.CreatePart(Circuit, this, selectedPart);
         action.Redo();
         history.addRedoAction(action);
     }

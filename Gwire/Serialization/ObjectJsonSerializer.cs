@@ -49,9 +49,19 @@ public static class ObjectJsonSerializer
     {
         ArgumentNullException.ThrowIfNull(file);
 
+        await using var stream = file.OpenReadStream();
+        return await ImportAsync<T>(stream);
+    }
+
+    /// <summary>
+    /// Imports an object from a JSON stream while preserving object references.
+    /// </summary>
+    public static async Task<T> ImportAsync<T>(Stream stream)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+
         try
         {
-            await using var stream = file.OpenReadStream();
             if (typeof(T) == typeof(Circuit))
             {
                 return (T)(object)await CircuitJsonSerializer.ImportAsync(stream, Options);

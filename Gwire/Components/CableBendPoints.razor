@@ -1,4 +1,5 @@
-<g @ref="element"
+<g id="@elementId" @ref="element"
+   @oncontextmenu:stopPropagation="true"
    @onpointermove="MoveDraggedPoint"
    @onpointerup="EndDrag"
    @onpointercancel="CancelDrag"
@@ -13,8 +14,23 @@
             var bendIndex = index;
             var bend = CablePart.BendPoints[bendIndex];
             <circle cx="@bend.X" cy="@bend.Y" r="6" class="cable-bend-point"
+                    @oncontextmenu="() => contextIndex = bendIndex"
                     @onpointerdown="eventArgs => StartDrag(bendIndex, eventArgs)"
                     @onpointerdown:stopPropagation="true" />
         }
     }
 </g>
+
+<SvgContextMenu Target="@("#" + elementId)">
+    @if (contextIndex is { } index && index < CablePart.BendPoints.Count)
+    {
+        <SvgContextMenuItem OnClick="() => ChangeBendStyle(false)" Disabled="@History.IsFrozen"
+                            IsChecked="@(!CablePart.BendPoints[index].IsRounded)">
+            Sharp
+        </SvgContextMenuItem>
+        <SvgContextMenuItem OnClick="() => ChangeBendStyle(true)" Disabled="@History.IsFrozen"
+                            IsChecked="@CablePart.BendPoints[index].IsRounded">
+            Rounded
+        </SvgContextMenuItem>
+    }
+</SvgContextMenu>

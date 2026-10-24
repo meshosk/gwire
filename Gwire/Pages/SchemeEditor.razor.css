@@ -1,4 +1,5 @@
 .scheme-editor {
+    outline: none;
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -7,7 +8,39 @@
 }
 
 .scheme-editor-toolbar {
-    flex: 0 0 auto;
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    min-width: 0;
+}
+
+.add-cable-icon,
+.add-part-icon {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 1.25em;
+    height: 1em;
+    line-height: 1;
+    vertical-align: -0.125em;
+}
+
+.add-cable-plus,
+.add-part-plus {
+    position: absolute;
+    right: -0.45em;
+    bottom: -0.25em;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 1.5em;
+    height: 1.5em;
+    font-size: 0.55em;
+    line-height: 1;
+    color: var(--bs-btn-bg);
+    background-color: var(--bs-btn-color);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0.15em var(--bs-btn-bg);
 }
 
 .scheme-editor-zoom {
@@ -19,13 +52,6 @@
 .scheme-editor-zoom .form-control {
     flex: 0 0 4.5rem;
     width: 4.5rem;
-}
-
-.scheme-editor-part-picker {
-    display: inline-flex;
-    margin-left: 0.5rem;
-    max-width: 24rem;
-    vertical-align: middle;
 }
 
 .scheme-editor-content {
@@ -76,4 +102,12 @@
 
 .scheme-editor-canvas.pan-ready ::deep * {
     cursor: inherit;
+}
+
+.tag-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
 }

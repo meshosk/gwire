@@ -7,8 +7,11 @@
    @onpointermove="MoveDraggedPoint"
    @onpointerup="EndDrag"
    @onpointercancel="CancelDrag">
-    <polyline points="@CablePath"
-              class="cable-line @(IsSelected ? "cable-selected" : null)" />
+    @if (IsSelected)
+    {
+        <path d="@CablePath" class="cable-line cable-selection-outline" aria-hidden="true" />
+    }
+    <path d="@CablePath" stroke="@CablePart.Color" class="cable-line" />
 
     <CableBendPoints CablePart="CablePart" IsSelected="IsSelected" Zoom="Zoom" />
 
@@ -24,6 +27,11 @@
 </g>
 
 <SvgContextMenu Target="@("#" + elementReferenceId)">
+    <label class="dropdown-item d-flex align-items-center justify-content-between gap-2">
+        Color
+        <input type="color" class="form-control form-control-color" aria-label="Cable color"
+               @bind:get="CablePart.Color" @bind:set="ChangeColor" disabled="@History.IsFrozen" />
+    </label>
     <SvgContextMenuItem OnClick="AddBendPoint" CanExecute="CanAddBendPoint">
         Add bend point
     </SvgContextMenuItem>
