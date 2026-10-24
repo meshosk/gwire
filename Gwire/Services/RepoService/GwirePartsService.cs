@@ -1,4 +1,5 @@
 using Gwire.Models;
+using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -35,6 +36,8 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
     /// </summary>
     public List<GwireSchemeInfo> Schemes { get; } = [];
 
+    public event Action? Changed;
+
     private Uri? schemesDirectoryUrl;
 
     public async Task<Stream> LoadSchemeAsync(GwireSchemeInfo scheme)
@@ -69,7 +72,7 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
 
     public async Task InitializeAsync()
     {
-        var index = await httpClient.GetFromJsonAsync<GwireRepoIndex>(IndexUrl)
+        var index = await GetRepositoryJsonAsync<GwireRepoIndex>(IndexUrl)
             ?? throw new InvalidDataException("The Gwire parts catalog index is empty.");
 
         var tagsTask = LoadTagsAsync(index.Tags);
@@ -87,10 +90,22 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
         Tags.Clear();
     
         Tags.AddRange(tags.Where(t => t is not null));
+        var ownParts = Parts.Where(part => !part.IsFromRepo).ToArray();
         Parts.Clear();
         Parts.AddRange(parts.Where(p => p is not null));
+        Parts.AddRange(ownParts);
         Schemes.Clear();
         Schemes.AddRange(schemes.Where(s => s is not null));
+        Changed?.Invoke();
+    }
+
+    private async Task<T?> GetRepositoryJsonAsync<T>(string url, JsonSerializerOptions? options = null)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.SetBrowserRequestCache(BrowserRequestCache.NoCache);
+        using var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<T>(options);
     }
 
     private async Task<List<GwireSchemeInfo>> LoadSchemesAsync(string schemesIndexFile)
@@ -103,7 +118,7 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
         var schemesIndexUrl = new Uri(new Uri(IndexUrl), schemesIndexFile).AbsoluteUri;
         try
         {
-            return await httpClient.GetFromJsonAsync<List<GwireSchemeInfo>>(schemesIndexUrl) ?? [];
+            return await GetRepositoryJsonAsync<List<GwireSchemeInfo>>(schemesIndexUrl) ?? [];
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -121,7 +136,7 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
 
         var tagsUrl = new Uri(new Uri(IndexUrl), tagsFile).AbsoluteUri;
         try {
-            return await httpClient.GetFromJsonAsync<List<string>>(tagsUrl) ?? [];
+            return await GetRepositoryJsonAsync<List<string>>(tagsUrl) ?? [];
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -143,7 +158,7 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
         var partFiles = new List<string>();
         try
         {
-            var loadedPartFiles = await httpClient.GetFromJsonAsync<List<string>>(partsIndexUrl);
+            var loadedPartFiles = await GetRepositoryJsonAsync<List<string>>(partsIndexUrl);
             partFiles = loadedPartFiles ?? [];
             if (loadedPartFiles is null)
             {
@@ -159,7 +174,7 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
         {
             var partUrl = new Uri(partsDirectoryUrl, partFile).AbsoluteUri;
             try {
-                var part = await httpClient.GetFromJsonAsync<CircuitPart>(partUrl, PartJsonOptions);
+                var part = await GetRepositoryJsonAsync<CircuitPart>(partUrl, PartJsonOptions);
                 if (part is null)
                 {
                     Trace.WriteLine($"The Gwire parts catalog part '{partFile}' is empty. It will be skipped.");

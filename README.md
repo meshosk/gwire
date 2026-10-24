@@ -43,6 +43,10 @@ ___TODO___:
 - [x] Add parts and wiring diagrams to a library, possibly in a separate repository
 - [ ] Add a manual, wiki, or how-to guide
 
+## Data source
+
+Gwire loads its parts, tags, and wiring diagram catalog from the [gwire-parts-catalog repository](https://github.com/meshosk/gwire-parts-catalog).
+
 ## VS Code development
 
 Open the repository root in VS Code. Install the .NET 10 SDK, Google Chrome, and the Microsoft C# Dev Kit extension (which also installs the C# extension).

@@ -16,6 +16,9 @@ namespace Gwire.Pages;
 
 public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 {
+    [CascadingParameter(Name = "ReloadRepository")]
+    public EventCallback ReloadRepository { get; set; }
+
     private CircuitPart? editedTextPart;
     private Circuit Circuit = new();
     internal List<SourceGroundPair> SourceGroundPairs { get; } = [new()];
@@ -143,9 +146,12 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     [Inject]
     private ILogger<SchemeEditor> Logger { get; set; } = default!;
 
+    private void HandleRepositoryChanged() => StateHasChanged();
+
     protected override void OnInitialized()
     {
         history.Changed += HandleHistoryChanged;
+        GwireParts.Changed += HandleRepositoryChanged;
         partSearchOptions = new SearchOptions<CircuitPart>(
             (part, tags, textTerms) =>
             {
@@ -243,6 +249,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         history.Changed -= HandleHistoryChanged;
+        GwireParts.Changed -= HandleRepositoryChanged;
         history.Clear();
         await JS.InvokeVoidAsync("gwire.hidePdfExportProgress", pdfExportModal);
         if (shortcutReference is not null)

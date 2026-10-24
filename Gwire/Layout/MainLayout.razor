@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.Sections
 
-<div class="app-shell" inert="@(canUseApp ? null : string.Empty)">
+<div class="app-shell" inert="@(showRepositoryLoading ? string.Empty : null)">
     <header class="app-toolbar border-bottom bg-body-tertiary px-2 py-2" aria-label="Main toolbar">
         <nav class="border-end pe-2" aria-label="Editors">
             <NavLink href="scheme-editor" class="btn btn-sm btn-outline-secondary" title="Scheme editor" aria-label="Scheme editor">
@@ -19,7 +19,9 @@
     <main class="workspace">
         @if (canUseApp)
         {
-            @Body
+            <CascadingValue Name="ReloadRepository" Value="@EventCallback.Factory.Create(this, ReloadRepository)">
+                @Body
+            </CascadingValue>
         }
     </main>
 </div>
@@ -27,7 +29,7 @@
 <MessageToasts />
 <ConfirmationModal />
 
-@if (!canUseApp)
+@if (showRepositoryLoading)
 {
     <RepositoryLoadingDialog Error="@repositoryError" LoadRequested="LoadRepositoryAsync" ContinueRequested="ContinueWithoutRepository" />
 }
