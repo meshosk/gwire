@@ -24,7 +24,7 @@ public partial class PartEditor
     private ElementReference editorElement;
     private DotNetObjectReference<PartEditor>? shortcutReference;
 
-    private sealed record PartSnapshot(CircuitPart Part, int SelectedPointIndex, int ActiveGroupIndex);
+    private sealed record PartSnapshot(CircuitPart Part, int SelectedPointIndex, int StateGroupIndex, int ActiveGroupIndex);
 
     private sealed class SnapshotAction(PartEditor editor, PartSnapshot initialSnapshot) : IUndoableAction
     {
@@ -68,6 +68,7 @@ public partial class PartEditor
     private PartSnapshot CaptureSnapshot() => new(
         EditedPart.Clone(),
         SelectedPointInEditor is null ? -1 : EditedPart.Points.IndexOf(SelectedPointInEditor),
+        activeStateGroupIndex,
         ActiveConnectionGroup is null ? -1 : ActiveStateInEditor?.ConnectionGroups.IndexOf(ActiveConnectionGroup) ?? -1);
 
     private void BeginEdit()
@@ -146,7 +147,8 @@ public partial class PartEditor
         // Each restoration gets a fresh graph; further edits must not mutate the stored snapshot.
         EditedPart = snapshot.Part.Clone();
         SelectedPointInEditor = EditedPart.Points.ElementAtOrDefault(snapshot.SelectedPointIndex);
-        ActiveStateInEditor = EditedPart.ActiveState;
+        activeStateGroupIndex = snapshot.StateGroupIndex;
+        ActiveStateInEditor = ActiveStateGroupInEditor.ActiveState;
         ActiveConnectionGroup = ActiveStateInEditor?.ConnectionGroups.ElementAtOrDefault(snapshot.ActiveGroupIndex);
         selectedTag = string.Empty;
         ResetPointDrag();

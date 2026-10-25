@@ -1,6 +1,6 @@
 @page "/part-editor"
 
-@using Gwire.Components.SearchDialog
+@using Gwire.Components.Displayers.SearchDialog
 @using Gwire.Components.Tabs
 @using Gwire.Extensions
 @using Gwire.Models
@@ -53,7 +53,7 @@
 		<aside class="editor-sidebar">
 			<div class="editor-controls">
 	            <section class="card shadow-sm point-panel p-2">
-		            <BootstrapTabs>
+		            <BootstrapTabs @key="partTabsKey">
 			            <BootstrapTab Title="Part">
 				            <div class="mb-3">
 					            <label for="part-name" class="form-label">Title</label>
@@ -170,9 +170,28 @@
 					            </div>
 				            </div>
 
+                    @if (EditedPart.Points.Count > 0)
+                    {
+                        <fieldset class="border rounded p-2 mt-2">
+                            <legend class="float-none w-auto px-1 mb-0 fs-6">Points</legend>
+                            <div class="d-flex flex-wrap gap-1">
+
+                        @foreach (var point in EditedPart.Points)
+                                {
+                                    <button @key="point" type="button"
+                                            class="btn btn-sm @(ReferenceEquals(point, SelectedPointInEditor) ? "btn-primary" : "btn-outline-secondary")"
+                                            aria-pressed="@(ReferenceEquals(point, SelectedPointInEditor) ? "true" : "false")"
+                                            @onclick="() => SelectedPointInEditor = point">
+                                        @(string.IsNullOrWhiteSpace(point.Label) ? "Unnamed point" : point.Label)
+                                    </button>
+                                }
+                            </div>
+                        </fieldset>
+                    }
+
 					            @if (SelectedPointInEditor is not null)
 					            {
-						            <div class="mt-3">
+						            <div class="mt-2">
 							            <label class="form-label" for="point-label">Point name</label>
 							            <input id="point-label" class="form-control mb-3" @bind:get="SelectedPointInEditor.Label" @bind:set="value => ExecuteEdit(() => SelectedPointInEditor.Label = value ?? string.Empty)"/>
 							            <div class="row g-2 mb-3">
@@ -192,59 +211,97 @@
 			            </BootstrapTab>
 			            <BootstrapTab Title="States" Disabled="@(!this.EditedPart.Points.Any())">
 
+                    @if (EditedPart.StateGroups.Count > 1)
+                    {
+                        <div class="mb-2">
+                            <label class="form-label" for="state-group-selection">State group</label>
+                            <select id="state-group-selection" class="form-select"
+                                    @bind:get="activeStateGroupIndex" @bind:set="SelectStateGroup">
+                                @for (var index = 0; index < EditedPart.StateGroups.Count; index++)
+                                {
+                                    <option value="@index">@EditedPart.StateGroups[index].Label</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    <div class="mb-2">
+                        <label class="form-label" for="state-group-name">State group name</label>
+                        <input id="state-group-name" class="form-control" @bind:get="ActiveStateGroupInEditor.Label"
+                               @bind:set="value => ExecuteEdit(() => ActiveStateGroupInEditor.Label = value ?? string.Empty)" />
+                    </div>
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(AddStateGroup)">Add state group</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" disabled="@(EditedPart.StateGroups.Count <= 1)"
+                                @onclick="() => ExecuteEdit(RemoveStateGroup)">Remove state group</button>
+                    </div>
+
+                    <h2 class="state-section-divider">States</h2>
+
 				            <div class="mb-1">
 					            <div class="d-grid gap-2">
 						            <button type="button" class="btn btn-primary" @onclick="() => ExecuteEdit(AddState)">Add state</button>
 								</div>
 				            </div>
-					            @if (EditedPart.States.Count > 0) {
-						            <div class="mt-3 p-3">
-										<BootstrapTabs>
-							            @foreach (PartState state in this.EditedPart.States)
-							            {
-							            <BootstrapTab @key="state" Title="@state.Label" OnClick="() => SelectActiveState(state)">
-									            <label class="form-label" for="state-label">State name</label>
-									            <input id="state-label" class="form-control mb-4" @bind:get="state.Label" @bind:set="value => ExecuteEdit(() => state.Label = value ?? string.Empty)"/>
+                    @if (ActiveStateGroupInEditor.States.Count > 0)
+                    {
+                        <div class="mt-3">
+                            <div class="nav nav-tabs" role="group" aria-label="States">
+                                @foreach (var candidateState in ActiveStateGroupInEditor.States)
+                                {
+                                    <button @key="candidateState" type="button"
+                                            class="nav-link @(ReferenceEquals(candidateState, ActiveStateInEditor) ? "active" : null)"
+                                            aria-pressed="@(ReferenceEquals(candidateState, ActiveStateInEditor) ? "true" : "false")"
+                                            @onclick="() => SelectActiveState(candidateState)">@candidateState.Label</button>
+                                }
+                            </div>
+                            @if (ActiveStateInEditor is { } state)
+                            {
+                                <div class="pt-3" @key="state">
+                                    <label class="form-label" for="state-label">State name</label>
+                                    <input id="state-label" class="form-control mb-4" @bind:get="state.Label" @bind:set="value => ExecuteEdit(() => state.Label = value ?? string.Empty)" />
 
-									            <div class="d-grid gap-2">
-										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => AddConnectionGroup(state))">Add group</button>
-										            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => CopyState(state))">Create copy</button>
-										            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveState(state))">Remove state</button>
-									            </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => CopyState(state))">Create copy</button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveState(state))">Remove state</button>
+                                    </div>
 
-									            @if (state.ConnectionGroups.Count > 0 ){
-										            <div class="p-3">
-											            <BootstrapTabs>
+                                    <h3 class="state-section-divider">Connection groups</h3>
 
-												            @foreach (var group in state.ConnectionGroups.WithIndex())
-												            {
-																<BootstrapTab @key="group.Item" Title="@($"Group {group.Index}")">
-														            <div class="m-2">
-															            Connected:
-															            @foreach (var connectedPin in group.Item.ConnectedPints)
-															            {
-																            <span class="badge text-bg-secondary d-inline-flex align-items-center gap-1">
-																                @connectedPin.Label
-																                <button type="button" class="btn-close btn-close-white" aria-label="Remove @connectedPin.Label from group"
-																                        @onclick="() => ExecuteEdit(() => group.Item.ConnectedPints.Remove(connectedPin))"></button>
-																            </span>
-															            }
-														            </div>
-														            <div class="d-flex flex-wrap gap-2">
-															            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => ExecuteEdit(() => AddRemovePointToGroup(group.Item, SelectedPointInEditor))">Selected point to group</button>
-															            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveActiveConnectionGroup(group.Item))">Remove group</button>
-														            </div>
-													            </BootstrapTab>
-												            }
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => AddConnectionGroup(state))">Add group</button>
+                                    </div>
 
-											            </BootstrapTabs>
-										            </div>
-									            }
-								            </BootstrapTab>
-							            }
-						            </BootstrapTabs>
-						            </div>
-					            }
+                                    @if (state.ConnectionGroups.Count > 0)
+                                    {
+                                        <div class="p-3">
+                                            <BootstrapTabs>
+                                                @foreach (var group in state.ConnectionGroups.WithIndex())
+                                                {
+                                                    <BootstrapTab @key="group.Item" Title="@($"Group {group.Index}")">
+                                                        <div class="m-2">
+                                                            Connected:
+                                                            @foreach (var connectedPin in group.Item.ConnectedPints)
+                                                            {
+                                                                <span class="badge text-bg-secondary d-inline-flex align-items-center gap-1">
+                                                                    @connectedPin.Label
+                                                                    <button type="button" class="btn-close btn-close-white" aria-label="Remove @connectedPin.Label from group"
+                                                                            @onclick="() => ExecuteEdit(() => group.Item.ConnectedPints.Remove(connectedPin))"></button>
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => ExecuteEdit(() => AddRemovePointToGroup(group.Item, SelectedPointInEditor))">Selected point to group</button>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveActiveConnectionGroup(group.Item))">Remove group</button>
+                                                        </div>
+                                                    </BootstrapTab>
+                                                }
+                                            </BootstrapTabs>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
 			            </BootstrapTab>
 		            </BootstrapTabs>
 
@@ -265,9 +322,9 @@
             <Gwire.Components.PartSvgBackground @key="EditedPart" @bind-Part="EditedPart"
                                                 EditStarted="BeginEdit" EditCompleted="CompleteEdit" EditCanceled="CancelEdit">
 
-                        @if (ActiveStateInEditor is { } state)
+                        @foreach (var stateGroup in EditedPart.StateGroups.Where(group => group.ActiveState is not null))
                         {
-                            @foreach (var group in state.ConnectionGroups.WithIndex())
+                            @foreach (var group in stateGroup.ActiveState!.ConnectionGroups.WithIndex())
                             {
                                 var points = group.Item.ConnectedPints;
                                 @for (var firstIndex = 0; firstIndex < points.Count - 1; firstIndex++)

@@ -1,4 +1,4 @@
-using Gwire.Components.SearchDialog;
+using Gwire.Components.Displayers.SearchDialog;
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
@@ -57,6 +57,43 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     /// Edited part's active state. This is the state that is currently being edited in the editor.
     /// </summary>
     private PartState? ActiveStateInEditor { get; set; }
+
+    private object partTabsKey = new();
+
+    private int activeStateGroupIndex;
+    private PartStateGroup ActiveStateGroupInEditor => EditedPart.StateGroups[activeStateGroupIndex];
+
+    private void SelectStateGroup(int index)
+    {
+        activeStateGroupIndex = index;
+        ActiveStateInEditor = ActiveStateGroupInEditor.ActiveState;
+        ActiveConnectionGroup = null;
+    }
+
+    private void AddStateGroup()
+    {
+        var group = new PartStateGroup();
+        var number = 1;
+        while (EditedPart.StateGroups.Any(existing => string.Equals(existing.Label, group.Label, StringComparison.OrdinalIgnoreCase)))
+        {
+            group.Label = $"State {number++}";
+        }
+
+        EditedPart.StateGroups.Add(group);
+        SelectStateGroup(EditedPart.StateGroups.Count - 1);
+    }
+
+    private void RemoveStateGroup()
+    {
+        if (EditedPart.StateGroups.Count <= 1)
+        {
+            return;
+        }
+
+        EditedPart.StateGroups.RemoveAt(activeStateGroupIndex);
+        SelectStateGroup(Math.Min(activeStateGroupIndex, EditedPart.StateGroups.Count - 1));
+    }
+
     /// <summary>
     /// Parts that is currently being edited in the editor. 
     /// </summary>
@@ -244,8 +281,8 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private void AddState()
     {
-        var state = new PartState { Label = $"State {EditedPart.States.Count + 1}" };
-        EditedPart.States.Add(state);
+        var state = new PartState { Label = $"State {ActiveStateGroupInEditor.States.Count + 1}" };
+        ActiveStateGroupInEditor.States.Add(state);
         SelectActiveState(state);
         ActiveConnectionGroup = null;
     }
@@ -260,20 +297,20 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
                 ConnectedPints = group.ConnectedPints.ToList()
             }).ToList()
         };
-        EditedPart.States.Add(copy);
+        ActiveStateGroupInEditor.States.Add(copy);
     }
 
     private void RemoveState(PartState state)
     {
-        if (!EditedPart.States.Remove(state))
+        if (!ActiveStateGroupInEditor.States.Remove(state))
         {
             return;
         }
 
-        if (ReferenceEquals(ActiveStateInEditor, state) || ReferenceEquals(EditedPart.ActiveState, state))
+        if (ReferenceEquals(ActiveStateInEditor, state) || ReferenceEquals(ActiveStateGroupInEditor.ActiveState, state))
         {
-            ActiveStateInEditor = EditedPart.States.FirstOrDefault();
-            EditedPart.ActiveState = ActiveStateInEditor;
+            ActiveStateInEditor = ActiveStateGroupInEditor.States.FirstOrDefault();
+            ActiveStateGroupInEditor.ActiveState = ActiveStateInEditor;
         }
 
         if (ActiveConnectionGroup is not null && state.ConnectionGroups.Contains(ActiveConnectionGroup))
@@ -285,7 +322,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private void SelectActiveState(PartState state)
     {
         ActiveStateInEditor = state;
-        EditedPart.ActiveState = state;
+        ActiveStateGroupInEditor.ActiveState = state;
     }
 
     private void ResetTagSuggestions()
@@ -362,7 +399,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         }
 
         EditedPart.Points.Remove(SelectedPointInEditor);
-        foreach (var state in EditedPart.States)
+        foreach (var state in EditedPart.StateGroups.SelectMany(group => group.States))
         {
             foreach (var group in state.ConnectionGroups)
             {
@@ -380,7 +417,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private void RemoveActiveConnectionGroup(ConnectionGroup group)
     {
-        var state = EditedPart.States.FirstOrDefault(candidate => candidate.ConnectionGroups.Contains(group));
+        var state = EditedPart.StateGroups.SelectMany(stateGroup => stateGroup.States).FirstOrDefault(candidate => candidate.ConnectionGroups.Contains(group));
         if (state is null)
         {
             return;
@@ -444,6 +481,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         }
 
         SetEditedPart(new CircuitPart());
+        partTabsKey = new();
         selectedTag = string.Empty;
     }
 
@@ -486,10 +524,11 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         }
 
         SelectedPointInEditor = null;
-        ActiveStateInEditor = EditedPart.ActiveState is { } activeState && EditedPart.States.Contains(activeState)
+        activeStateGroupIndex = 0;
+        ActiveStateInEditor = ActiveStateGroupInEditor.ActiveState is { } activeState && ActiveStateGroupInEditor.States.Contains(activeState)
             ? activeState
-            : EditedPart.States.FirstOrDefault();
-        EditedPart.ActiveState = ActiveStateInEditor;
+            : ActiveStateGroupInEditor.States.FirstOrDefault();
+        ActiveStateGroupInEditor.ActiveState = ActiveStateInEditor;
         ActiveConnectionGroup = null;
         ResetPointDrag();
     }

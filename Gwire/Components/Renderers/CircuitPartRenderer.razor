@@ -38,16 +38,16 @@
     }
 </g>
 
-@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.States.Count > 1 || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
+@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.StateGroups.Any(group => group.States.Count > 1) || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
 {
     <SvgContextMenu Target="@("#" + elementReferenceId)">
-        @if (CircuitPart.States.Count > 1)
+        @foreach (var group in CircuitPart.StateGroups.Where(group => group.States.Count > 1))
         {
-            <SvgContextSubmenu Label="State" Disabled="@History.IsFrozen">
-                @foreach (var state in CircuitPart.States)
+            <SvgContextSubmenu @key="group" Label="@group.Label" Disabled="@History.IsFrozen">
+                @foreach (var state in group.States)
                 {
-                    <SvgContextMenuItem @key="state" OnClick="() => SetActiveState(state)" Disabled="@History.IsFrozen"
-                                        IsChecked="@ReferenceEquals(CircuitPart.ActiveState, state)">
+                    <SvgContextMenuItem @key="state" OnClick="() => SetActiveState(group, state)" Disabled="@History.IsFrozen"
+                                        IsChecked="@ReferenceEquals(group.ActiveState, state)">
                         @state.Label
                     </SvgContextMenuItem>
                 }

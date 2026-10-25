@@ -1,4 +1,6 @@
 ﻿@page "/"
+@inject NavigationManager Navigation
 
-<PageTitle>Gwire - home</PageTitle>
-
+@code {
+    protected override void OnInitialized() => Navigation.NavigateTo("scheme-editor", replace: true);
+}

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Renderers;
 
 public partial class CablePartRenderer : IDisposable
 {
@@ -55,13 +55,18 @@ public partial class CablePartRenderer : IDisposable
         ? Task.CompletedTask
         : IsSelectedChanged.InvokeAsync(true);
 
-    private void ChangeColor(string color)
+    private void ChangeColor(string? color)
     {
+        if (string.IsNullOrEmpty(color))
+        {
+            color = "#000000";
+        }
+
         if (History.IsFrozen || color == CablePart.Color)
         {
             return;
         }
-
+ 
         var action = new ChangeCableColorAction(CablePart, CablePart.Color, color);
         action.Redo();
         History.addRedoAction(action);

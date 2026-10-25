@@ -1,4 +1,4 @@
-namespace Gwire.Components.SearchDialog;
+namespace Gwire.Components.Displayers.SearchDialog;
 
 /// <summary>
 /// Common settings and search state used by the dialog independently of the item type.

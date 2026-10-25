@@ -1,7 +1,7 @@
 using Gwire.Models;
 using Microsoft.AspNetCore.Components;
 
-namespace Gwire.Components;
+namespace Gwire.Components.SvgMenu;
 
 public partial class SvgContextMenuItem
 {

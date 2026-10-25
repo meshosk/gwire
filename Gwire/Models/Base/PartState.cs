@@ -10,7 +10,7 @@ public class PartState
     /// </summary>
     public string Label { get; set; } = string.Empty;
     /// <summary>
-    /// State can set interconnect of a points groups, so part line simple on//off state can be created. 
+    /// State can set interconnect of a points groups, so part line simple on//off state can be created.
     /// </summary>
     public List<ConnectionGroup> ConnectionGroups { get; set; } = new();
 

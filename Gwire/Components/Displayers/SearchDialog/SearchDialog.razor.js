@@ -1,4 +1,4 @@
-import { show as showModal, hide, dispose } from "../../js/confirmation-modal.js";
+import { show as showModal, hide, dispose } from "../../../js/confirmation-modal.js";
 
 export { hide, dispose };
 

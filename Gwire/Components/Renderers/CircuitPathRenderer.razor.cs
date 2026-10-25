@@ -2,7 +2,7 @@ using Gwire.Models;
 using Gwire.Models.Base;
 using Microsoft.AspNetCore.Components;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Renderers;
 
 public partial class CircuitPathRenderer : IDisposable
 {

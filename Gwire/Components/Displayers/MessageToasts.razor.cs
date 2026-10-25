@@ -2,7 +2,7 @@ using Gwire.Models;
 using Gwire.Services;
 using Microsoft.AspNetCore.Components;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Displayers;
 
 public partial class MessageToasts : ComponentBase, IDisposable
 {

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components;
+namespace Gwire.Components.SvgMenu;
 
 public partial class SvgContextMenu : IAsyncDisposable
 {

@@ -1,4 +1,4 @@
-namespace Gwire.Components.SearchDialog;
+namespace Gwire.Components.Displayers.SearchDialog;
 
 /// <summary>
 /// Supplies typed data and search behavior. Pass this instance to the dialog's Options
@@ -9,14 +9,6 @@ public sealed class SearchOptions<T> : SearchOptions
     private TaskCompletionSource<T?> completion =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    public SearchOptions(Func<T, IEnumerable<string>, IEnumerable<string>, int> relevanceFunc, Func<T, string> textFunc)
-    {
-        ArgumentNullException.ThrowIfNull(relevanceFunc);
-        ArgumentNullException.ThrowIfNull(textFunc);
-        RelevanceFunc = relevanceFunc;
-        TextFunc = textFunc;
-    }
-
     public IReadOnlyList<T> Items { get; init; } = [];
     internal Func<T, IEnumerable<string>, IEnumerable<string>, int> RelevanceFunc { get; }
     internal Func<T, string> TextFunc { get; }
@@ -26,6 +18,14 @@ public sealed class SearchOptions<T> : SearchOptions
         .ToList();
 
     public Task<T?> Result => completion.Task;
+
+    public SearchOptions(Func<T, IEnumerable<string>, IEnumerable<string>, int> relevanceFunc, Func<T, string> textFunc)
+    {
+        ArgumentNullException.ThrowIfNull(relevanceFunc);
+        ArgumentNullException.ThrowIfNull(textFunc);
+        RelevanceFunc = relevanceFunc;
+        TextFunc = textFunc;
+    }
 
     internal override void Select(SearchItem item) =>
         Complete(((SearchItem<T>)item).Item);

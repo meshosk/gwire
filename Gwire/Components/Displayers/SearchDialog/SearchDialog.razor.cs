@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components.SearchDialog;
+namespace Gwire.Components.Displayers.SearchDialog;
 
 public partial class SearchDialog : ComponentBase, IAsyncDisposable
 {
@@ -32,6 +32,15 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
     [Parameter]
     public EventCallback<bool> VisibleChanged { get; set; }
 
+    private IReadOnlyList<string> TagSuggestions => draftValue.StartsWith('#')
+        ? Options.AvailableTags
+            .Where(tag => !Options.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+            .Where(tag => tag.Contains(draftValue[1..].Trim(), StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(8)
+            .ToList()
+        : [];
+
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         var previousVisible = Visible;
@@ -54,15 +63,6 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
         }
     }
 
-    private IReadOnlyList<string> TagSuggestions => draftValue.StartsWith('#')
-        ? Options.AvailableTags
-            .Where(tag => !Options.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
-            .Where(tag => tag.Contains(draftValue[1..].Trim(), StringComparison.OrdinalIgnoreCase))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Take(8)
-            .ToList()
-        : [];
-
     protected override void OnInitialized() => UpdateResults();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -75,7 +75,7 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
         showRequested = false;
         try
         {
-            module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/SearchDialog/SearchDialog.razor.js");
+            module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Displayers/SearchDialog/SearchDialog.razor.js");
             receiver ??= DotNetObjectReference.Create(this);
             await module.InvokeVoidAsync("show", modalElement, receiver);
         }
