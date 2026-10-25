@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Displayers;
 
 public partial class RepositoryLoadingDialog : ComponentBase, IAsyncDisposable
 {
@@ -24,7 +24,7 @@ public partial class RepositoryLoadingDialog : ComponentBase, IAsyncDisposable
     {
         if (firstRender)
         {
-            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/RepositoryLoadingDialog.razor.js");
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Displayers/RepositoryLoadingDialog.razor.js");
             await module.InvokeVoidAsync("show", modalElement);
             await LoadRequested.InvokeAsync();
         }

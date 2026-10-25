@@ -124,3 +124,13 @@
     right: 0;
     z-index: 1000;
 }
+
+.state-section-divider {
+    margin: 1.25rem -.5rem;
+    padding: .625rem .5rem;
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-emphasis-color);
+    font-size: .875rem;
+    font-weight: 600;
+    text-align: center;
+}

@@ -147,22 +147,14 @@ public sealed class CablePart : BaseCircuitPart
         return clone;
     }
 
+    public override IEnumerable<ConnectionPoint> GetConnectedPoints(ConnectionPoint startingPoint) =>
+        Points.Contains(startingPoint)
+            ? Points.Where(point => !ReferenceEquals(point, startingPoint))
+            : Array.Empty<ConnectionPoint>();
+
     public CablePart()
     {
-        // cable has only one permanently connected state
         Points.Add(new ConnectionPoint(this));
         Points.Add(new ConnectionPoint(this));
-
-        this.States.Add(new PartState() {
-                ConnectionGroups =
-                [
-                    new ConnectionGroup()
-                    {
-                        ConnectedPints = [Points[0], Points[1]]
-                    }
-                ]
-            }
-        );
-        this.ActiveState = this.States[0];
     }
 }

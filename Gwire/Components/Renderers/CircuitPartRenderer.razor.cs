@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Renderers;
 
 public partial class CircuitPartRenderer : ComponentBase, IDisposable
 {
@@ -58,6 +58,8 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
         ? null
         : $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(CircuitPart.SvgMarkup))}";
 
+    protected virtual bool HasDragChanges => !dragStartPart.Equals(PartPosition);
+
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         var previousCircuitPart = CircuitPart;
@@ -89,11 +91,11 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
 
     private void HandleChanged() => StateHasChanged();
 
-    private void SetActiveState(PartState state)
+    private void SetActiveState(PartStateGroup group, PartState state)
     {
-        if (!History.IsFrozen && !ReferenceEquals(CircuitPart.ActiveState, state))
+        if (!History.IsFrozen && !ReferenceEquals(group.ActiveState, state))
         {
-            var action = new ChangePartStateAction(CircuitPart, state);
+            var action = new ChangePartStateAction(CircuitPart, group, state);
             action.Redo();
             History.addRedoAction(action);
         }
@@ -157,8 +159,6 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
     protected virtual void OnDragMoved() { }
     protected virtual void OnDragEnding() { }
     protected virtual void OnDragReset() { }
-
-    protected virtual bool HasDragChanges => !dragStartPart.Equals(PartPosition);
 
     protected virtual IUndoableAction CreateMoveAction() =>
         new MovePartAction(CircuitPart, dragStartPart, CircuitPart.SchemePosition.Copy());

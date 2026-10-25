@@ -4,7 +4,7 @@ using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Renderers;
 
 /// <summary>
 /// Uses the part renderer's SVG and dragging behavior with terminal attachment handling.
@@ -25,6 +25,9 @@ public sealed class CircuitTerminalRenderer : CircuitPartRenderer
 
     [Parameter, EditorRequired]
     public IReadOnlyList<SourceGroundPair> SourceGroundPairs { get; set; } = default!;
+
+    protected override bool HasDragChanges => base.HasDragChanges ||
+        !ReferenceEquals(dragStartAttachment, Pair.GetAttachment(CircuitPart));
 
     public override async Task SetParametersAsync(ParameterView parameters)
     {
@@ -56,9 +59,6 @@ public sealed class CircuitTerminalRenderer : CircuitPartRenderer
     protected override void OnDragMoved() => UpdateConnectionTarget();
 
     protected override void OnDragEnding() => Pair.AttachTo(CircuitPart, connectionTarget, SourceGroundPairs);
-
-    protected override bool HasDragChanges => base.HasDragChanges ||
-        !ReferenceEquals(dragStartAttachment, Pair.GetAttachment(CircuitPart));
 
     protected override IUndoableAction CreateMoveAction() =>
         new MoveTerminalAction(Pair, CircuitPart, SourceGroundPairs, dragStartPart, PartPosition.Copy(),

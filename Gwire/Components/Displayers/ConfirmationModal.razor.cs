@@ -3,7 +3,7 @@ using Gwire.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Displayers;
 
 public partial class ConfirmationModal : ComponentBase, IAsyncDisposable
 {

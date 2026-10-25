@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components;
+namespace Gwire.Components.Renderers;
 
 public partial class CableBendPoints : IDisposable
 {
