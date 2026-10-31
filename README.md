@@ -1,4 +1,4 @@
-﻿<h1><img src="logo/logo-wrap.png" alt="Gwire logo" width="64" /> Gwire</h1>
+﻿<h1><img src="logo/gwire-logo-bg.svg" alt="Gwire logo" width="64" /> Gwire</h1>
 
 As a guitar player who can modify and set up my instruments reasonably well, I have often been frustrated by guitar wiring diagrams. I simply want to find suitable diagrams and use them. However, there are several common problems:
 
