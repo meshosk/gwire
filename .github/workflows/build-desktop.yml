@@ -1,0 +1,147 @@
+name: Build desktop
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      number: ${{ steps.version.outputs.number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Resolve package version
+        id: version
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            if [[ ! "$GITHUB_REF_NAME" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+              echo "Expected a version tag such as v1.0.0." >&2
+              exit 1
+            fi
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version=$(python3 -c 'import json; print(json.load(open("Desktop/package.json"))["version"])')
+          fi
+          echo "number=$version" >> "$GITHUB_OUTPUT"
+
+  windows:
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build portable Windows app in Docker
+        env:
+          APP_ARCH: ${{ matrix.arch }}
+          APP_VERSION: ${{ needs.version.outputs.number }}
+        run: docker build --file Desktop/Dockerfile --target windows --build-arg "APP_ARCH=$APP_ARCH" --build-arg "APP_VERSION=$APP_VERSION" --output type=local,dest=Desktop/dist .
+      - name: Archive complete Windows app
+        working-directory: Desktop/dist
+        env:
+          APP_ARCH: ${{ matrix.arch }}
+          APP_VERSION: ${{ needs.version.outputs.number }}
+        run: |
+          mv win-unpacked "Gwire-$APP_VERSION-win-$APP_ARCH"
+          zip -qr "Gwire-$APP_VERSION-win-$APP_ARCH.zip" "Gwire-$APP_VERSION-win-$APP_ARCH"
+      - name: Upload Windows packages
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-windows-${{ matrix.arch }}
+          path: |
+            Desktop/dist/*.exe
+            Desktop/dist/*.zip
+          if-no-files-found: error
+
+  macos-build:
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [arm64, x64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build macOS app in Docker
+        env:
+          APP_ARCH: ${{ matrix.arch }}
+          APP_VERSION: ${{ needs.version.outputs.number }}
+        run: docker build --file Desktop/Dockerfile --target macos --build-arg "APP_ARCH=$APP_ARCH" --build-arg "APP_VERSION=$APP_VERSION" --output type=local,dest=Desktop/dist .
+      - name: Preserve app permissions and symbolic links for signing
+        run: tar -cf macos-app.tar -C Desktop/dist Gwire.app
+      - name: Upload app for macOS signing
+        uses: actions/upload-artifact@v6
+        with:
+          name: unsigned-macos-${{ matrix.arch }}
+          path: macos-app.tar
+          retention-days: 1
+
+  macos-sign:
+    needs: [version, macos-build]
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [arm64, x64]
+    steps:
+      - name: Download app for signing
+        uses: actions/download-artifact@v5
+        with:
+          name: unsigned-macos-${{ matrix.arch }}
+      - name: Sign and archive complete macOS app
+        env:
+          APP_ARCH: ${{ matrix.arch }}
+          APP_VERSION: ${{ needs.version.outputs.number }}
+        run: |
+          tar -xf macos-app.tar
+          codesign --force --deep --sign - Gwire.app
+          codesign --verify --deep --strict Gwire.app
+          ditto -c -k --sequesterRsrc --keepParent Gwire.app "Gwire-$APP_VERSION-mac-$APP_ARCH.zip"
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-macos-${{ matrix.arch }}
+          path: Gwire-*-mac-*.zip
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [version, windows, macos-sign]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download completed desktop packages
+        uses: actions/download-artifact@v5
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: packages
+      - name: Create release with desktop packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" packages/* --clobber
+          else
+            gh release create "$RELEASE_TAG" packages/* --verify-tag --title "Gwire $RELEASE_TAG" --generate-notes
+          fi

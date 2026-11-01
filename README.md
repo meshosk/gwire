@@ -69,3 +69,65 @@ The launch configuration uses the C# extension's `blazorwasm` debugger for .NET 
 The live app is available at [https://meshosk.github.io/gwire/](https://meshosk.github.io/gwire/).
 
 __It may be non-functional or only partially functional.__
+
+## Desktop application
+
+The Electron wrapper in `Desktop/` bundles the published Blazor WebAssembly client.
+It loads local assets through `gwire://app/`, without an HTTP server or a .NET runtime
+installation on the user's computer. The parts and wiring diagram catalog still
+requires access to GitHub. The desktop client changes only when the desktop package
+is rebuilt; it does not load the hosted web application.
+
+Install Docker Desktop to build desktop packages. The .NET SDK, Node.js,
+npm dependencies, client publishing, and Electron packaging run inside Docker.
+On macOS, run **Tasks: Run Task** > **Gwire: build desktop (macOS)** in VS Code.
+The task starts Docker Desktop if needed, waits for it to become ready, and runs
+the build inside Docker. It exports only a `Gwire.app` for the current Mac's
+architecture. It then applies and verifies a local ad-hoc signature using
+macOS `codesign`, which cannot run in the Linux container. No distribution
+certificate is needed for this local signature. The task does not launch the app.
+
+Open `Desktop/dist/mac/Gwire.app` on Intel or
+`Desktop/dist/mac-arm64/Gwire.app` on Apple Silicon. No DMG or ZIP is created locally.
+
+To build a portable Windows executable, run from the repository root. Set
+`APP_ARCH` to `x64` or `arm64` (the default is `x64`):
+
+```sh
+docker build --platform linux/amd64 --file Desktop/Dockerfile --target windows --build-arg APP_ARCH=x64 --output type=local,dest=Desktop/dist/windows-x64 .
+```
+
+Build dependencies and intermediate files stay in Docker. Desktop output is stored
+in `Desktop/dist/`, which is ignored by Git. Local builds use the desktop package version from `Desktop/package.json`.
+Release builds use the version from the pushed Git tag.
+
+The **Build desktop** GitHub Actions workflow runs when a version tag such as
+`v1.0.0` or `v1.0.1` is pushed to GitHub. The tag must use `vMAJOR.MINOR.PATCH` with
+numeric components and no prerelease suffix. The tag version is embedded in both
+desktop packages. After every build and macOS signing step succeeds, the workflow
+creates a GitHub Release for that tag and attaches:
+
+- `Gwire-1.0.0-win-x64.exe`: portable Windows app that runs without installation.
+- `Gwire-1.0.0-win-x64.zip`: the complete unpacked Windows app, including `Gwire.exe`,
+  Electron, and the bundled Blazor client. Extract the whole folder before running it.
+- `Gwire-1.0.0-win-arm64.exe`: portable Windows ARM64 app without installation.
+- `Gwire-1.0.0-win-arm64.zip`: the complete unpacked Windows ARM64 app.
+- `Gwire-1.0.0-mac-arm64.zip`: complete `Gwire.app` for Apple Silicon.
+- `Gwire-1.0.0-mac-x64.zip`: complete `Gwire.app` for Intel Macs.
+
+Both native app icons are generated from `Gwire/wwwroot/gwire-webicon.svg` during
+the Docker build. macOS ZIPs preserve the app's permissions and symbolic links.
+No DMG is created. The local macOS task still produces only the `.app`.
+
+For example, after committing the desired changes:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Manual workflow runs produce downloadable artifacts without creating a release.
+Builds run in Docker on Linux runners; a macOS runner applies and verifies the
+ad-hoc signature before archiving the app. Distribution certificates and macOS
+notarization are not configured. Automatic updates and native file associations
+are not configured.
