@@ -7,7 +7,7 @@
   "main": "main.cjs",
   "devDependencies": {
     "electron": "45.2.1",
-    "electron-builder": "26.0.12"
+    "electron-builder": "26.18.1"
   },
   "build": {
     "appId": "io.github.meshosk.gwire",
