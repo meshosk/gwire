@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       number: ${{ steps.version.outputs.number }}
     steps:
@@ -38,7 +38,7 @@ jobs:
 
   windows:
     needs: version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         arch: [x64, arm64]
@@ -46,7 +46,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build portable Windows app in Docker
         env:
           APP_ARCH: ${{ matrix.arch }}
@@ -71,7 +71,7 @@ jobs:
 
   macos-build:
     needs: version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         arch: [arm64, x64]
@@ -79,7 +79,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build macOS app in Docker
         env:
           APP_ARCH: ${{ matrix.arch }}
@@ -102,7 +102,7 @@ jobs:
         arch: [arm64, x64]
     steps:
       - name: Download app for signing
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: unsigned-macos-${{ matrix.arch }}
       - name: Sign and archive complete macOS app
@@ -124,12 +124,12 @@ jobs:
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     needs: [version, windows, macos-sign]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
       - name: Download completed desktop packages
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           pattern: release-*
           merge-multiple: true
