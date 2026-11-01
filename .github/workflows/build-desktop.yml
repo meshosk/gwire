@@ -46,7 +46,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build portable Windows app in Docker
         env:
           APP_ARCH: ${{ matrix.arch }}
@@ -79,7 +79,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build macOS app in Docker
         env:
           APP_ARCH: ${{ matrix.arch }}
@@ -102,7 +102,7 @@ jobs:
         arch: [arm64, x64]
     steps:
       - name: Download app for signing
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: unsigned-macos-${{ matrix.arch }}
       - name: Sign and archive complete macOS app
@@ -129,7 +129,7 @@ jobs:
       contents: write
     steps:
       - name: Download completed desktop packages
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           pattern: release-*
           merge-multiple: true
