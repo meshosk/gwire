@@ -163,7 +163,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
                     + textTerms.Select(term => term.ToLowerInvariant())
                         .Count(term => name.Contains(term) || description.Contains(term));
             },
-            part => part.DisplayName)
+            part => part.Name)
         {
             Title = "Add part",
             Items = GwireParts.Parts,

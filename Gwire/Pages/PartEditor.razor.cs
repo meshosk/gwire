@@ -134,7 +134,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
                     + textTerms.Select(term => term.ToLowerInvariant())
                         .Count(term => name.Contains(term) || description.Contains(term));
             },
-            part => part.DisplayName)
+            part => part.Name)
         {
             Title = "Open part",
             Items = GwireParts.Parts,
