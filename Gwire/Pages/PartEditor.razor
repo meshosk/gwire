@@ -18,6 +18,10 @@
             <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
         </button>
         <div class="btn-group btn-group-sm" role="group" aria-label="Part files">
+            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="LoadSelectedPart"
+                    disabled="@(!AvailableParts.Any() || PartSearchIsShown)" title="Get part from repo" aria-label="Get part from repo">
+                <i class="fa-solid fa-cloud-arrow-down"  aria-hidden="true"></i>
+            </button>
             <label class="btn btn-sm btn-outline-primary mb-0" for="part-import" title="Import JSON" aria-label="Import JSON">
                 <i class="fa-solid fa-file-import" aria-hidden="true"></i>
             </label>
@@ -25,12 +29,9 @@
             <button type="button" class="btn btn-sm btn-outline-primary" @onclick="ExportPartAsync" title="Export JSON" aria-label="Export JSON">
                 <i class="fa-solid fa-file-export" aria-hidden="true"></i>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="LoadSelectedPart"
-                    disabled="@(!AvailableParts.Any() || PartSearchIsShown)" title="Open part" aria-label="Open part">
-                <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
-            </button>
+  
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService" title="@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")" aria-label="@(EditedPart.IsFromRepo ? "Save as own copy" : "Save to service")">
+        <button type="button" class="btn btn-sm btn-outline-primary" @onclick="SavePartToService" title="@(EditedPart.IsFromRepo ? "Save as own copy locally" : "Save locally")" aria-label="@(EditedPart.IsFromRepo ? "Save as own copy locally" : "Save locally")">
             <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
         </button>
         <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ReloadRepository" disabled="@history.IsFrozen"

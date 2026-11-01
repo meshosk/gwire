@@ -1,4 +1,6 @@
-<div @ref="element" class="svg-context-submenu">
+<div @ref="element" class="svg-context-submenu"
+     @onmouseenter="() => { if (!Disabled) { isExpanded = true; positionMenu = true; } }"
+     @onmouseleave="() => { isExpanded = false; positionMenu = false; }">
     <button type="button" class="dropdown-item d-flex align-items-center justify-content-between" role="menuitem"
             aria-haspopup="menu" aria-expanded="@isExpanded.ToString().ToLowerInvariant()"
             disabled="@Disabled" @onclick="Toggle">

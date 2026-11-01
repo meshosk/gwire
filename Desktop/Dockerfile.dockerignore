@@ -1,0 +1,9 @@
+**
+!Gwire/
+!Gwire/**
+!Desktop/
+!Desktop/package.json
+!Desktop/main.cjs
+!Desktop/Dockerfile
+**/bin
+**/obj

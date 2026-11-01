@@ -2,6 +2,29 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Gwire: build desktop (macOS)",
+      "type": "process",
+      "command": "/bin/bash",
+      "args": [
+        "-c",
+        "set -euo pipefail\ncase \"$(uname -m)\" in\n  arm64) arch=arm64; folder=mac-arm64 ;;\n  x86_64) arch=x64; folder=mac ;;\n  *) echo \"Unsupported Mac architecture.\" >&2; exit 1 ;;\nesac\ndocker_cli=\"$(command -v docker || true)\"\nif [ -z \"$docker_cli\" ]; then\n  docker_cli=\"/Applications/Docker.app/Contents/Resources/bin/docker\"\nfi\nif [ ! -x \"$docker_cli\" ]; then\n  echo \"Install Docker Desktop before running this task.\" >&2\n  exit 1\nfi\nif ! \"$docker_cli\" info >/dev/null 2>&1; then\n  echo \"Starting Docker Desktop...\"\n  open -a Docker\n  deadline=$((SECONDS + 120))\n  until \"$docker_cli\" info >/dev/null 2>&1; do\n    if [ \"$SECONDS\" -ge \"$deadline\" ]; then\n      echo \"Docker Desktop did not become ready within 120 seconds.\" >&2\n      exit 1\n    fi\n    sleep 2\n  done\nfi\necho \"Building Gwire.app in Docker...\"\n\"$docker_cli\" build --file \"$1/Desktop/Dockerfile\" --target macos --build-arg \"APP_ARCH=$arch\" --output \"type=local,dest=$1/Desktop/dist/$folder\" \"$1\"\napplication=\"$1/Desktop/dist/$folder/Gwire.app\"\ncodesign --force --deep --sign - \"$application\"\ncodesign --verify --deep --strict \"$application\"\nprintf 'Built app: %s\\n' \"$application\"\n",
+        "gwire-build-macos",
+        "${workspaceFolder}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": "$msCompile",
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "runOptions": {
+        "instanceLimit": 1
+      }
+    },
+    {
       "label": "Gwire: build",
       "type": "process",
       "command": "dotnet",
