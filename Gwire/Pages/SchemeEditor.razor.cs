@@ -33,7 +33,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private float zoom = 1;
     private bool showDetails;
     private bool isLoadingScheme;
-    private bool showSourceGroundPair = true;
+    private bool showSourceGroundPair;
     private string selectedTag = string.Empty;
     private bool showTagSuggestions;
     private int activeTagSuggestionIndex;
@@ -277,7 +277,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         unchangedSchemeDetails = (circuit.Name, circuit.Description, circuit.Tags.ToArray());
         SourceGroundPairs.Clear();
         SourceGroundPairs.Add(new SourceGroundPair());
-        showSourceGroundPair = true;
+        showSourceGroundPair = false;
         SelectedPart = null;
         selectedTag = string.Empty;
         activeTagSuggestionIndex = 0;
