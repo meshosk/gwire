@@ -107,11 +107,9 @@ numeric components and no prerelease suffix. The tag version is embedded in both
 desktop packages. After every build and macOS signing step succeeds, the workflow
 creates a GitHub Release for that tag and attaches:
 
-- `Gwire-1.0.0-win-x64.exe`: portable Windows app that runs without installation.
-- `Gwire-1.0.0-win-x64.zip`: the complete unpacked Windows app, including `Gwire.exe`,
-  Electron, and the bundled Blazor client. Extract the whole folder before running it.
-- `Gwire-1.0.0-win-arm64.exe`: portable Windows ARM64 app without installation.
-- `Gwire-1.0.0-win-arm64.zip`: the complete unpacked Windows ARM64 app.
+- `Gwire-1.0.0-win-x64.zip`: contains the portable Windows x64 `.exe`.
+- `Gwire-1.0.0-win-arm64.zip`: contains the portable Windows ARM64 `.exe`.
+  Extract the executable and run it without installation.
 - `Gwire-1.0.0-mac-arm64.zip`: complete `Gwire.app` for Apple Silicon.
 - `Gwire-1.0.0-mac-x64.zip`: complete `Gwire.app` for Intel Macs.
 
