@@ -2,9 +2,14 @@
 
 - .NET 10 Blazor WebAssembly app for guitar-wiring diagrams.
 - Keep changes scoped; do not edit `bin/` or `obj/`.
-- Keep changes within the requested scope. Include obvious follow-through needed for
-  the change to work, such as carrying new properties through an existing clone.
-  Ask before implementing optional related behavior or broader changes.
+- The user explicitly forbids expanding requests on your own initiative. Implement only what the user explicitly requested. If any additional change is needed, explain why and ask the user before making it, even if it seems necessary, obvious, related, or beneficial. Do not treat a request to remove or rename a member as authorization to remove or change the behavior that uses it.
+- Questions and requests for explanations do not authorize file edits.
+- Before modifying files, describe the exact changes and list the files involved, then wait for the user's explicit approval. After approval, execute exactly the approved changes. If the scope needs to change, explain the revised scope and wait for approval again.
+- Removing or renaming a symbol does not authorize removing its callers or changing their behavior. If the intended replacement is unclear, ask and wait for the user's answer.
+- If additional changes appear necessary, explain them and obtain explicit approval before making them.
+- Before editing, record the current diff for the affected files. When reverting your work, reverse only your own changes against that recorded state. If the target state is ambiguous, ask.
+- Before finishing, compare the resulting diff with the user's request. Every changed behavior must have explicit authorization.
+- Do not show a proposed diff unless the user explicitly requests it. Use the description of planned edits for approval; keep diff recording and verification internal.
 - Use component-scoped `.razor.css` for page-specific styles and
   `wwwroot/css/app.css` for global styles.
 - Put Blazor component logic in a code-behind `.razor.cs` file. Keeping a few

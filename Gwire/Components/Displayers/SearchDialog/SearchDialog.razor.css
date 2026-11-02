@@ -10,3 +10,8 @@
     min-width: 0;
     overflow-wrap: anywhere;
 }
+
+.search-results {
+    max-height: min(24rem, 50dvh);
+    overflow-y: auto;
+}

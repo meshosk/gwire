@@ -1,0 +1,37 @@
+@using Gwire.Components.Tabs
+@using Gwire.Extensions
+
+<label class="form-label" for="state-label">State name</label>
+<input id="state-label" class="form-control mb-4" disabled="@Disabled"
+       @bind:get="State.Label" @bind:set="SetStateLabel" />
+
+<div class="d-grid gap-2">
+    <button type="button" class="btn btn-outline-primary btn-sm" disabled="@Disabled"
+            @onclick="() => OnCopy.InvokeAsync(State)">Create copy</button>
+    <button type="button" class="btn btn-outline-danger btn-sm" disabled="@Disabled"
+            @onclick="() => OnRemove.InvokeAsync(State)">Remove state</button>
+</div>
+
+<h3 class="state-section-divider">Connection groups</h3>
+<div class="d-grid gap-2">
+    <button type="button" class="btn btn-outline-primary btn-sm" disabled="@Disabled"
+            @onclick="AddConnectionGroup">Add group</button>
+</div>
+
+@if (State.ConnectionGroups.Count > 0)
+{
+    <div class="p-3">
+        <BootstrapTabs @bind-ActiveIndex:get="ConnectionGroupTabIndex"
+                       @bind-ActiveIndex:set="ConnectionGroupTabIndexChanged.InvokeAsync">
+            @foreach (var group in State.ConnectionGroups.WithIndex())
+            {
+                <BootstrapTab @key="group.Item" Title="@($"Group {group.Index}")">
+                    <PartPointGroupComponent @bind-Group:get="group.Item"
+                        @bind-Group:set="_ => StateChanged.InvokeAsync(State)"
+                        SelectedPointInEditor="SelectedPointInEditor" Disabled="Disabled"
+                        OnRemove="RemoveActiveConnectionGroup" />
+                </BootstrapTab>
+            }
+        </BootstrapTabs>
+    </div>
+}

@@ -6,24 +6,34 @@
                 <button type="button" class="btn-close" aria-label="Close" @onclick="CancelAsync" disabled="@responding"></button>
             </div>
             <div class="modal-body">
-                <div class="list-group mb-3" aria-label="Search results" aria-live="polite">
-                    @foreach (var match in results)
-                    {
-                        var score = Options.Tags.Count > 0 || Options.TextTerms.Count > 0
-                            ? match.Relevance(Options.Tags, Options.TextTerms)
-                            : 0;
-                        <div class="list-group-item d-flex align-items-center justify-content-between gap-2">
-                            <span class="search-result-text">
-                                <span class="badge text-bg-secondary me-2" title="Relevance score"
-                                      aria-label="@($"Relevance score: {score}")">@score</span>@match.Text
-                            </span>
-                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => SelectAsync(match)" disabled="@responding">Select</button>
-                        </div>
-                    }
-                    @if (results.Count == 0)
-                    {
-                        <div class="list-group-item text-body-secondary">No matching items.</div>
-                    }
+                <div class="search-results mb-3">
+                    <div class="list-group" aria-label="Search results" aria-live="polite">
+                        @foreach (var match in results)
+                        {
+                            var score = Options.Tags.Count > 0 || Options.TextTerms.Count > 0
+                                ? match.Relevance(Options.Tags, Options.TextTerms)
+                                : 0;
+                            <div class="list-group-item d-flex align-items-center justify-content-between gap-2">
+                                <span class="search-result-text">
+                                    @if (match is SearchItem<Gwire.Models.CircuitPart> partMatch)
+                                    {
+                                        var sourceLabel = partMatch.Item.IsFromRepo ? "From online catalog" : "Local part";
+                                        <span class="badge text-bg-secondary me-2" title="@sourceLabel">
+                                            <i class="fa-solid @(partMatch.Item.IsFromRepo ? "fa-cloud" : "fa-desktop")" aria-hidden="true"></i>
+                                            <span class="visually-hidden">@sourceLabel</span>
+                                        </span>
+                                    }
+                                    <span class="badge text-bg-secondary me-2" title="Relevance score"
+                                          aria-label="@($"Relevance score: {score}")">@score</span>@match.Text
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => SelectAsync(match)" disabled="@responding">Select</button>
+                            </div>
+                        }
+                        @if (results.Count == 0)
+                        {
+                            <div class="list-group-item text-body-secondary">No matching items.</div>
+                        }
+                    </div>
                 </div>
                 @if (Options.Tags.Count > 0 || Options.TextTerms.Count > 0)
                 {

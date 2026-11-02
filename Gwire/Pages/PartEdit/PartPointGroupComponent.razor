@@ -1,0 +1,18 @@
+<div class="m-2">
+    Connected:
+    @foreach (var connectedPin in Group.ConnectedPints)
+    {
+        <span class="badge text-bg-secondary d-inline-flex align-items-center gap-1">
+            @connectedPin.Label
+            <button type="button" class="btn-close btn-close-white" disabled="@Disabled"
+                    aria-label="Remove @connectedPin.Label from group"
+                    @onclick="() => RemovePoint(connectedPin)"></button>
+        </span>
+    }
+</div>
+<div class="d-flex flex-wrap gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@Disabled"
+            @onclick="AddRemovePointToGroup">Selected point to group</button>
+    <button type="button" class="btn btn-outline-danger btn-sm" disabled="@Disabled"
+            @onclick="() => OnRemove.InvokeAsync(Group)">Remove group</button>
+</div>

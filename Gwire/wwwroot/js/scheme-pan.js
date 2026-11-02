@@ -16,7 +16,11 @@ window.gwire = window.gwire || {};
         y = 0;
         suppressClick = false;
 
-        constructor(editor, receiver) {
+        constructor(editor, receiver, state) {
+            this.zoom = state.zoom;
+            this.x = state.x;
+            this.y = state.y;
+            this.panEnabled = state.panEnabled;
             this.editor = editor;
             this.receiver = receiver;
             this.svg = editor.querySelector(".scheme-editor-canvas");
@@ -59,6 +63,7 @@ window.gwire = window.gwire || {};
         toggleMode = () => {
             if (!this.spaceHeld) {
                 this.panEnabled = !this.panEnabled;
+                this.saveViewport();
                 this.updateMode();
             }
         };
@@ -107,6 +112,10 @@ window.gwire = window.gwire || {};
             this.updateMode();
         };
 
+        saveViewport() {
+            this.receiver.invokeMethod("HandleViewportChanged", this.x, this.y, this.panEnabled);
+        }
+
         /** Move the viewport and grid together so the background covers the visible area. */
         updateView() {
             const width = this.svg.clientWidth / this.zoom;
@@ -143,6 +152,7 @@ window.gwire = window.gwire || {};
             this.y += cursorY / this.zoom - cursorY / zoom;
             this.zoom = zoom;
             this.updateView();
+            this.saveViewport();
         }
 
         startPan = (event) => {
@@ -170,6 +180,7 @@ window.gwire = window.gwire || {};
                 this.x -= (event.clientX - this.lastX) / this.zoom;
                 this.y -= (event.clientY - this.lastY) / this.zoom;
                 this.updateView();
+                this.saveViewport();
             }
             // Track movement while Space switches modes to avoid a jump when panning resumes.
             this.lastX = event.clientX;
@@ -212,8 +223,8 @@ window.gwire = window.gwire || {};
     }
 
     // Blazor entry points share the same viewport controller for wheel and toolbar zoom.
-    window.gwire.enableSchemePan = (editor, receiver) => {
-        editor.gwireSchemePan = new SchemePan(editor, receiver);
+    window.gwire.enableSchemePan = (editor, receiver, state) => {
+        editor.gwireSchemePan = new SchemePan(editor, receiver, state);
     };
 
     window.gwire.setSchemeZoom = (editor, zoom) => {

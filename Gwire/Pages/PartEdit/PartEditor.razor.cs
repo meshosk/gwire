@@ -6,12 +6,11 @@ using Gwire.Services;
 using Gwire.UndoRedo;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text;
 
-namespace Gwire.Pages;
+namespace Gwire.Pages.PartEdit;
 
 public partial class PartEditor : ComponentBase, IAsyncDisposable
 {
@@ -30,92 +29,39 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     [Inject]
     private ConfirmationService ConfirmationService { get; set; } = default!;
 
+    [Inject]
+    private EditorStateService EditorStateService { get; set; } = default!;
+
     private bool HasUnsavedChanges => history.HasEntries;
-
-    private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
-        await ConfirmationService.ShowAsync("Unsaved changes",
-            "This part has unsaved changes. Do you want to discard them and continue?") == ConfirmationResult.YES;
-
-    private async Task ConfirmNavigationAsync(LocationChangingContext context)
-    {
-        if (!await ConfirmDiscardChangesAsync())
-        {
-            context.PreventNavigation();
-        }
-    }
-
-    /// <summary>
-    /// Currently edited part
-    /// </summary>
-    public CircuitPart EditedPart { get; private set; } = new();
-
-    /// <summary>
-    /// Part selected in the editor
-    /// </summary>
-    private ConnectionPoint? SelectedPointInEditor { get; set; }
-    /// <summary>
-    /// Edited part's active state. This is the state that is currently being edited in the editor.
-    /// </summary>
-    private PartState? ActiveStateInEditor { get; set; }
 
     private object partTabsKey = new();
 
-    private int activeStateGroupIndex;
-    private PartStateGroup ActiveStateGroupInEditor => EditedPart.StateGroups[activeStateGroupIndex];
-
-    private void SelectStateGroup(int index)
-    {
-        activeStateGroupIndex = index;
-        ActiveStateInEditor = ActiveStateGroupInEditor.ActiveState;
-        ActiveConnectionGroup = null;
-    }
-
-    private void AddStateGroup()
-    {
-        var group = new PartStateGroup();
-        var number = 1;
-        while (EditedPart.StateGroups.Any(existing => string.Equals(existing.Label, group.Label, StringComparison.OrdinalIgnoreCase)))
-        {
-            group.Label = $"State {number++}";
-        }
-
-        EditedPart.StateGroups.Add(group);
-        SelectStateGroup(EditedPart.StateGroups.Count - 1);
-    }
-
-    private void RemoveStateGroup()
-    {
-        if (EditedPart.StateGroups.Count <= 1)
-        {
-            return;
-        }
-
-        EditedPart.StateGroups.RemoveAt(activeStateGroupIndex);
-        SelectStateGroup(Math.Min(activeStateGroupIndex, EditedPart.StateGroups.Count - 1));
-    }
-
-    /// <summary>
-    /// Parts that is currently being edited in the editor. 
-    /// </summary>
-    private ConnectionGroup? ActiveConnectionGroup { get; set; }
-    
-    
-    private string selectedTag = string.Empty;
-    private bool showTagSuggestions;
-    private int activeTagSuggestionIndex;
     private SearchOptions<CircuitPart> partSearchOptions = default!;
+
     private bool PartSearchIsShown;
 
     private IEnumerable<CircuitPart> AvailableParts => GwireParts.Parts;
 
     private IReadOnlyList<string> AvailableTags => GwireParts.Tags
-        .Where(tag => !EditedPart.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        .Where(tag => !EditorStateService.PartEditor.EditedPart.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
         .ToList();
 
     private IReadOnlyList<string> TagSuggestions => AvailableTags
-        .Where(tag => tag.Contains(selectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
+        .Where(tag => tag.Contains(EditorStateService.PartEditor.SelectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
         .Take(8)
         .ToList();
+
+    private ConnectionPoint? draggedPoint;
+
+    private long? valueDragPointerId;
+
+    private Point dragOffset;
+
+    private bool pointWasDragged;
+
+    private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
+        await ConfirmationService.ShowAsync("Unsaved changes",
+            "This part has unsaved changes. Do you want to discard them and continue?") == ConfirmationResult.YES;
 
     private void HandleRepositoryChanged() => StateHasChanged();
 
@@ -134,20 +80,13 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
                     + textTerms.Select(term => term.ToLowerInvariant())
                         .Count(term => name.Contains(term) || description.Contains(term));
             },
-            part => part.DisplayName)
+            part => part.Name)
         {
             Title = "Open part",
             Items = GwireParts.Parts,
             AvailableTags = GwireParts.Tags
         };
     }
-
-    #region Drags
-
-    private ConnectionPoint? draggedPoint;
-    private long? valueDragPointerId;
-    private Point dragOffset;
-    private bool pointWasDragged;
 
     private void StartPointDrag(ConnectionPoint point, PointerEventArgs eventArgs)
     {
@@ -156,7 +95,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        SelectedPointInEditor = point;
+        EditorStateService.PartEditor.SelectedPointInEditor = point;
         BeginEdit();
         draggedPoint = point;
         var pointer = new Point(eventArgs);
@@ -174,7 +113,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         BeginEdit();
         valueDragPointerId = eventArgs.PointerId;
         var pointer = new Point(eventArgs);
-        dragOffset = new Point(pointer.X - EditedPart.ValuePosition.X, pointer.Y - EditedPart.ValuePosition.Y);
+        dragOffset = new Point(pointer.X - EditorStateService.PartEditor.EditedPart.ValuePosition.X, pointer.Y - EditorStateService.PartEditor.EditedPart.ValuePosition.Y);
     }
 
     private void EndPointDrag(PointerEventArgs eventArgs)
@@ -190,11 +129,11 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        if (draggedPoint is not null && !pointWasDragged && ActiveConnectionGroup is not null)
+        if (draggedPoint is not null && !pointWasDragged && EditorStateService.PartEditor.ActiveConnectionGroup is not null)
         {
-            if (!ActiveConnectionGroup.ConnectedPints.Remove(draggedPoint))
+            if (!EditorStateService.PartEditor.ActiveConnectionGroup.ConnectedPints.Remove(draggedPoint))
             {
-                ActiveConnectionGroup.ConnectedPints.Add(draggedPoint);
+                EditorStateService.PartEditor.ActiveConnectionGroup.ConnectedPints.Add(draggedPoint);
             }
         }
 
@@ -239,7 +178,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             if (valueDragPointerId == eventArgs.PointerId)
             {
                 var pointer = new Point(eventArgs);
-                EditedPart.ValuePosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
+                EditorStateService.PartEditor.EditedPart.ValuePosition = new Point(pointer.X - dragOffset.X, pointer.Y - dragOffset.Y);
             }
             return;
         }
@@ -255,83 +194,29 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    #endregion
-
     private void SetCustomTextEnabled(bool enabled) =>
-        ExecuteEdit(() => EditedPart.CustomTextValue = enabled ? "value" : null);
+        ExecuteEdit(() => EditorStateService.PartEditor.EditedPart.CustomTextValue = enabled ? "value" : null);
 
     private void AddPoint()
     {
-        var count = EditedPart.Points.Count;
-        var point = new ConnectionPoint(EditedPart)
+        var count = EditorStateService.PartEditor.EditedPart.Points.Count;
+        var point = new ConnectionPoint(EditorStateService.PartEditor.EditedPart)
         {
             Label = $"Point {count + 1}",
             LocalPosition = new Point(120 + (count % 5) * 140, 120 + (count / 5) * 100)
         };
 
-        EditedPart.Points.Add(point);
-        SelectedPointInEditor = point;
-    }
-
-    private void AddConnectionGroup(PartState state)
-    {
-        var group = new ConnectionGroup();
-        state.ConnectionGroups.Add(group);
-    }
-
-    private void AddState()
-    {
-        var state = new PartState { Label = $"State {ActiveStateGroupInEditor.States.Count + 1}" };
-        ActiveStateGroupInEditor.States.Add(state);
-        SelectActiveState(state);
-        ActiveConnectionGroup = null;
-    }
-
-    private void CopyState(PartState state)
-    {
-        var copy = new PartState
-        {
-            Label = $"{state.Label} copy",
-            ConnectionGroups = state.ConnectionGroups.Select(group => new ConnectionGroup
-            {
-                ConnectedPints = group.ConnectedPints.ToList()
-            }).ToList()
-        };
-        ActiveStateGroupInEditor.States.Add(copy);
-    }
-
-    private void RemoveState(PartState state)
-    {
-        if (!ActiveStateGroupInEditor.States.Remove(state))
-        {
-            return;
-        }
-
-        if (ReferenceEquals(ActiveStateInEditor, state) || ReferenceEquals(ActiveStateGroupInEditor.ActiveState, state))
-        {
-            ActiveStateInEditor = ActiveStateGroupInEditor.States.FirstOrDefault();
-            ActiveStateGroupInEditor.ActiveState = ActiveStateInEditor;
-        }
-
-        if (ActiveConnectionGroup is not null && state.ConnectionGroups.Contains(ActiveConnectionGroup))
-        {
-            ActiveConnectionGroup = null;
-        }
-    }
-
-    private void SelectActiveState(PartState state)
-    {
-        ActiveStateInEditor = state;
-        ActiveStateGroupInEditor.ActiveState = state;
+        EditorStateService.PartEditor.EditedPart.Points.Add(point);
+        EditorStateService.PartEditor.SelectedPointInEditor = point;
     }
 
     private void ResetTagSuggestions()
     {
-        activeTagSuggestionIndex = 0;
-        showTagSuggestions = true;
+        EditorStateService.PartEditor.ActiveTagSuggestionIndex = 0;
+        EditorStateService.PartEditor.ShowTagSuggestions = true;
     }
 
-    private void CloseTagSuggestions() => showTagSuggestions = false;
+    private void CloseTagSuggestions() => EditorStateService.PartEditor.ShowTagSuggestions = false;
 
     private void HandleTagKeyDown(KeyboardEventArgs eventArgs)
     {
@@ -352,7 +237,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        if (!showTagSuggestions)
+        if (!EditorStateService.PartEditor.ShowTagSuggestions)
         {
             ResetTagSuggestions();
             return;
@@ -361,13 +246,13 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         switch (eventArgs.Key)
         {
             case "ArrowDown":
-                activeTagSuggestionIndex = (activeTagSuggestionIndex + 1) % suggestions.Count;
+                EditorStateService.PartEditor.ActiveTagSuggestionIndex = (EditorStateService.PartEditor.ActiveTagSuggestionIndex + 1) % suggestions.Count;
                 break;
             case "ArrowUp":
-                activeTagSuggestionIndex = (activeTagSuggestionIndex + suggestions.Count - 1) % suggestions.Count;
+                EditorStateService.PartEditor.ActiveTagSuggestionIndex = (EditorStateService.PartEditor.ActiveTagSuggestionIndex + suggestions.Count - 1) % suggestions.Count;
                 break;
             case "Enter":
-                AddTag(suggestions[Math.Clamp(activeTagSuggestionIndex, 0, suggestions.Count - 1)]);
+                AddTag(suggestions[Math.Clamp(EditorStateService.PartEditor.ActiveTagSuggestionIndex, 0, suggestions.Count - 1)]);
                 break;
         }
     }
@@ -381,82 +266,50 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        ExecuteEdit(() => EditedPart.Tags.Add(tag));
-        selectedTag = string.Empty;
+        ExecuteEdit(() => EditorStateService.PartEditor.EditedPart.Tags.Add(tag));
+        EditorStateService.PartEditor.SelectedTag = string.Empty;
         ResetTagSuggestions();
     }
 
     private void RemoveTag(string tag)
     {
-        EditedPart.Tags.Remove(tag);
+        EditorStateService.PartEditor.EditedPart.Tags.Remove(tag);
     }
 
     private void RemoveSelectedPoint()
     {
-        if (SelectedPointInEditor is null)
+        if (EditorStateService.PartEditor.SelectedPointInEditor is null)
         {
             return;
         }
 
-        EditedPart.Points.Remove(SelectedPointInEditor);
-        foreach (var state in EditedPart.StateGroups.SelectMany(group => group.States))
+        EditorStateService.PartEditor.EditedPart.Points.Remove(EditorStateService.PartEditor.SelectedPointInEditor);
+        foreach (var state in EditorStateService.PartEditor.EditedPart.StateGroups.SelectMany(group => group.States))
         {
             foreach (var group in state.ConnectionGroups)
             {
-                group.ConnectedPints.Remove(SelectedPointInEditor);
+                group.ConnectedPints.Remove(EditorStateService.PartEditor.SelectedPointInEditor);
             }
         }
 
-        if (ReferenceEquals(draggedPoint, SelectedPointInEditor))
+        if (ReferenceEquals(draggedPoint, EditorStateService.PartEditor.SelectedPointInEditor))
         {
             draggedPoint = null;
         }
 
-        SelectedPointInEditor = null;
-    }
-
-    private void RemoveActiveConnectionGroup(ConnectionGroup group)
-    {
-        var state = EditedPart.StateGroups.SelectMany(stateGroup => stateGroup.States).FirstOrDefault(candidate => candidate.ConnectionGroups.Contains(group));
-        if (state is null)
-        {
-            return;
-        }
-
-        state.ConnectionGroups.Remove(group);
-        if (ReferenceEquals(ActiveConnectionGroup, group))
-        {
-            ActiveConnectionGroup = null;
-        }
+        EditorStateService.PartEditor.SelectedPointInEditor = null;
     }
 
     private string PointClass(ConnectionPoint point) =>
-        ReferenceEquals(point, SelectedPointInEditor) ? "connection-point is-selected" : "connection-point";
-
-    private void AddRemovePointToGroup(ConnectionGroup group, ConnectionPoint? selectedPoint)
-    {
-        if (selectedPoint is null)
-        {
-            return;
-        }
-
-        if (group.ConnectedPints.Contains(selectedPoint))
-        {
-            group.ConnectedPints.Remove(selectedPoint);
-        }
-        else
-        {
-            group.ConnectedPints.Add(selectedPoint);
-        }
-    }
+        ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "connection-point is-selected" : "connection-point";
 
     private void SavePartToService()
     {
-        var savedAsCopy = EditedPart.IsFromRepo || AvailableParts.Any(existing => existing.IsFromRepo && existing.Id == EditedPart.Id);
-        var partToSave = EditedPart;
+        var savedAsCopy = EditorStateService.PartEditor.EditedPart.IsFromRepo || AvailableParts.Any(existing => existing.IsFromRepo && existing.Id == EditorStateService.PartEditor.EditedPart.Id);
+        var partToSave = EditorStateService.PartEditor.EditedPart;
         if (savedAsCopy)
         {
-            partToSave = EditedPart.Clone();
+            partToSave = EditorStateService.PartEditor.EditedPart.Clone();
             partToSave.Id = Guid.NewGuid();
             partToSave.IsFromRepo = false;
         }
@@ -482,12 +335,13 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
         SetEditedPart(new CircuitPart());
         partTabsKey = new();
-        selectedTag = string.Empty;
+        EditorStateService.PartEditor.ActiveTabIndex = 0;
+        EditorStateService.PartEditor.SelectedTag = string.Empty;
     }
 
     private async Task LoadSelectedPart()
     {
-        if (PartSearchIsShown || !await ConfirmDiscardChangesAsync())
+        if (PartSearchIsShown)
         {
             return;
         }
@@ -495,7 +349,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         PartSearchIsShown = true;
         StateHasChanged();
         var part = await partSearchOptions.Result;
-        if (part is null)
+        if (part is null || !await ConfirmDiscardChangesAsync())
         {
             return;
         }
@@ -508,28 +362,29 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     {
         pendingEdit = null;
         history.Clear();
-        EditedPart = part;
-        selectedTag = string.Empty;
-        activeTagSuggestionIndex = 0;
+        EditorStateService.PartEditor.EditedPart = part;
+        EditorStateService.PartEditor.SelectedTag = string.Empty;
+        EditorStateService.PartEditor.ActiveTagSuggestionIndex = 0;
         CloseTagSuggestions();
 
-        if (EditedPart.Width <= 0)
+        if (EditorStateService.PartEditor.EditedPart.Width <= 0)
         {
-            EditedPart.Width = 500;
+            EditorStateService.PartEditor.EditedPart.Width = 500;
         }
 
-        if (EditedPart.Height <= 0)
+        if (EditorStateService.PartEditor.EditedPart.Height <= 0)
         {
-            EditedPart.Height = 500;
+            EditorStateService.PartEditor.EditedPart.Height = 500;
         }
 
-        SelectedPointInEditor = null;
-        activeStateGroupIndex = 0;
-        ActiveStateInEditor = ActiveStateGroupInEditor.ActiveState is { } activeState && ActiveStateGroupInEditor.States.Contains(activeState)
+        EditorStateService.PartEditor.SelectedPointInEditor = null;
+        EditorStateService.PartEditor.ActiveStateGroupIndex = 0;
+        EditorStateService.PartEditor.ActiveStateInEditor = EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState is { } activeState && EditorStateService.PartEditor.ActiveStateGroupInEditor.States.Contains(activeState)
             ? activeState
-            : ActiveStateGroupInEditor.States.FirstOrDefault();
-        ActiveStateGroupInEditor.ActiveState = ActiveStateInEditor;
-        ActiveConnectionGroup = null;
+            : EditorStateService.PartEditor.ActiveStateGroupInEditor.States.FirstOrDefault();
+        EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState = EditorStateService.PartEditor.ActiveStateInEditor;
+        EditorStateService.PartEditor.ActiveConnectionGroup = null;
+        EditorStateService.PartEditor.ConnectionGroupTabIndex = 0;
         ResetPointDrag();
     }
 
@@ -555,11 +410,11 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private async Task ExportPartAsync()
     {
         await using var stream = new MemoryStream();
-        await ObjectJsonSerializer.ExportAsync<CircuitPart>(EditedPart, stream);
+        await ObjectJsonSerializer.ExportAsync<CircuitPart>(EditorStateService.PartEditor.EditedPart, stream);
         stream.Position = 0;
 
         using var streamReference = new DotNetStreamReference(stream);
-        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(EditedPart.Name), streamReference);
+        await JS.InvokeVoidAsync("gwire.downloadFileFromStream", CreateFileName(EditorStateService.PartEditor.EditedPart.Name), streamReference);
     }
 
     private async Task ImportSvgAsync(InputFileChangeEventArgs eventArgs)
@@ -576,9 +431,9 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
             ExecuteEdit(() =>
             {
-                EditedPart.SvgMarkup = svgMarkup;
-                EditedPart.SvgLocalPosition = new Point();
-                EditedPart.SvgRotation = 0;
+                EditorStateService.PartEditor.EditedPart.SvgMarkup = svgMarkup;
+                EditorStateService.PartEditor.EditedPart.SvgLocalPosition = new Point();
+                EditorStateService.PartEditor.EditedPart.SvgRotation = 0;
             });
             MessageService.Show("SVG background imported", "SVG background imported successfully.", MessageType.Success);
         }
@@ -587,14 +442,15 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             MessageService.Show("SVG import failed", exception.Message, MessageType.Danger);
         }
     }
+
     /// <summary>
     /// Removes the SVG background from the edited part.
     /// </summary>
     private void RemoveSvg()
     {
-        EditedPart.SvgMarkup = string.Empty;
-        EditedPart.SvgLocalPosition = new Point();
-        EditedPart.SvgRotation = 0;
+        EditorStateService.PartEditor.EditedPart.SvgMarkup = string.Empty;
+        EditorStateService.PartEditor.EditedPart.SvgLocalPosition = new Point();
+        EditorStateService.PartEditor.EditedPart.SvgRotation = 0;
     }
 
     /// <summary>
@@ -607,5 +463,4 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         var safeName = string.Concat(name.Select(character => Path.GetInvalidFileNameChars().Contains(character) ? '_' : character)).Trim();
         return string.IsNullOrWhiteSpace(safeName) ? "part.json" : $"{safeName}.part.json";
     }
-
 }

@@ -1,0 +1,62 @@
+@using Gwire.Models.Base
+
+@if (StateGroups.Count > 1)
+{
+    <div class="mb-2">
+        <label class="form-label" for="state-group-selection">State group</label>
+        <select id="state-group-selection" class="form-select" disabled="@Disabled"
+                @bind:get="ActiveStateGroupIndex" @bind:set="SelectStateGroup">
+            @for (var index = 0; index < StateGroups.Count; index++)
+            {
+                <option value="@index">@StateGroups[index].Label</option>
+            }
+        </select>
+    </div>
+}
+@if (ActiveStateGroupInEditor is { } stateGroup)
+{
+    <div class="mb-2">
+        <label class="form-label" for="state-group-name">State group name</label>
+        <input id="state-group-name" class="form-control" disabled="@Disabled"
+               @bind:get="stateGroup.Label" @bind:set="SetStateGroupLabel" />
+    </div>
+    <div class="d-flex gap-2 mb-3">
+        <button type="button" class="btn btn-outline-primary btn-sm" disabled="@Disabled"
+                @onclick="AddStateGroup">Add state group</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" disabled="@(Disabled || StateGroups.Count <= 1)"
+                @onclick="RemoveStateGroup">Remove state group</button>
+    </div>
+
+    <h2 class="state-section-divider">States</h2>
+    <div class="mb-1">
+        <div class="d-grid gap-2">
+            <button type="button" class="btn btn-primary" disabled="@Disabled" @onclick="AddState">Add state</button>
+        </div>
+    </div>
+    @if (stateGroup.States.Count > 0)
+    {
+        <div class="mt-3">
+            <div class="nav nav-tabs" role="group" aria-label="States">
+                @foreach (var candidateState in stateGroup.States)
+                {
+                    <button @key="candidateState" type="button" disabled="@Disabled"
+                            class="nav-link @(ReferenceEquals(candidateState, ActiveStateInEditor) ? "active" : null)"
+                            aria-pressed="@(ReferenceEquals(candidateState, ActiveStateInEditor) ? "true" : "false")"
+                            @onclick="() => SelectActiveState(candidateState)">@candidateState.Label</button>
+                }
+            </div>
+            @if (ActiveStateInEditor is { } state && stateGroup.States.Contains(state))
+            {
+                <div class="pt-3" @key="state">
+                    <PartStateComponent @bind-State:get="state" @bind-State:set="ActiveStateInEditorChanged.InvokeAsync"
+                        @bind-ActiveConnectionGroup:get="ActiveConnectionGroup"
+                        @bind-ActiveConnectionGroup:set="ActiveConnectionGroupChanged.InvokeAsync"
+                        @bind-ConnectionGroupTabIndex:get="ConnectionGroupTabIndex"
+                        @bind-ConnectionGroupTabIndex:set="ConnectionGroupTabIndexChanged.InvokeAsync"
+                        SelectedPointInEditor="SelectedPointInEditor" Disabled="Disabled"
+                        OnCopy="CopyState" OnRemove="RemoveState" />
+                </div>
+            }
+        </div>
+    }
+}

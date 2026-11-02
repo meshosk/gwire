@@ -89,11 +89,16 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
     private void UpdateResults()
     {
         var hasFilters = Options.Tags.Count > 0 || Options.TextTerms.Count > 0;
-        results = Options.TextItems
-            .OrderByDescending(item => hasFilters ? item.Relevance(Options.Tags, Options.TextTerms) : 0)
-            .Take(5)
-            .ToList();
-            StateHasChanged();
+        results = hasFilters
+            ? Options.TextItems
+                .Select(item => (Item: item, Score: item.Relevance(Options.Tags, Options.TextTerms)))
+                .Where(match => match.Score > 0)
+                .OrderByDescending(match => match.Score)
+                .Take(10)
+                .Select(match => match.Item)
+                .ToList()
+            : Options.TextItems;
+        StateHasChanged();
     }
 
     private void ResetTagSuggestions()

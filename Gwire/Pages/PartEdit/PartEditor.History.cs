@@ -1,12 +1,12 @@
-using Gwire.Models;
 using Gwire.Services;
 using Gwire.UndoRedo;
+using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Gwire.Pages;
+namespace Gwire.Pages.PartEdit;
 
 public partial class PartEditor
 {
@@ -20,26 +20,20 @@ public partial class PartEditor
 
     private UndoRedoService.UndoRedoHistoryWrapper history => UndoRedoService.getHistory(HistoryIds.PartEditor);
 
+    /// <summary>
+    /// The snapshot captured before the current edit, used to create an undo action or cancel the edit.
+    /// </summary>
     private PartSnapshot? pendingEdit;
+
+    /// <summary>
+    /// The root editor DOM element passed to JavaScript interop.
+    /// </summary>
     private ElementReference editorElement;
+
+    /// <summary>
+    /// Allows JavaScript keyboard shortcuts to invoke the editor's .NET handlers.
+    /// </summary>
     private DotNetObjectReference<PartEditor>? shortcutReference;
-
-    private sealed record PartSnapshot(CircuitPart Part, int SelectedPointIndex, int StateGroupIndex, int ActiveGroupIndex);
-
-    private sealed class SnapshotAction(PartEditor editor, PartSnapshot initialSnapshot) : IUndoableAction
-    {
-        private PartSnapshot snapshot = initialSnapshot;
-
-        public void Undo() => SwapSnapshot();
-        public void Redo() => SwapSnapshot();
-
-        private void SwapSnapshot()
-        {
-            var current = editor.CaptureSnapshot();
-            editor.RestoreSnapshot(snapshot);
-            snapshot = current;
-        }
-    }
 
     private void HandleHistoryChanged() => StateHasChanged();
 
@@ -65,12 +59,6 @@ public partial class PartEditor
         }
     }
 
-    private PartSnapshot CaptureSnapshot() => new(
-        EditedPart.Clone(),
-        SelectedPointInEditor is null ? -1 : EditedPart.Points.IndexOf(SelectedPointInEditor),
-        activeStateGroupIndex,
-        ActiveConnectionGroup is null ? -1 : ActiveStateInEditor?.ConnectionGroups.IndexOf(ActiveConnectionGroup) ?? -1);
-
     private void BeginEdit()
     {
         if (pendingEdit is not null)
@@ -78,7 +66,7 @@ public partial class PartEditor
             return;
         }
 
-        pendingEdit = CaptureSnapshot();
+        pendingEdit = PartSnapshot.CaptureSnapshot(EditorStateService.PartEditor);
         history.Freeze();
     }
 
@@ -91,11 +79,11 @@ public partial class PartEditor
 
         try
         {
-            var after = CaptureSnapshot();
+            var after = PartSnapshot.CaptureSnapshot(EditorStateService.PartEditor);
             // Compare the cloned graphs so unchanged values and clicks do not create history entries.
             if (JsonSerializer.Serialize(before.Part, snapshotOptions) != JsonSerializer.Serialize(after.Part, snapshotOptions))
             {
-                history.addRedoAction(new SnapshotAction(this, before));
+                history.addRedoAction(new PartSnapshotAction(EditorStateService.PartEditor, before));
             }
         }
         catch
@@ -144,13 +132,7 @@ public partial class PartEditor
 
     private void RestoreSnapshot(PartSnapshot snapshot)
     {
-        // Each restoration gets a fresh graph; further edits must not mutate the stored snapshot.
-        EditedPart = snapshot.Part.Clone();
-        SelectedPointInEditor = EditedPart.Points.ElementAtOrDefault(snapshot.SelectedPointIndex);
-        activeStateGroupIndex = snapshot.StateGroupIndex;
-        ActiveStateInEditor = ActiveStateGroupInEditor.ActiveState;
-        ActiveConnectionGroup = ActiveStateInEditor?.ConnectionGroups.ElementAtOrDefault(snapshot.ActiveGroupIndex);
-        selectedTag = string.Empty;
+        EditorStateService.PartEditor.RestoreSnapshot(snapshot);
         ResetPointDrag();
     }
 
@@ -158,7 +140,7 @@ public partial class PartEditor
     {
         history.Changed -= HandleHistoryChanged;
         GwireParts.Changed -= HandleRepositoryChanged;
-        history.Clear();
+        CancelEdit();
         if (shortcutReference is not null)
         {
             await JS.InvokeVoidAsync("gwire.disableUndoRedoShortcuts", editorElement);

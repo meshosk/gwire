@@ -52,21 +52,18 @@ jobs:
           APP_ARCH: ${{ matrix.arch }}
           APP_VERSION: ${{ needs.version.outputs.number }}
         run: docker build --file Desktop/Dockerfile --target windows --build-arg "APP_ARCH=$APP_ARCH" --build-arg "APP_VERSION=$APP_VERSION" --output type=local,dest=Desktop/dist .
-      - name: Archive complete Windows app
+      - name: Archive portable Windows executable
         working-directory: Desktop/dist
         env:
           APP_ARCH: ${{ matrix.arch }}
           APP_VERSION: ${{ needs.version.outputs.number }}
         run: |
-          mv win-unpacked "Gwire-$APP_VERSION-win-$APP_ARCH"
-          zip -qr "Gwire-$APP_VERSION-win-$APP_ARCH.zip" "Gwire-$APP_VERSION-win-$APP_ARCH"
+          zip -q "Gwire-$APP_VERSION-win-$APP_ARCH.zip" "Gwire-$APP_VERSION-win-$APP_ARCH.exe"
       - name: Upload Windows packages
         uses: actions/upload-artifact@v6
         with:
           name: release-windows-${{ matrix.arch }}
-          path: |
-            Desktop/dist/*.exe
-            Desktop/dist/*.zip
+          path: Desktop/dist/*.zip
           if-no-files-found: error
 
   macos-build:
