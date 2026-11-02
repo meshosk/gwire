@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text;
 
-namespace Gwire.Pages;
+namespace Gwire.Pages.PartEdit;
 
 public partial class PartEditor : ComponentBase, IAsyncDisposable
 {
@@ -62,38 +62,6 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
         await ConfirmationService.ShowAsync("Unsaved changes",
             "This part has unsaved changes. Do you want to discard them and continue?") == ConfirmationResult.YES;
-
-    private void SelectStateGroup(int index)
-    {
-        EditorStateService.PartEditor.ActiveStateGroupIndex = index;
-        EditorStateService.PartEditor.ActiveStateInEditor = EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState;
-        EditorStateService.PartEditor.ActiveConnectionGroup = null;
-        EditorStateService.PartEditor.ConnectionGroupTabIndex = 0;
-    }
-
-    private void AddStateGroup()
-    {
-        var group = new PartStateGroup();
-        var number = 1;
-        while (EditorStateService.PartEditor.EditedPart.StateGroups.Any(existing => string.Equals(existing.Label, group.Label, StringComparison.OrdinalIgnoreCase)))
-        {
-            group.Label = $"State {number++}";
-        }
-
-        EditorStateService.PartEditor.EditedPart.StateGroups.Add(group);
-        SelectStateGroup(EditorStateService.PartEditor.EditedPart.StateGroups.Count - 1);
-    }
-
-    private void RemoveStateGroup()
-    {
-        if (EditorStateService.PartEditor.EditedPart.StateGroups.Count <= 1)
-        {
-            return;
-        }
-
-        EditorStateService.PartEditor.EditedPart.StateGroups.RemoveAt(EditorStateService.PartEditor.ActiveStateGroupIndex);
-        SelectStateGroup(Math.Min(EditorStateService.PartEditor.ActiveStateGroupIndex, EditorStateService.PartEditor.EditedPart.StateGroups.Count - 1));
-    }
 
     private void HandleRepositoryChanged() => StateHasChanged();
 
@@ -242,61 +210,6 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         EditorStateService.PartEditor.SelectedPointInEditor = point;
     }
 
-    private void AddConnectionGroup(PartState state)
-    {
-        var group = new ConnectionGroup();
-        state.ConnectionGroups.Add(group);
-    }
-
-    private void AddState()
-    {
-        var state = new PartState { Label = $"State {EditorStateService.PartEditor.ActiveStateGroupInEditor.States.Count + 1}" };
-        EditorStateService.PartEditor.ActiveStateGroupInEditor.States.Add(state);
-        SelectActiveState(state);
-        EditorStateService.PartEditor.ActiveConnectionGroup = null;
-        EditorStateService.PartEditor.ConnectionGroupTabIndex = 0;
-    }
-
-    private void CopyState(PartState state)
-    {
-        var copy = new PartState
-        {
-            Label = $"{state.Label} copy",
-            ConnectionGroups = state.ConnectionGroups.Select(group => new ConnectionGroup
-            {
-                ConnectedPints = group.ConnectedPints.ToList()
-            }).ToList()
-        };
-        EditorStateService.PartEditor.ActiveStateGroupInEditor.States.Add(copy);
-    }
-
-    private void RemoveState(PartState state)
-    {
-        if (!EditorStateService.PartEditor.ActiveStateGroupInEditor.States.Remove(state))
-        {
-            return;
-        }
-
-        if (ReferenceEquals(EditorStateService.PartEditor.ActiveStateInEditor, state) || ReferenceEquals(EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState, state))
-        {
-            EditorStateService.PartEditor.ActiveStateInEditor = EditorStateService.PartEditor.ActiveStateGroupInEditor.States.FirstOrDefault();
-            EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState = EditorStateService.PartEditor.ActiveStateInEditor;
-        }
-
-        if (EditorStateService.PartEditor.ActiveConnectionGroup is not null && state.ConnectionGroups.Contains(EditorStateService.PartEditor.ActiveConnectionGroup))
-        {
-            EditorStateService.PartEditor.ActiveConnectionGroup = null;
-            EditorStateService.PartEditor.ConnectionGroupTabIndex = 0;
-        }
-    }
-
-    private void SelectActiveState(PartState state)
-    {
-        EditorStateService.PartEditor.ActiveStateInEditor = state;
-        EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState = state;
-        EditorStateService.PartEditor.ConnectionGroupTabIndex = 0;
-    }
-
     private void ResetTagSuggestions()
     {
         EditorStateService.PartEditor.ActiveTagSuggestionIndex = 0;
@@ -387,41 +300,8 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         EditorStateService.PartEditor.SelectedPointInEditor = null;
     }
 
-    private void RemoveActiveConnectionGroup(ConnectionGroup group)
-    {
-        var state = EditorStateService.PartEditor.EditedPart.StateGroups.SelectMany(stateGroup => stateGroup.States).FirstOrDefault(candidate => candidate.ConnectionGroups.Contains(group));
-        if (state is null)
-        {
-            return;
-        }
-
-        state.ConnectionGroups.Remove(group);
-        if (ReferenceEquals(EditorStateService.PartEditor.ActiveConnectionGroup, group))
-        {
-            EditorStateService.PartEditor.ActiveConnectionGroup = null;
-            EditorStateService.PartEditor.ConnectionGroupTabIndex = 0;
-        }
-    }
-
     private string PointClass(ConnectionPoint point) =>
         ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "connection-point is-selected" : "connection-point";
-
-    private void AddRemovePointToGroup(ConnectionGroup group, ConnectionPoint? selectedPoint)
-    {
-        if (selectedPoint is null)
-        {
-            return;
-        }
-
-        if (group.ConnectedPints.Contains(selectedPoint))
-        {
-            group.ConnectedPints.Remove(selectedPoint);
-        }
-        else
-        {
-            group.ConnectedPints.Add(selectedPoint);
-        }
-    }
 
     private void SavePartToService()
     {

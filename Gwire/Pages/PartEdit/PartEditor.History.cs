@@ -6,7 +6,7 @@ using Microsoft.JSInterop;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Gwire.Pages;
+namespace Gwire.Pages.PartEdit;
 
 public partial class PartEditor
 {
@@ -20,8 +20,19 @@ public partial class PartEditor
 
     private UndoRedoService.UndoRedoHistoryWrapper history => UndoRedoService.getHistory(HistoryIds.PartEditor);
 
+    /// <summary>
+    /// The snapshot captured before the current edit, used to create an undo action or cancel the edit.
+    /// </summary>
     private PartSnapshot? pendingEdit;
+
+    /// <summary>
+    /// The root editor DOM element passed to JavaScript interop.
+    /// </summary>
     private ElementReference editorElement;
+
+    /// <summary>
+    /// Allows JavaScript keyboard shortcuts to invoke the editor's .NET handlers.
+    /// </summary>
     private DotNetObjectReference<PartEditor>? shortcutReference;
 
     private void HandleHistoryChanged() => StateHasChanged();

@@ -1,5 +1,5 @@
 using Gwire.Models;
-using static Gwire.Pages.PartEditor;
+using static Gwire.Pages.PartEdit.PartEditor;
 
 namespace Gwire.UndoRedo.Actions;
 

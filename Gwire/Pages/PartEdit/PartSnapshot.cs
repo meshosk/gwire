@@ -1,6 +1,6 @@
 using Gwire.Models;
 
-namespace Gwire.Pages;
+namespace Gwire.Pages.PartEdit;
 
 public partial class PartEditor
 {

@@ -210,97 +210,16 @@
 			            </BootstrapTab>
 			            <BootstrapTab Title="States" Disabled="@(!EditorStateService.PartEditor.EditedPart.Points.Any())">
 
-                    @if (EditorStateService.PartEditor.EditedPart.StateGroups.Count > 1)
-                    {
-                        <div class="mb-2">
-                            <label class="form-label" for="state-group-selection">State group</label>
-                            <select id="state-group-selection" class="form-select"
-                                    @bind:get="EditorStateService.PartEditor.ActiveStateGroupIndex" @bind:set="SelectStateGroup">
-                                @for (var index = 0; index < EditorStateService.PartEditor.EditedPart.StateGroups.Count; index++)
-                                {
-                                    <option value="@index">@EditorStateService.PartEditor.EditedPart.StateGroups[index].Label</option>
-                                }
-                            </select>
-                        </div>
-                    }
-                    <div class="mb-2">
-                        <label class="form-label" for="state-group-name">State group name</label>
-                        <input id="state-group-name" class="form-control" @bind:get="EditorStateService.PartEditor.ActiveStateGroupInEditor.Label"
-                               @bind:set="value => ExecuteEdit(() => EditorStateService.PartEditor.ActiveStateGroupInEditor.Label = value ?? string.Empty)" />
-                    </div>
-                    <div class="d-flex gap-2 mb-3">
-                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(AddStateGroup)">Add state group</button>
-                        <button type="button" class="btn btn-outline-danger btn-sm" disabled="@(EditorStateService.PartEditor.EditedPart.StateGroups.Count <= 1)"
-                                @onclick="() => ExecuteEdit(RemoveStateGroup)">Remove state group</button>
-                    </div>
-
-                    <h2 class="state-section-divider">States</h2>
-
-				            <div class="mb-1">
-					            <div class="d-grid gap-2">
-						            <button type="button" class="btn btn-primary" @onclick="() => ExecuteEdit(AddState)">Add state</button>
-								</div>
-				            </div>
-                    @if (EditorStateService.PartEditor.ActiveStateGroupInEditor.States.Count > 0)
-                    {
-                        <div class="mt-3">
-                            <div class="nav nav-tabs" role="group" aria-label="States">
-                                @foreach (var candidateState in EditorStateService.PartEditor.ActiveStateGroupInEditor.States)
-                                {
-                                    <button @key="candidateState" type="button"
-                                            class="nav-link @(ReferenceEquals(candidateState, EditorStateService.PartEditor.ActiveStateInEditor) ? "active" : null)"
-                                            aria-pressed="@(ReferenceEquals(candidateState, EditorStateService.PartEditor.ActiveStateInEditor) ? "true" : "false")"
-                                            @onclick="() => SelectActiveState(candidateState)">@candidateState.Label</button>
-                                }
-                            </div>
-                            @if (EditorStateService.PartEditor.ActiveStateInEditor is { } state)
-                            {
-                                <div class="pt-3" @key="state">
-                                    <label class="form-label" for="state-label">State name</label>
-                                    <input id="state-label" class="form-control mb-4" @bind:get="state.Label" @bind:set="value => ExecuteEdit(() => state.Label = value ?? string.Empty)" />
-
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => CopyState(state))">Create copy</button>
-                                        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveState(state))">Remove state</button>
-                                    </div>
-
-                                    <h3 class="state-section-divider">Connection groups</h3>
-
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => ExecuteEdit(() => AddConnectionGroup(state))">Add group</button>
-                                    </div>
-
-                                    @if (state.ConnectionGroups.Count > 0)
-                                    {
-                                        <div class="p-3">
-                                            <BootstrapTabs @bind-ActiveIndex="EditorStateService.PartEditor.ConnectionGroupTabIndex">
-                                                @foreach (var group in state.ConnectionGroups.WithIndex())
-                                                {
-                                                    <BootstrapTab @key="group.Item" Title="@($"Group {group.Index}")">
-                                                        <div class="m-2">
-                                                            Connected:
-                                                            @foreach (var connectedPin in group.Item.ConnectedPints)
-                                                            {
-                                                                <span class="badge text-bg-secondary d-inline-flex align-items-center gap-1">
-                                                                    @connectedPin.Label
-                                                                    <button type="button" class="btn-close btn-close-white" aria-label="Remove @connectedPin.Label from group"
-                                                                            @onclick="() => ExecuteEdit(() => group.Item.ConnectedPints.Remove(connectedPin))"></button>
-                                                                </span>
-                                                            }
-                                                        </div>
-                                                        <div class="d-flex flex-wrap gap-2">
-                                                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => ExecuteEdit(() => AddRemovePointToGroup(group.Item, EditorStateService.PartEditor.SelectedPointInEditor))">Selected point to group</button>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(() => RemoveActiveConnectionGroup(group.Item))">Remove group</button>
-                                                        </div>
-                                                    </BootstrapTab>
-                                                }
-                                            </BootstrapTabs>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    }
+                    <CascadingValue Name="ExecutePartEdit" Value="@(EventCallback.Factory.Create<Action>(this, ExecuteEdit))" IsFixed="true">
+                        <PartStateGroupComponent
+                            @bind-StateGroups="EditorStateService.PartEditor.EditedPart.StateGroups"
+                            @bind-ActiveStateGroupIndex="EditorStateService.PartEditor.ActiveStateGroupIndex"
+                            @bind-ActiveStateInEditor="EditorStateService.PartEditor.ActiveStateInEditor"
+                            @bind-ActiveConnectionGroup="EditorStateService.PartEditor.ActiveConnectionGroup"
+                            @bind-ConnectionGroupTabIndex="EditorStateService.PartEditor.ConnectionGroupTabIndex"
+                            SelectedPointInEditor="EditorStateService.PartEditor.SelectedPointInEditor"
+                            Disabled="@history.IsFrozen" />
+                    </CascadingValue>
 			            </BootstrapTab>
 		            </BootstrapTabs>
 

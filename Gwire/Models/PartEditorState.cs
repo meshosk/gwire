@@ -1,5 +1,5 @@
 using Gwire.Models.Base;
-using static Gwire.Pages.PartEditor;
+using static Gwire.Pages.PartEdit.PartEditor;
 
 namespace Gwire.Models;
 
