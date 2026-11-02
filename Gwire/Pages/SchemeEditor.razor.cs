@@ -20,23 +20,40 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     public EventCallback ReloadRepository { get; set; }
 
     private CircuitPart? editedTextPart;
-    private Circuit Circuit = new();
-    internal List<SourceGroundPair> SourceGroundPairs { get; } = [new()];
+
+    [Inject]
+    private EditorStateService EditorStateService { get; set; } = default!;
+
+    private SchemeEditorState State => EditorStateService.SchemeEditor;
+
+    private Circuit Circuit { get => State.Circuit; set => State.Circuit = value; }
+
+    internal List<SourceGroundPair> SourceGroundPairs => State.SourceGroundPairs;
+
     [Inject]
     private UndoRedoService UndoRedoService { get; set; } = default!;
 
     private UndoRedoService.UndoRedoHistoryWrapper history => UndoRedoService.getHistory(HistoryIds.SchemeEditor);
 
     private ElementReference editorElement;
+
     private ElementReference pdfExportModal;
+
     private DotNetObjectReference<SchemeEditor>? shortcutReference;
-    private float zoom = 1;
-    private bool showDetails;
+
+    private float zoom { get => State.Zoom; set => State.Zoom = value; }
+
+    private bool showDetails { get => State.ShowDetails; set => State.ShowDetails = value; }
+
     private bool isLoadingScheme;
-    private bool showSourceGroundPair;
-    private string selectedTag = string.Empty;
-    private bool showTagSuggestions;
-    private int activeTagSuggestionIndex;
+
+    private bool showSourceGroundPair { get => State.ShowSourceGroundPair; set => State.ShowSourceGroundPair = value; }
+
+    private string selectedTag { get => State.SelectedTag; set => State.SelectedTag = value; }
+
+    private bool showTagSuggestions { get => State.ShowTagSuggestions; set => State.ShowTagSuggestions = value; }
+
+    private int activeTagSuggestionIndex { get => State.ActiveTagSuggestionIndex; set => State.ActiveTagSuggestionIndex = value; }
 
     private IReadOnlyList<string> AvailableTags => GwireParts.Tags
         .Where(tag => !Circuit.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
@@ -46,6 +63,43 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         .Where(tag => tag.Contains(selectedTag.Trim(), StringComparison.OrdinalIgnoreCase))
         .Take(8)
         .ToList();
+
+    private int ZoomPercentage => (int)MathF.Round(zoom * 100);
+
+    private SearchOptions<CircuitPart> partSearchOptions = default!;
+
+    private bool PartSearchIsShown;
+
+    private SearchOptions<GwireSchemeInfo> schemeSearchOptions = default!;
+
+    private bool SchemeSearchIsShown;
+
+    private (string Name, string Description, string[] Tags) unchangedSchemeDetails { get => State.UnchangedSchemeDetails; set => State.UnchangedSchemeDetails = value; }
+
+    [Inject]
+    private ConfirmationService ConfirmationService { get; set; } = default!;
+
+    private bool HasUnsavedChanges => history.HasEntries
+        || Circuit.Name != unchangedSchemeDetails.Name
+        || Circuit.Description != unchangedSchemeDetails.Description
+        || !Circuit.Tags.SequenceEqual(unchangedSchemeDetails.Tags);
+
+    /// <summary>
+    /// The currently selected part in the scheme editor, or null if no part is selected.
+    /// </summary>
+    internal BaseCircuitPart? SelectedPart { get => State.SelectedPart; set => State.SelectedPart = value; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+
+    [Inject]
+    private MessageService MessageService { get; set; } = default!;
+
+    [Inject]
+    private ILogger<SchemeEditor> Logger { get; set; } = default!;
+
+    [Inject]
+    private SchemePdfExporter PdfExporter { get; set; } = default!;
 
     private void ToggleDetails() => showDetails = !showDetails;
 
@@ -112,39 +166,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     private void RemoveTag(string tag) => Circuit.Tags.Remove(tag);
 
-    private int ZoomPercentage => (int)MathF.Round(zoom * 100);
-
-    private SearchOptions<CircuitPart> partSearchOptions = default!;
-    private bool PartSearchIsShown;
-    private SearchOptions<GwireSchemeInfo> schemeSearchOptions = default!;
-    private bool SchemeSearchIsShown;
-    private (string Name, string Description, string[] Tags) unchangedSchemeDetails = (string.Empty, string.Empty, []);
-
-    [Inject]
-    private ConfirmationService ConfirmationService { get; set; } = default!;
-
-    private bool HasUnsavedChanges => history.HasEntries
-        || Circuit.Name != unchangedSchemeDetails.Name
-        || Circuit.Description != unchangedSchemeDetails.Description
-        || !Circuit.Tags.SequenceEqual(unchangedSchemeDetails.Tags);
-
     private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
         await ConfirmationService.ShowAsync("Unsaved changes",
             "This scheme has unsaved changes. Do you want to discard them and continue?") == ConfirmationResult.YES;
-
-    /// <summary>
-    /// The currently selected part in the scheme editor, or null if no part is selected.
-    /// </summary>
-    internal BaseCircuitPart? SelectedPart { get; set; }
-
-    [Inject]
-    private IJSRuntime JS { get; set; } = default!;
-
-    [Inject]
-    private MessageService MessageService { get; set; } = default!;
-
-    [Inject]
-    private ILogger<SchemeEditor> Logger { get; set; } = default!;
 
     private void HandleRepositoryChanged() => StateHasChanged();
 
@@ -194,7 +218,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         {
             shortcutReference = DotNetObjectReference.Create(this);
             await JS.InvokeVoidAsync("gwire.enableUndoRedoShortcuts", editorElement, shortcutReference);
-            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement, shortcutReference);
+            await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement, shortcutReference,
+                new { zoom, x = State.ViewportX, y = State.ViewportY, panEnabled = State.PanEnabled });
         }
     }
 
@@ -226,6 +251,14 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         return true;
     }
 
+    [JSInvokable]
+    public void HandleViewportChanged(float x, float y, bool panEnabled)
+    {
+        State.ViewportX = x;
+        State.ViewportY = y;
+        State.PanEnabled = panEnabled;
+    }
+
     private async Task SetZoomAsync(float zoom)
     {
         await JS.InvokeVoidAsync("gwire.setSchemeZoom", editorElement, zoom);
@@ -240,7 +273,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     {
         if (!history.IsFrozen && part is not null && Circuit.Parts.Contains(part))
         {
-            var action = new RemovePartAction(Circuit, this, part);
+            var action = new RemovePartAction(Circuit, State, part);
             action.Redo();
             history.addRedoAction(action);
         }
@@ -250,7 +283,6 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     {
         history.Changed -= HandleHistoryChanged;
         GwireParts.Changed -= HandleRepositoryChanged;
-        history.Clear();
         await JS.InvokeVoidAsync("gwire.hidePdfExportProgress", pdfExportModal);
         if (shortcutReference is not null)
         {
@@ -312,12 +344,19 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             history.Unfreeze();
         }
 
+        if (isLoadingScheme)
+        {
+            await JS.InvokeVoidAsync("gwire.hidePdfExportProgress", pdfExportModal);
+        }
+
+        if (history.IsFrozen || !await ConfirmDiscardChangesAsync() || history.IsFrozen)
+        {
+            return;
+        }
+
         SetCircuit(circuit);
         MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
     }
-
-    [Inject]
-    private SchemePdfExporter PdfExporter { get; set; } = default!;
 
     private async Task ExportPdfAsync()
     {
@@ -415,14 +454,14 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        var action = AddPartAction.CreateCable(Circuit, this);
+        var action = AddPartAction.CreateCable(Circuit, State);
         action.Redo();
         history.addRedoAction(action);
     }
 
     private async Task SearchSchemesAsync()
     {
-        if (history.IsFrozen || SchemeSearchIsShown || !await ConfirmDiscardChangesAsync() || history.IsFrozen)
+        if (history.IsFrozen || SchemeSearchIsShown)
         {
             return;
         }
@@ -464,7 +503,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        var action = AddPartAction.CreatePart(Circuit, this, part);
+        var action = AddPartAction.CreatePart(Circuit, State, part);
         action.Redo();
         history.addRedoAction(action);
     }
@@ -485,9 +524,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        var action = AddPartAction.CreatePart(Circuit, this, selectedPart);
+        var action = AddPartAction.CreatePart(Circuit, State, selectedPart);
         action.Redo();
         history.addRedoAction(action);
     }
-
 }

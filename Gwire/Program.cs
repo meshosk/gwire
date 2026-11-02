@@ -12,6 +12,7 @@ builder.Services.AddScoped<GwirePartsService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<ConfirmationService>();
 builder.Services.AddScoped<UndoRedoService>();
+builder.Services.AddScoped<EditorStateService>();
 builder.Services.AddScoped<SchemePdfExporter>();
 
 var host = builder.Build();

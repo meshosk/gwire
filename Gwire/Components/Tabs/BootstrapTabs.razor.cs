@@ -1,11 +1,19 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Gwire.Components.Tabs;
 
 public partial class BootstrapTabs
 {
     private readonly List<BootstrapTab> tabs = [];
-    private BootstrapTab? activeTab;
+    private BootstrapTab? activeTab => tabs.ElementAtOrDefault(ActiveIndex) is { Disabled: false } selected
+        ? selected
+        : tabs.FirstOrDefault(tab => !tab.Disabled);
+
+    [Parameter]
+    public int ActiveIndex { get; set; }
+
+    [Parameter]
+    public EventCallback<int> ActiveIndexChanged { get; set; }
 
     [Parameter]
     public string? CssClass { get; set; }
@@ -21,7 +29,6 @@ public partial class BootstrapTabs
         }
 
         tabs.Add(tab);
-        activeTab ??= tabs.FirstOrDefault(item => !item.Disabled);
         StateHasChanged();
     }
 
@@ -30,11 +37,6 @@ public partial class BootstrapTabs
         if (!tabs.Remove(tab))
         {
             return;
-        }
-
-        if (ReferenceEquals(activeTab, tab))
-        {
-            activeTab = tabs.FirstOrDefault(item => !item.Disabled);
         }
 
         StateHasChanged();
@@ -60,7 +62,8 @@ public partial class BootstrapTabs
             return;
         }
 
-        activeTab = tab;
+        ActiveIndex = tabs.IndexOf(tab);
+        await ActiveIndexChanged.InvokeAsync(ActiveIndex);
         await tab.OnClick.InvokeAsync();
     }
 }

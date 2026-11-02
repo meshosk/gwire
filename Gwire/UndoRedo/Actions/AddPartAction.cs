@@ -1,6 +1,5 @@
 using Gwire.Models;
 using Gwire.Models.Base;
-using Gwire.Pages;
 
 namespace Gwire.UndoRedo.Actions;
 
@@ -8,12 +7,12 @@ public sealed class AddPartAction : IUndoableAction
 {
     private readonly RemovePartAction removal;
 
-    public AddPartAction(Circuit circuit, SchemeEditor editor, BaseCircuitPart part)
+    public AddPartAction(Circuit circuit, SchemeEditorState editor, BaseCircuitPart part)
     {
         removal = new RemovePartAction(circuit, editor, part, circuit.Parts.Count);
     }
 
-    public static AddPartAction CreateCable(Circuit circuit, SchemeEditor editor)
+    public static AddPartAction CreateCable(Circuit circuit, SchemeEditorState editor)
     {
         var cableNumber = circuit.Parts.OfType<CablePart>().Count() + 1;
         var cable = new CablePart
@@ -26,7 +25,7 @@ public sealed class AddPartAction : IUndoableAction
         return new AddPartAction(circuit, editor, cable);
     }
 
-    public static AddPartAction CreatePart(Circuit circuit, SchemeEditor editor, CircuitPart selectedPart)
+    public static AddPartAction CreatePart(Circuit circuit, SchemeEditorState editor, CircuitPart selectedPart)
     {
         var part = selectedPart.Clone();
         var partNumber = circuit.Parts.OfType<CircuitPart>().Count();
