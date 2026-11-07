@@ -32,5 +32,8 @@
                             IsChecked="@CablePart.BendPoints[index].IsRounded">
             Rounded
         </SvgContextMenuItem>
+        <SvgContextMenuItem OnClick="RemoveBendPoint" Disabled="@History.IsFrozen">
+            Remove bend point
+        </SvgContextMenuItem>
     }
 </SvgContextMenu>
