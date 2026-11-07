@@ -75,9 +75,6 @@ public sealed class RemovePartAction : IUndoableAction
             }
         }
         circuit.Parts.Remove(part);
-        if (ReferenceEquals(editor.SelectedPart, part))
-        {
-            editor.SelectedPart = null;
-        }
+        editor.SelectedPart = null;
     }
 }
