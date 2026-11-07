@@ -49,6 +49,11 @@
     vertical-align: middle;
 }
 
+.scheme-editor-zoom.position-fixed {
+    background-color: #fff;
+    border-radius: var(--bs-border-radius-sm);
+}
+
 .scheme-editor-zoom .form-control {
     flex: 0 0 4.5rem;
     width: 4.5rem;
