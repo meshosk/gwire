@@ -62,6 +62,21 @@ public partial class CableBendPoints : IDisposable
         }
     }
 
+    private void RemoveBendPoint()
+    {
+        if (History.IsFrozen || contextIndex is not { } index || index >= CablePart.BendPoints.Count)
+        {
+            return;
+        }
+
+        var bends = CablePart.BendPoints.ToList();
+        bends.RemoveAt(index);
+        var action = new ChangeCableRouteAction(CablePart, CablePart.BendPoints, bends);
+        action.Redo();
+        contextIndex = null;
+        History.addRedoAction(action);
+    }
+
     private void StartDrag(int index, PointerEventArgs eventArgs)
     {
         if (!IsSelected || eventArgs.Button != 0 || !eventArgs.IsPrimary || dragPointerId is not null)
