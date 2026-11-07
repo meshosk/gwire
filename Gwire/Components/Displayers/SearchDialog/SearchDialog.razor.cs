@@ -14,6 +14,8 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
     private DotNetObjectReference<SearchDialog>? receiver;
     private IReadOnlyList<SearchItem> results = [];
     private SearchItem? selectedMatch;
+    private int? activeResultIndex;
+    private bool focusRequested;
     private string draftValue = string.Empty;
     private bool showTagSuggestions;
     private int activeTagSuggestionIndex;
@@ -55,7 +57,7 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
         {
             responding = false;
             selectedMatch = null;
-            UpdateResults();
+            ClearFilters();
         }
         else if (module is not null)
         {
@@ -67,27 +69,78 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!showRequested)
+        if (showRequested)
+        {
+            showRequested = false;
+            try
+            {
+                module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Displayers/SearchDialog/SearchDialog.razor.js");
+                receiver ??= DotNetObjectReference.Create(this);
+                await module.InvokeVoidAsync("show", modalElement, receiver);
+            }
+            catch
+            {
+                Options.Cancel();
+                throw;
+            }
+        }
+
+        if (focusRequested && Visible && module is not null)
+        {
+            focusRequested = false;
+            await module.InvokeVoidAsync("focus", modalElement, activeResultIndex);
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleNavigationKey(string key, int? resultIndex)
+    {
+        if (responding || !Visible)
         {
             return;
         }
 
-        showRequested = false;
-        try
+        switch (key)
         {
-            module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Displayers/SearchDialog/SearchDialog.razor.js");
-            receiver ??= DotNetObjectReference.Create(this);
-            await module.InvokeVoidAsync("show", modalElement, receiver);
-        }
-        catch
-        {
-            Options.Cancel();
-            throw;
+            case "ArrowDown":
+            case "ArrowUp":
+                if (results.Count == 0)
+                {
+                    return;
+                }
+
+                activeResultIndex = activeResultIndex is { } current
+                    ? Math.Clamp(current + (key == "ArrowDown" ? 1 : -1), 0, results.Count - 1)
+                    : key == "ArrowDown" ? 0 : results.Count - 1;
+                CloseTagSuggestions();
+                focusRequested = true;
+                StateHasChanged();
+                break;
+            case "Enter":
+                if (resultIndex is { } index && index >= 0 && index < results.Count)
+                {
+                    await SelectAsync(results[index]);
+                }
+                break;
+            case "Escape":
+                if (activeResultIndex is not null || resultIndex is not null)
+                {
+                    activeResultIndex = null;
+                    focusRequested = true;
+                    StateHasChanged();
+                }
+                else
+                {
+                    await CancelAsync();
+                }
+                break;
         }
     }
 
     private void UpdateResults()
     {
+        activeResultIndex = null;
+        focusRequested = Visible && !showRequested;
         var hasFilters = Options.Tags.Count > 0 || Options.TextTerms.Count > 0;
         results = hasFilters
             ? Options.TextItems
@@ -103,6 +156,7 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
 
     private void ResetTagSuggestions()
     {
+        activeResultIndex = null;
         activeTagSuggestionIndex = 0;
         showTagSuggestions = draftValue.StartsWith('#');
     }
@@ -111,7 +165,7 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
 
     private void HandleKeyDown(KeyboardEventArgs args)
     {
-        if (responding)
+        if (responding || args.Key != "Enter")
         {
             return;
         }
@@ -119,31 +173,12 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
         if (draftValue.StartsWith('#'))
         {
             var suggestions = TagSuggestions;
-            if (args.Key is not ("ArrowDown" or "ArrowUp" or "Enter") || suggestions.Count == 0)
+            if (suggestions.Count > 0)
             {
-                return;
-            }
-
-            if (!showTagSuggestions)
-            {
-                ResetTagSuggestions();
-                return;
-            }
-
-            switch (args.Key)
-            {
-                case "ArrowDown":
-                    activeTagSuggestionIndex = (activeTagSuggestionIndex + 1) % suggestions.Count;
-                    break;
-                case "ArrowUp":
-                    activeTagSuggestionIndex = (activeTagSuggestionIndex + suggestions.Count - 1) % suggestions.Count;
-                    break;
-                case "Enter":
-                    AddTag(suggestions[Math.Clamp(activeTagSuggestionIndex, 0, suggestions.Count - 1)]);
-                    break;
+                AddTag(suggestions[Math.Clamp(activeTagSuggestionIndex, 0, suggestions.Count - 1)]);
             }
         }
-        else if (args.Key == "Enter")
+        else
         {
             var term = draftValue.Trim();
             if (term.Length == 0)

@@ -8,12 +8,15 @@
             <div class="modal-body">
                 <div class="search-results mb-3">
                     <div class="list-group" aria-label="Search results" aria-live="polite">
-                        @foreach (var match in results)
+                        @for (var index = 0; index < results.Count; index++)
                         {
+                            var resultIndex = index;
+                            var match = results[resultIndex];
                             var score = Options.Tags.Count > 0 || Options.TextTerms.Count > 0
                                 ? match.Relevance(Options.Tags, Options.TextTerms)
                                 : 0;
-                            <div class="list-group-item d-flex align-items-center justify-content-between gap-2">
+                            <div @key="match" class="list-group-item d-flex align-items-center justify-content-between gap-2 @(activeResultIndex == resultIndex ? "active" : null)"
+                                 aria-current="@(activeResultIndex == resultIndex ? "true" : null)">
                                 <span class="search-result-text">
                                     @if (match is SearchItem<Gwire.Models.CircuitPart> partMatch)
                                     {
@@ -26,7 +29,8 @@
                                     <span class="badge text-bg-secondary me-2" title="Relevance score"
                                           aria-label="@($"Relevance score: {score}")">@score</span>@match.Text
                                 </span>
-                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => SelectAsync(match)" disabled="@responding">Select</button>
+                                <button type="button" class="btn btn-sm @(activeResultIndex == resultIndex ? "btn-outline-light" : "btn-outline-primary")"
+                                        data-search-result-index="@resultIndex" @onclick="() => SelectAsync(match)" disabled="@responding">Select</button>
                             </div>
                         }
                         @if (results.Count == 0)
@@ -63,7 +67,7 @@
                         </button>
                     }
                 </div>
-                <div class="position-relative" onkeydown="if (event.target.tagName === 'INPUT' && ['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) event.preventDefault();">
+                <div class="position-relative" onkeydown="if (event.target.tagName === 'INPUT' && event.key === 'Enter') event.preventDefault();">
                     <input id="@inputId" class="form-control" placeholder="Enter text or #tag" autocomplete="off"
                            role="combobox" aria-autocomplete="list" aria-controls="@suggestionsId"
                            aria-expanded="@(showTagSuggestions ? "true" : "false")"
