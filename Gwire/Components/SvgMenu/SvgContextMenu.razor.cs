@@ -7,6 +7,8 @@ namespace Gwire.Components.SvgMenu;
 
 public partial class SvgContextMenu : IAsyncDisposable
 {
+    // Keep the .NET receiver alive until any pending attachment has completed and its listener is detached.
+    private readonly SemaphoreSlim subscriptionLock = new(1, 1);
     private ElementReference overlay;
     private DotNetObjectReference<SvgContextMenu>? receiver;
     private IJSObjectReference? subscription;
@@ -55,12 +57,25 @@ public partial class SvgContextMenu : IAsyncDisposable
 
     private async Task DismissAsync()
     {
+        if (disposed)
+        {
+            return;
+        }
+
         IsOpen = false;
         focusMenu = false;
         StateHasChanged();
-        if (subscription is not null)
+        await subscriptionLock.WaitAsync();
+        try
         {
-            await subscription.InvokeVoidAsync("restoreFocus");
+            if (!disposed && subscription is not null)
+            {
+                await subscription.InvokeVoidAsync("restoreFocus");
+            }
+        }
+        finally
+        {
+            subscriptionLock.Release();
         }
     }
 
@@ -69,33 +84,70 @@ public partial class SvgContextMenu : IAsyncDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (attachedTarget != Target)
+        await subscriptionLock.WaitAsync();
+        try
         {
-            if (subscription is not null)
+            if (disposed)
             {
-                await subscription.InvokeVoidAsync("detach");
-                await subscription.DisposeAsync();
+                return;
             }
 
-            receiver ??= DotNetObjectReference.Create(this);
-            subscription = await JS.InvokeAsync<IJSObjectReference>("gwire.attachSvgContextMenu", Target, receiver);
-            attachedTarget = Target;
+            if (attachedTarget != Target)
+            {
+                if (subscription is not null)
+                {
+                    await subscription.InvokeVoidAsync("detach");
+                    await subscription.DisposeAsync();
+                    subscription = null;
+                    attachedTarget = null;
+                }
+
+                if (disposed)
+                {
+                    return;
+                }
+
+                var target = Target;
+                receiver ??= DotNetObjectReference.Create(this);
+                subscription = await JS.InvokeAsync<IJSObjectReference>("gwire.attachSvgContextMenu", target, receiver);
+                attachedTarget = target;
+            }
+            if (!disposed && focusMenu && IsOpen)
+            {
+                focusMenu = false;
+                await JS.InvokeVoidAsync("gwire.showSvgContextMenu", overlay, pointerPosition.X, pointerPosition.Y);
+            }
         }
-        if (focusMenu && IsOpen)
+        finally
         {
-            focusMenu = false;
-            await JS.InvokeVoidAsync("gwire.showSvgContextMenu", overlay, pointerPosition.X, pointerPosition.Y);
+            subscriptionLock.Release();
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        disposed = true;
-        if (subscription is not null)
+        if (disposed)
         {
-            await subscription.InvokeVoidAsync("detach");
-            await subscription.DisposeAsync();
+            return;
         }
-        receiver?.Dispose();
+
+        disposed = true;
+        await subscriptionLock.WaitAsync();
+        try
+        {
+            if (subscription is not null)
+            {
+                await subscription.InvokeVoidAsync("detach");
+                await subscription.DisposeAsync();
+                subscription = null;
+                attachedTarget = null;
+            }
+            receiver?.Dispose();
+            receiver = null;
+        }
+        finally
+        {
+            subscriptionLock.Release();
+        }
     }
 }

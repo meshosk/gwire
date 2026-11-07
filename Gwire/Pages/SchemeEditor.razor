@@ -212,20 +212,17 @@
     </div>
 </div>
 
-@if (SelectedPart is null)
-{
-    <SvgContextMenu Target="#scheme-editor-background">
-        <SvgContextMenuItem OnClick="SearchPartsAsync" Disabled="@(history.IsFrozen || GwireParts.Parts.Count == 0 || PartSearchIsShown)">
-            Add part
-        </SvgContextMenuItem>
-        <SvgContextMenuItem OnClick="AddCable" Disabled="@history.IsFrozen">
-            Add cable
-        </SvgContextMenuItem>
-        <SvgContextMenuItem OnClick="ToggleSourceGroundPair" Disabled="@history.IsFrozen">
-            @(showSourceGroundPair ? "Hide measurement pair" : "Show measurement pair")
-        </SvgContextMenuItem>
-    </SvgContextMenu>
-}
+<SvgContextMenu Target="#scheme-editor-background">
+    <SvgContextMenuItem OnClick="SearchPartsAsync" Disabled="@(history.IsFrozen || GwireParts.Parts.Count == 0 || PartSearchIsShown)">
+        Add part
+    </SvgContextMenuItem>
+    <SvgContextMenuItem OnClick="AddCable" Disabled="@history.IsFrozen">
+        Add cable
+    </SvgContextMenuItem>
+    <SvgContextMenuItem OnClick="ToggleSourceGroundPair" Disabled="@history.IsFrozen">
+        @(showSourceGroundPair ? "Hide measurement pair" : "Show measurement pair")
+    </SvgContextMenuItem>
+</SvgContextMenu>
 
 <div @ref="pdfExportModal" class="modal" tabindex="-1" aria-labelledby="pdf-export-title" aria-describedby="pdf-export-description">
     <div class="modal-dialog modal-dialog-centered modal-sm">

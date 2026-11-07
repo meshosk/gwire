@@ -429,7 +429,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     private void SetPartSelection(BaseCircuitPart part, bool isSelected)
     {
-        if (isSelected)
+        if (isSelected && Circuit.Parts.Contains(part))
         {
             SelectedPart = part;
         }
