@@ -4,7 +4,7 @@
 - Keep changes scoped; do not edit `bin/` or `obj/`.
 - The user explicitly forbids expanding requests on your own initiative. Implement only what the user explicitly requested. If any additional change is needed, explain why and ask the user before making it, even if it seems necessary, obvious, related, or beneficial. Do not treat a request to remove or rename a member as authorization to remove or change the behavior that uses it.
 - Questions and requests for explanations do not authorize file edits.
-- Before modifying files, describe the exact changes and list the files involved, then wait for the user's explicit approval. After approval, execute exactly the approved changes. If the scope needs to change, explain the revised scope and wait for approval again.
+- Before modifying files, describe the exact changes and list the files involved. A direct user request to make a specific change is explicit approval: implement it without asking for confirmation again. Otherwise, wait for the user's explicit approval. Execute only the requested or approved changes. If the scope needs to change, explain the revised scope and wait for approval again.
 - Removing or renaming a symbol does not authorize removing its callers or changing their behavior. If the intended replacement is unclear, ask and wait for the user's answer.
 - If additional changes appear necessary, explain them and obtain explicit approval before making them.
 - Before editing, record the current diff for the affected files. When reverting your work, reverse only your own changes against that recorded state. If the target state is ambiguous, ask.
