@@ -104,6 +104,18 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
         {
             case "ArrowDown":
             case "ArrowUp":
+                if (showTagSuggestions)
+                {
+                    var suggestions = TagSuggestions;
+                    if (suggestions.Count > 0)
+                    {
+                        activeTagSuggestionIndex = (activeTagSuggestionIndex +
+                            (key == "ArrowDown" ? 1 : -1) + suggestions.Count) % suggestions.Count;
+                        StateHasChanged();
+                    }
+                    return;
+                }
+
                 if (results.Count == 0)
                 {
                     return;
