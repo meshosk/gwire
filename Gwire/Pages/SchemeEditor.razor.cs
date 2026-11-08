@@ -447,14 +447,14 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
     }
 
-    private void AddCable()
+    private void AddCable(Point? position = null)
     {
         if (history.IsFrozen)
         {
             return;
         }
 
-        var action = AddPartAction.CreateCable(Circuit, State);
+        var action = AddPartAction.CreateCable(Circuit, State, position);
         action.Redo();
         history.addRedoAction(action);
     }
@@ -508,7 +508,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         history.addRedoAction(action);
     }
 
-    private async Task SearchPartsAsync()
+    private async Task SearchPartsAsync(Point? position = null)
     {
         if (history.IsFrozen || PartSearchIsShown)
         {
@@ -524,7 +524,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        var action = AddPartAction.CreatePart(Circuit, State, selectedPart);
+        var action = AddPartAction.CreatePart(Circuit, State, selectedPart, position);
         action.Redo();
         history.addRedoAction(action);
     }
