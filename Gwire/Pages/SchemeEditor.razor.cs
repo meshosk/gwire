@@ -503,7 +503,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        var action = AddPartAction.CreatePart(Circuit, State, part);
+        var duplicate = part.Clone();
+        duplicate.SchemePosition = new Point(part.SchemePosition.X + 25, part.SchemePosition.Y + 25);
+        var action = new AddPartAction(Circuit, State, duplicate);
         action.Redo();
         history.addRedoAction(action);
     }
