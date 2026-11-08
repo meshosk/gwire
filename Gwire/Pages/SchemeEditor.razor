@@ -74,13 +74,13 @@
                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             </button>
             <div class="btn-group btn-group-sm" role="group" aria-label="Add parts">
-                <button type="button" class="btn btn-sm btn-primary" @onclick="AddCable" disabled="@history.IsFrozen" title="Add cable" aria-label="Add cable">
+                <button type="button" class="btn btn-sm btn-primary" @onclick="() => AddCable()" disabled="@history.IsFrozen" title="Add cable" aria-label="Add cable">
                     <span class="add-cable-icon" aria-hidden="true">
                         <i class="fa-solid fa-plug"></i>
                         <i class="fa-solid fa-plus add-cable-plus"></i>
                     </span>
                 </button>
-                <button type="button" class="btn btn-sm btn-primary" @onclick="SearchPartsAsync"
+                <button type="button" class="btn btn-sm btn-primary" @onclick="() => SearchPartsAsync()"
                         disabled="@(GwireParts.Parts.Count == 0 || history.IsFrozen || PartSearchIsShown)" title="Add part" aria-label="Add part">
                     <span class="add-part-icon" aria-hidden="true">
                         <i class="fa-solid fa-microchip"></i>
@@ -213,10 +213,10 @@
 </div>
 
 <SvgContextMenu Target="#scheme-editor-background">
-    <SvgContextMenuItem OnClick="SearchPartsAsync" Disabled="@(history.IsFrozen || GwireParts.Parts.Count == 0 || PartSearchIsShown)">
+    <SvgContextMenuItem OnClick="position => SearchPartsAsync(position)" Disabled="@(history.IsFrozen || GwireParts.Parts.Count == 0 || PartSearchIsShown)">
         Add part
     </SvgContextMenuItem>
-    <SvgContextMenuItem OnClick="AddCable" Disabled="@history.IsFrozen">
+    <SvgContextMenuItem OnClick="position => AddCable(position)" Disabled="@history.IsFrozen">
         Add cable
     </SvgContextMenuItem>
     <SvgContextMenuItem OnClick="ToggleSourceGroundPair" Disabled="@history.IsFrozen">
