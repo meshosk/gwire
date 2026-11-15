@@ -101,6 +101,18 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
         }
     }
 
+    private void ChangeSignalColor(CoilPair coil, string? color)
+    {
+        if (History.IsFrozen || string.IsNullOrEmpty(color) || color == coil.Color)
+        {
+            return;
+        }
+
+        var action = new ChangeCoilColorAction(CircuitPart, coil, coil.Color, color);
+        action.Redo();
+        History.addRedoAction(action);
+    }
+
 
 #region Dragging
         private void StartDrag(PointerEventArgs eventArgs)

@@ -1,0 +1,82 @@
+@using Gwire.Models
+@using Gwire.Models.Base
+
+<div class="d-grid gap-2 mt-2">
+    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="() => AddPair(new CoilPair())">Add coil pair</button>
+    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="() => AddPair(new ResistorPair())">Add resistor pair</button>
+    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="() => AddPair(new CapacitorPair())">Add capacitor pair</button>
+</div>
+
+@if (Part.ConnectionPairs.Count > 0)
+{
+    <fieldset class="border rounded p-2 mt-2">
+        <legend class="float-none w-auto px-1 mb-0 fs-6">Electrical pairs</legend>
+        <div class="d-flex flex-wrap gap-1">
+            @foreach (var pair in Part.ConnectionPairs)
+            {
+                <button @key="pair" type="button" disabled="@Disabled"
+                        class="btn btn-sm @(ReferenceEquals(pair, SelectedPair) ? "btn-primary" : "btn-outline-secondary")"
+                        aria-pressed="@(ReferenceEquals(pair, SelectedPair) ? "true" : "false")"
+                        @onclick="() => SelectedPointChanged.InvokeAsync(pair.Point1)">
+                    @pair.Name (@pair.TypeName)
+                </button>
+            }
+        </div>
+    </fieldset>
+}
+
+@if (SelectedPair is { } selectedPair)
+{
+    <fieldset class="border rounded p-2 mt-2" disabled="@Disabled">
+        <legend class="float-none w-auto px-1 mb-0 fs-6">@selectedPair.TypeName pair</legend>
+        <label class="form-label" for="pair-name">Pair name</label>
+        <input id="pair-name" class="form-control mb-3" @bind:get="selectedPair.Name"
+               @bind:set="value => Edit(() => selectedPair.Name = value ?? string.Empty)" />
+
+        <div class="d-flex flex-wrap gap-1 mb-3" role="group" aria-label="Pair terminals">
+            @foreach (var point in new[] { selectedPair.Point1, selectedPair.Point2 })
+            {
+                <button type="button" class="btn btn-sm @(ReferenceEquals(point, SelectedPoint) ? "btn-primary" : "btn-outline-secondary")"
+                        aria-pressed="@(ReferenceEquals(point, SelectedPoint) ? "true" : "false")"
+                        @onclick="() => SelectedPointChanged.InvokeAsync(point)">@point.Label</button>
+            }
+        </div>
+
+        @switch (selectedPair)
+        {
+            case CoilPair coil:
+                <label class="form-label" for="coil-winding">Winding</label>
+                <select id="coil-winding" class="form-select mb-3" @bind:get="coil.Winding"
+                        @bind:set="value => Edit(() => coil.Winding = value)">
+                    @foreach (var winding in Enum.GetValues<CoilWindingDirection>())
+                    {
+                        <option value="@winding">@winding</option>
+                    }
+                </select>
+                <label class="form-label" for="coil-polarity">Polarity</label>
+                <select id="coil-polarity" class="form-select mb-3" @bind:get="coil.Polarity"
+                        @bind:set="value => Edit(() => coil.Polarity = value)">
+                    @foreach (var polarity in Enum.GetValues<CoilPolarity>())
+                    {
+                        <option value="@polarity">@polarity</option>
+                    }
+                </select>
+                <label class="form-label" for="coil-color">Signal color</label>
+                <input id="coil-color" type="color" class="form-control form-control-color mb-3" @bind:get="coil.Color"
+                       @bind:set="value => Edit(() => coil.Color = value)" />
+                break;
+            case ResistorPair resistor:
+                <label class="form-label" for="pair-resistance">Resistance (Ω)</label>
+                <input id="pair-resistance" type="number" min="0" step="any" class="form-control mb-3"
+                       @bind:get="resistor.Resistance" @bind:set="value => Edit(() => resistor.Resistance = value)" />
+                break;
+            case CapacitorPair capacitor:
+                <label class="form-label" for="pair-capacitance">Capacitance (nF)</label>
+                <input id="pair-capacitance" type="number" min="0" step="any" class="form-control mb-3"
+                       @bind:get="@(capacitor.Capacitance * 1e9)" @bind:set="value => Edit(() => capacitor.Capacitance = value / 1e9)" />
+                break;
+        }
+
+        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemovePair(selectedPair)">Delete pair and both terminals</button>
+    </fieldset>
+}

@@ -1,4 +1,5 @@
 ﻿@page "/scheme-editor"
+
 @using Gwire.Models
 @using Gwire.Components.Displayers.SearchDialog
 @using Microsoft.AspNetCore.Components.Sections
@@ -98,6 +99,13 @@
                     title="@(showSourceGroundPair ? "Hide measurement pair" : "Show measurement pair")"
                     aria-label="@(showSourceGroundPair ? "Hide measurement pair" : "Show measurement pair")">
                 <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary @(showSignalMode ? "active" : null)"
+                    @onclick="ToggleSignalMode" disabled="@history.IsFrozen"
+                    aria-pressed="@(showSignalMode ? "true" : "false")"
+                    title="@(showSignalMode ? "Hide signal mode" : "Show signal mode")"
+                    aria-label="@(showSignalMode ? "Hide signal mode" : "Show signal mode")">
+                <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
             </button>
         </div>
     </div>
@@ -209,6 +217,10 @@
                         <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
                     }
                     <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
+                }
+                @if (showSignalMode)
+                {
+                    <CircuitSignalRenderer Circuit="Circuit" />
                 }
                 <SectionOutlet SectionName="svg-context-menu" />
             </svg>

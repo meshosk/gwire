@@ -177,6 +177,10 @@
 					            </div>
 				            </div>
 
+                    <PartConnectionPairsEditor Part="EditorStateService.PartEditor.EditedPart"
+                        @bind-SelectedPoint="EditorStateService.PartEditor.SelectedPointInEditor"
+                        ExecuteEdit="ExecuteEdit" Disabled="@history.IsFrozen" />
+
                     @if (EditorStateService.PartEditor.EditedPart.Points.Count > 0)
                     {
                         <fieldset class="border rounded p-2 mt-2">
@@ -185,10 +189,15 @@
 
                         @foreach (var point in EditorStateService.PartEditor.EditedPart.Points)
                                 {
+                                    var pointPair = EditorStateService.PartEditor.EditedPart.ConnectionPairs.FirstOrDefault(pair => pair.Contains(point));
                                     <button @key="point" type="button"
                                             class="btn btn-sm @(ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "btn-primary" : "btn-outline-secondary")"
                                             aria-pressed="@(ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "true" : "false")"
                                             @onclick="() => EditorStateService.PartEditor.SelectedPointInEditor = point">
+                                        @if (pointPair is not null)
+                                        {
+                                            <span>@pointPair.Name:</span>
+                                        }
                                         @(string.IsNullOrWhiteSpace(point.Label) ? "Unnamed point" : point.Label)
                                     </button>
                                 }
@@ -196,27 +205,27 @@
                         </fieldset>
                     }
 
-					            @if (EditorStateService.PartEditor.SelectedPointInEditor is not null)
-					            {
-						            <div class="mt-2">
-							            <label class="form-label" for="point-label">Point name</label>
-							            <input id="point-label" class="form-control mb-3" @bind:get="EditorStateService.PartEditor.SelectedPointInEditor.Label" @bind:set="value => ExecuteEdit(() => EditorStateService.PartEditor.SelectedPointInEditor.Label = value ?? string.Empty)"/>
-							            <div class="row g-2 mb-3">
-								            <div class="col-6">
-									            <label class="form-label" for="point-x">X</label>
-								            <input id="point-x" class="form-control" type="number" @bind:get="EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.X" @bind:set="(float value) => ExecuteEdit(() => EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition = new Point(value, EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.Y))"/>
-								            </div>
-								            <div class="col-6">
-									            <label class="form-label" for="point-y">Y</label>
-								            <input id="point-y" class="form-control" type="number" @bind:get="EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.Y" @bind:set="(float value) => ExecuteEdit(() => EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition = new Point(EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.X, value))"/>
-								            </div>
-							            </div>
-							            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => ExecuteEdit(RemoveSelectedPoint)">Delete selected Point</button>
-							            </div>
-					            }
+                        @if (EditorStateService.PartEditor.SelectedPointInEditor is not null)
+                        {
+                            <div class="mt-2">
+                                <label class="form-label" for="point-label">Point name</label>
+                                <input id="point-label" class="form-control mb-3" @bind:get="EditorStateService.PartEditor.SelectedPointInEditor.Label" @bind:set="value => ExecuteEdit(() => EditorStateService.PartEditor.SelectedPointInEditor.Label = value ?? string.Empty)"/>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                                    <label class="form-label" for="point-x">X</label>
+                                    <input id="point-x" class="form-control" type="number" @bind:get="EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.X" @bind:set="(float value) => ExecuteEdit(() => EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition = new Point(value, EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.Y))"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label" for="point-y">Y</label>
+                                    <input id="point-y" class="form-control" type="number" @bind:get="EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.Y" @bind:set="(float value) => ExecuteEdit(() => EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition = new Point(EditorStateService.PartEditor.SelectedPointInEditor.LocalPosition.X, value))"/>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm" disabled="@(history.IsFrozen || SelectedPointBelongsToPair)" @onclick="() => ExecuteEdit(RemoveSelectedPoint)">Delete selected Point</button>
+                                </div>
+                        }   
 
-			            </BootstrapTab>
-			            <BootstrapTab Title="States" Disabled="@(!EditorStateService.PartEditor.EditedPart.Points.Any())">
+                    </BootstrapTab>
+                    <BootstrapTab Title="States" Disabled="@(!EditorStateService.PartEditor.EditedPart.Points.Any())">
 
                     <CascadingValue Name="ExecutePartEdit" Value="@(EventCallback.Factory.Create<Action>(this, ExecuteEdit))" IsFixed="true">
                         <PartStateGroupComponent
@@ -241,10 +250,11 @@
         </aside>
 
         <section class="editor-canvas-panel" aria-label="SVG scheme"
-                 @onpointermove="MoveDraggedItem"
-                 @onpointerup="EndPointDrag"
-                 @onpointercancel="CancelPointDrag"
-                 @onpointerleave="EndPointDrag">
+            @onpointermove="MoveDraggedItem"
+            @onpointerup="EndPointDrag"
+            @onpointercancel="CancelPointDrag"
+            @onpointerleave="EndPointDrag"
+            >
             <Gwire.Components.PartSvgBackground @key="EditorStateService.PartEditor.EditedPart" @bind-Part="EditorStateService.PartEditor.EditedPart"
                                                 EditStarted="BeginEdit" EditCompleted="CompleteEdit" EditCanceled="CancelEdit">
 
@@ -262,6 +272,16 @@
                                     }
                                 }
                             }
+                        }
+
+                        @foreach (var coil in EditorStateService.PartEditor.EditedPart.ConnectionPairs.OfType<CoilPair>())
+                        {
+                            <line x1="@coil.Point1.LocalPosition.X" y1="@coil.Point1.LocalPosition.Y"
+                                  x2="@coil.Point2.LocalPosition.X" y2="@coil.Point2.LocalPosition.Y"
+                                  class="connection-line-outline" />
+                            <line x1="@coil.Point1.LocalPosition.X" y1="@coil.Point1.LocalPosition.Y"
+                                  x2="@coil.Point2.LocalPosition.X" y2="@coil.Point2.LocalPosition.Y"
+                                  class="connection-line" style="stroke: @coil.Color" />
                         }
 
                         @foreach (var point in EditorStateService.PartEditor.EditedPart.Points)

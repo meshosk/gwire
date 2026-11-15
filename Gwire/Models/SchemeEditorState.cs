@@ -7,6 +7,9 @@ namespace Gwire.Models;
 /// </summary>
 public sealed class SchemeEditorState
 {
+    private bool showSourceGroundPair;
+    private bool showSignalMode;
+
     /// <summary>
     /// The scheme currently being edited, including its parts, connections, and metadata.
     /// </summary>
@@ -50,7 +53,34 @@ public sealed class SchemeEditorState
     /// <summary>
     /// Whether source and ground terminals are displayed on the canvas.
     /// </summary>
-    public bool ShowSourceGroundPair { get; set; }
+    public bool ShowSourceGroundPair
+    {
+        get => showSourceGroundPair;
+        set
+        {
+            showSourceGroundPair = value;
+            if (value)
+            {
+                showSignalMode = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether signal mode is selected instead of source-ground tracing.
+    /// </summary>
+    public bool ShowSignalMode
+    {
+        get => showSignalMode;
+        set
+        {
+            showSignalMode = value;
+            if (value)
+            {
+                showSourceGroundPair = false;
+            }
+        }
+    }
 
     /// <summary>
     /// The draft text entered in the tag input before a suggested tag is added to the scheme.

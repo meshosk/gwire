@@ -59,6 +59,9 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private bool pointWasDragged;
 
+    private bool SelectedPointBelongsToPair => EditorStateService.PartEditor.SelectedPointInEditor is { } point
+        && EditorStateService.PartEditor.EditedPart.ConnectionPairs.Any(pair => pair.Contains(point));
+
     private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
         await ConfirmationService.ShowAsync("Unsaved changes",
             "This part has unsaved changes. Do you want to discard them and continue?") == ConfirmationResult.YES;
@@ -278,7 +281,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private void RemoveSelectedPoint()
     {
-        if (EditorStateService.PartEditor.SelectedPointInEditor is null)
+        if (EditorStateService.PartEditor.SelectedPointInEditor is null || SelectedPointBelongsToPair)
         {
             return;
         }

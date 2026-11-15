@@ -1,3 +1,5 @@
+@using Gwire.Models
+
 <g id="@elementReferenceId" @ref="element" transform="@PartTransform"
    @onclick="Select"
    @oncontextmenu="SelectContextTarget"
@@ -38,9 +40,17 @@
     }
 </g>
 
-@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.StateGroups.Any(group => group.States.Count > 1) || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
+@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.ConnectionPairs.OfType<CoilPair>().Any() || CircuitPart.StateGroups.Any(group => group.States.Count > 1) || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
 {
     <SvgContextMenu Target="@("#" + elementReferenceId)">
+        @foreach (var coil in CircuitPart.ConnectionPairs.OfType<CoilPair>())
+        {
+            <label @key="coil" class="dropdown-item d-flex align-items-center justify-content-between gap-2">
+                Signal color · @coil.Name
+                <input type="color" class="form-control form-control-color" aria-label="@($"Signal color for {coil.Name}")"
+                       @bind:get="coil.Color" @bind:set="color => ChangeSignalColor(coil, color)" disabled="@History.IsFrozen" />
+            </label>
+        }
         @foreach (var group in CircuitPart.StateGroups.Where(group => group.States.Count > 1))
         {
             <SvgContextSubmenu @key="group" Label="@group.Label" Disabled="@History.IsFrozen">

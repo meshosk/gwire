@@ -13,6 +13,11 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
     /// </summary>
     public List<PartStateGroup> StateGroups { get; set; } = [new()];
 
+    /// <summary>
+    /// Electrical elements whose terminals reference this part's Points collection.
+    /// </summary>
+    public List<ConnectionPair> ConnectionPairs { get; set; } = [];
+
     public Guid Id { get; set; } = Guid.NewGuid();
 
     /// <summary>
@@ -95,6 +100,9 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
         return StateGroups
             .Where(group => group.ActiveState is not null)
             .SelectMany(group => group.ActiveState!.GetConnectedPoints(startingPoint))
+            .Concat(ConnectionPairs.OfType<CoilPair>()
+                .Where(coil => coil.Contains(startingPoint))
+                .Select(coil => ReferenceEquals(coil.Point1, startingPoint) ? coil.Point2 : coil.Point1))
             .Distinct();
     }
 
@@ -129,6 +137,7 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
     {
         var clone = (CircuitPart)base.Clone();
         var clonedPoints = Points.Zip(clone.Points).ToDictionary(pair => pair.First, pair => pair.Second);
+        clone.ConnectionPairs = ConnectionPairs.Select(pair => pair.Clone(clonedPoints)).ToList();
         clone.StateGroups = StateGroups.Select(stateGroup =>
         {
             var states = stateGroup.States.Select(state => new PartState

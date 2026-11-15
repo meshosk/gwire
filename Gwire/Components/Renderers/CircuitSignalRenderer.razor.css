@@ -1,0 +1,30 @@
+.signal-band {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+
+.signal-flow {
+    stroke: #fff;
+    opacity: .55;
+    stroke-dasharray: 8 92;
+    animation: signal-flow 1.8s linear infinite;
+}
+
+@keyframes signal-flow {
+    from {
+        stroke-dashoffset: 8;
+    }
+
+    to {
+        stroke-dashoffset: -92;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .signal-flow {
+        animation: none;
+        display: none;
+    }
+}

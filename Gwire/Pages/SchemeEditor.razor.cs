@@ -8,7 +8,6 @@ using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System.Text.Json;
 
@@ -48,6 +47,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private bool isLoadingScheme;
 
     private bool showSourceGroundPair { get => State.ShowSourceGroundPair; set => State.ShowSourceGroundPair = value; }
+
+    private bool showSignalMode { get => State.ShowSignalMode; set => State.ShowSignalMode = value; }
 
     private string selectedTag { get => State.SelectedTag; set => State.SelectedTag = value; }
 
@@ -310,6 +311,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         SourceGroundPairs.Clear();
         SourceGroundPairs.Add(new SourceGroundPair());
         showSourceGroundPair = false;
+        showSignalMode = false;
         SelectedPart = null;
         selectedTag = string.Empty;
         activeTagSuggestionIndex = 0;
@@ -444,6 +446,14 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         if (!history.IsFrozen)
         {
             showSourceGroundPair = !showSourceGroundPair;
+        }
+    }
+
+    private void ToggleSignalMode()
+    {
+        if (!history.IsFrozen)
+        {
+            showSignalMode = !showSignalMode;
         }
     }
 
