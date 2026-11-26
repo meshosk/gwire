@@ -1,15 +1,18 @@
+using Gwire.Models;
 using Gwire.Models.Base;
+using System.Numerics;
 using System.Text.Json.Serialization;
 
-namespace Gwire.Models;
+namespace Gwire.Models.Pairs;
 
-public class Potentiometer
+public class Potentiometer : ConnectionPair
 {
     private int position = 100;
 
     public static IReadOnlyList<int> Positions { get; } = Array.AsReadOnly(new[] { 0, 25, 50, 75, 100 });
 
-    public string Name { get; set; } = string.Empty;
+    [JsonIgnore]
+    public override string TypeName => "Potentiometer";
 
     /// <summary>
     /// Total track resistance in ohms.
@@ -41,9 +44,15 @@ public class Potentiometer
     [JsonIgnore]
     public bool IsValid => !string.IsNullOrWhiteSpace(Name) && double.IsFinite(Resistance) && Resistance > 0;
 
-    public bool Contains(ConnectionPoint point) => ReferenceEquals(point, A) || ReferenceEquals(point, W) || ReferenceEquals(point, B);
+    public override IReadOnlyList<ConnectionPoint> GetPoints() => [A, W, B];
 
-    public IEnumerable<ElectricalConnection> GetElectricalConnections()
+    /// <summary>
+    /// A potentiometer has no single impedance; its two segments carry their resistance in
+    /// <see cref="ElectricalConnection.Resistance"/>.
+    /// </summary>
+    public override Complex? GetImpedance(double frequency) => null;
+
+    public override IEnumerable<ElectricalConnection> GetElectricalConnections()
     {
         if (IsValid)
         {
@@ -64,7 +73,7 @@ public class Potentiometer
         return segment.Resistance <= 0 ? 1 : otherShare;
     }
 
-    public Potentiometer Clone(IReadOnlyDictionary<ConnectionPoint, ConnectionPoint> clonedPoints)
+    public override ConnectionPair Clone(IReadOnlyDictionary<ConnectionPoint, ConnectionPoint> clonedPoints)
     {
         var clone = (Potentiometer)MemberwiseClone();
         clone.A = clonedPoints[A];

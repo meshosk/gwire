@@ -1,5 +1,6 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Models.Pairs;
 using Microsoft.AspNetCore.Components;
 
 namespace Gwire.Components.Renderers;

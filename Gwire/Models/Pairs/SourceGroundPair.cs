@@ -1,6 +1,7 @@
+using Gwire.Models;
 using Gwire.Models.Base;
 
-namespace Gwire.Models;
+namespace Gwire.Models.Pairs;
 
 /// <summary>
 /// An editor-only power source and ground used to trace a path through the scheme.

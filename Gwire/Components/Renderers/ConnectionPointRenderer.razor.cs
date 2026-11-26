@@ -3,6 +3,7 @@ using Gwire.Models.Base;
 using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
+using Gwire.Models.Signal;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;

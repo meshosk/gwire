@@ -32,7 +32,7 @@ client. See [build-and-deploy.md](build-and-deploy.md).
 | `Components/SvgMenu/` | Right-click context menu rendered inside the SVG. |
 | `Components/Tabs/` | `BootstrapTabs` / `BootstrapTab` wrapper used by the part editor. |
 | `Components/` (root) | `PartSvgBackground`, `SvgBackground` (part artwork). |
-| `Models/` | Domain model and editor state. `Models/Base/` holds the abstract part, points, states, and connection pairs. See [domain-model.md](domain-model.md). |
+| `Models/` | Domain model and editor state. `Models/Base/` holds the abstract part, points, states, and the abstract `ConnectionPair`. `Models/Pairs/` holds its subclasses (including `Potentiometer`), coil enums, and `SourceGroundPair`. `Models/Signal/` holds the signal spectrum and trace result types. See [domain-model.md](domain-model.md). |
 | `Services/` | Injectable services (catalog, messages, confirmation, undo/redo, editor state, PDF export) and the static signal-calculation classes. |
 | `UndoRedo/` | `IUndoableAction`, history ids, and one class per undoable scheme action. |
 | `Serialization/` | JSON import/export for parts and schemes. |

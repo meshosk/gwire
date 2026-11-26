@@ -1,15 +1,16 @@
 @using Gwire.Models
+@using Gwire.Models.Pairs
 
 <div class="d-grid mt-2">
     <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="AddPotentiometer">Add potentiometer</button>
 </div>
 
-@if (Part.Potentiometers.Count > 0)
+@if (Part.ConnectionPairs.OfType<Potentiometer>().Any())
 {
     <fieldset class="border rounded p-2 mt-2">
         <legend class="float-none w-auto px-1 mb-0 fs-6">Potentiometers</legend>
         <div class="d-flex flex-wrap gap-1">
-            @foreach (var potentiometer in Part.Potentiometers)
+            @foreach (var potentiometer in Part.ConnectionPairs.OfType<Potentiometer>())
             {
                 <button @key="potentiometer" type="button" disabled="@Disabled"
                         class="btn btn-sm @(ReferenceEquals(potentiometer, SelectedPotentiometer) ? "btn-primary" : "btn-outline-secondary")"

@@ -1,6 +1,8 @@
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Services;
+using Gwire.Models.Pairs;
+using Gwire.Models.Signal;
 using Microsoft.AspNetCore.Components;
 using System.Globalization;
 

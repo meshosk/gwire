@@ -1,4 +1,5 @@
 @using Gwire.Models
+@using Gwire.Models.Pairs
 
 <g id="@elementReferenceId" @ref="element" transform="@PartTransform"
    @onclick="Select"
@@ -47,10 +48,10 @@
     }
 </g>
 
-@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.Potentiometers.Count > 0 || CircuitPart.ConnectionPairs.OfType<CoilPair>().Any() || CircuitPart.StateGroups.Any(group => group.States.Count > 1) || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
+@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.ConnectionPairs.OfType<Potentiometer>().Any() || CircuitPart.ConnectionPairs.OfType<CoilPair>().Any() || CircuitPart.StateGroups.Any(group => group.States.Count > 1) || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
 {
     <SvgContextMenu Target="@("#" + elementReferenceId)">
-        @foreach (var potentiometer in CircuitPart.Potentiometers)
+        @foreach (var potentiometer in CircuitPart.ConnectionPairs.OfType<Potentiometer>())
         {
             <SvgContextSubmenu @key="potentiometer" Label="@potentiometer.Name" Disabled="@(History.IsFrozen || !potentiometer.IsValid)">
                 @foreach (var position in Potentiometer.Positions)

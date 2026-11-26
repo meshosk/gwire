@@ -24,7 +24,7 @@ Type discriminators use the `$type` property:
 | Base type | Values |
 | --- | --- |
 | `BaseCircuitPart` | `cable` → `CablePart`, `circuitPart` → `CircuitPart` |
-| `ConnectionPair` | `coil` → `CoilPair`, `resistor` → `ResistorPair`, `capacitor` → `CapacitorPair` |
+| `ConnectionPair` | `coil` → `CoilPair`, `resistor` → `ResistorPair`, `capacitor` → `CapacitorPair`, `potentiometer` → `Potentiometer` |
 
 A new subclass needs a `[JsonDerivedType]` attribute on its base class, or it cannot be
 saved or loaded.

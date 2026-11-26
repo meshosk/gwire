@@ -12,7 +12,7 @@ an electrical simulation, and documentation or UI text should not present them a
 
 ## Measurement pair (source-ground path)
 
-- `SourceGroundPair` (`Models/SourceGroundPair.cs`) holds two editor-only terminals,
+- `SourceGroundPair` (`Models/Pairs/SourceGroundPair.cs`) holds two editor-only terminals,
   `PowerSource` and `Ground`, each a small `CircuitPart` with one point and inline SVG.
   They live in `SchemeEditorState.SourceGroundPairs`, not in the `Circuit`, and are not
   saved. A pair is reset whenever a new scheme is set.

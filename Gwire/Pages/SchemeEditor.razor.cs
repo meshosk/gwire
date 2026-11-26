@@ -5,6 +5,7 @@ using Gwire.Serialization;
 using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
+using Gwire.Models.Pairs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;

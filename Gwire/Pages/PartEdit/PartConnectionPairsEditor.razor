@@ -1,23 +1,24 @@
 @using Gwire.Models
 @using Gwire.Models.Base
+@using Gwire.Models.Pairs
 
 <div class="d-grid gap-2 mt-2">
-    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="() => AddPair(new CoilPair())">Add coil pair</button>
-    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="() => AddPair(new ResistorPair())">Add resistor pair</button>
-    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="() => AddPair(new CapacitorPair())">Add capacitor pair</button>
+    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="AddCoil">Add coil pair</button>
+    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="AddResistor">Add resistor pair</button>
+    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="AddCapacitor">Add capacitor pair</button>
 </div>
 
-@if (Part.ConnectionPairs.Count > 0)
+@if (Pairs.Any())
 {
     <fieldset class="border rounded p-2 mt-2">
         <legend class="float-none w-auto px-1 mb-0 fs-6">Electrical pairs</legend>
         <div class="d-flex flex-wrap gap-1">
-            @foreach (var pair in Part.ConnectionPairs)
+            @foreach (var pair in Pairs)
             {
                 <button @key="pair" type="button" disabled="@Disabled"
                         class="btn btn-sm @(ReferenceEquals(pair, SelectedPair) ? "btn-primary" : "btn-outline-secondary")"
                         aria-pressed="@(ReferenceEquals(pair, SelectedPair) ? "true" : "false")"
-                        @onclick="() => SelectedPointChanged.InvokeAsync(pair.Point1)">
+                        @onclick="() => SelectedPointChanged.InvokeAsync(pair.GetPoints()[0])">
                     @pair.Name (@pair.TypeName)
                 </button>
             }
@@ -34,7 +35,7 @@
                @bind:set="value => Edit(() => selectedPair.Name = value ?? string.Empty)" />
 
         <div class="d-flex flex-wrap gap-1 mb-3" role="group" aria-label="Pair terminals">
-            @foreach (var point in new[] { selectedPair.Point1, selectedPair.Point2 })
+            @foreach (var point in selectedPair.GetPoints())
             {
                 <button type="button" class="btn btn-sm @(ReferenceEquals(point, SelectedPoint) ? "btn-primary" : "btn-outline-secondary")"
                         aria-pressed="@(ReferenceEquals(point, SelectedPoint) ? "true" : "false")"

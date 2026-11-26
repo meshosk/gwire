@@ -1,5 +1,7 @@
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Models.Pairs;
+using Gwire.Models.Signal;
 
 namespace Gwire.Services;
 

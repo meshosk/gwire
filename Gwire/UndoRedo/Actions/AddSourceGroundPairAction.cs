@@ -1,4 +1,5 @@
 using Gwire.Models;
+using Gwire.Models.Pairs;
 
 namespace Gwire.UndoRedo.Actions;
 

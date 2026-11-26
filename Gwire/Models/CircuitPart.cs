@@ -1,4 +1,5 @@
 using Gwire.Models.Base;
+using Gwire.Models.Pairs;
 using System.Text.Json.Serialization;
 
 namespace Gwire.Models;
@@ -17,8 +18,6 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
     /// Electrical elements whose terminals reference this part's Points collection.
     /// </summary>
     public List<ConnectionPair> ConnectionPairs { get; set; } = [];
-
-    public List<Potentiometer> Potentiometers { get; set; } = [];
 
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -118,19 +117,9 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
                 }
             }
         }
-        foreach (var pair in ConnectionPairs)
+        foreach (var connection in ConnectionPairs.SelectMany(pair => pair.GetElectricalConnections()))
         {
-            if (pair.GetImpedance(SignalSpectrum.Frequencies[0]) is not null)
-            {
-                yield return new ElectricalConnection(pair.Point1, pair.Point2, pair);
-            }
-        }
-        foreach (var potentiometer in Potentiometers)
-        {
-            foreach (var connection in potentiometer.GetElectricalConnections())
-            {
-                yield return connection;
-            }
+            yield return connection;
         }
     }
 
@@ -157,6 +146,68 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
         }
     }
 
+    /// <summary>
+    /// Adds the point to the part.
+    /// </summary>
+    public void AddPoint(ConnectionPoint point) => Points.Add(point);
+
+    /// <summary>
+    /// Disconnects the point, removes it from the part and from every connection group of every state.
+    /// </summary>
+    public void RemovePoint(ConnectionPoint point)
+    {
+        foreach (var connected in point.ConnectionPoints.ToArray())
+        {
+            point.Disconnect(connected);
+        }
+        Points.Remove(point);
+        foreach (var group in StateGroups.SelectMany(stateGroup => stateGroup.States)
+            .SelectMany(state => state.ConnectionGroups))
+        {
+            group.ConnectedPints.Remove(point);
+        }
+    }
+
+    /// <summary>
+    /// Adds the pair and all of its existing terminals to the part.
+    /// </summary>
+    public void AddPair(ConnectionPair pair)
+    {
+        foreach (var point in pair.GetPoints())
+        {
+            AddPoint(point);
+        }
+        ConnectionPairs.Add(pair);
+    }
+
+    /// <summary>
+    /// Removes the pair together with all of its terminals.
+    /// </summary>
+    public void RemovePair(ConnectionPair pair)
+    {
+        foreach (var point in pair.GetPoints())
+        {
+            RemovePoint(point);
+        }
+        ConnectionPairs.Remove(pair);
+    }
+
+    /// <summary>
+    /// Name of the pair that owns the point, or null for a free point.
+    /// </summary>
+    public string? GetElementName(ConnectionPoint point) =>
+        ConnectionPairs.FirstOrDefault(pair => pair.Contains(point))?.Name;
+
+    /// <summary>
+    /// Whether the point is a terminal of a pair and so cannot be deleted on its own.
+    /// </summary>
+    public bool IsElementPoint(ConnectionPoint point) => ConnectionPairs.Any(pair => pair.Contains(point));
+
+    /// <summary>
+    /// Whether every potentiometer has a name and a positive total resistance.
+    /// </summary>
+    public bool HasValidPotentiometers() => ConnectionPairs.OfType<Potentiometer>().All(potentiometer => potentiometer.IsValid);
+
 
     /// <summary>
     /// Clones the shared connection graph, dimensions, and the part's tags.
@@ -166,7 +217,6 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
         var clone = (CircuitPart)base.Clone();
         var clonedPoints = Points.Zip(clone.Points).ToDictionary(pair => pair.First, pair => pair.Second);
         clone.ConnectionPairs = ConnectionPairs.Select(pair => pair.Clone(clonedPoints)).ToList();
-        clone.Potentiometers = Potentiometers.Select(potentiometer => potentiometer.Clone(clonedPoints)).ToList();
         clone.StateGroups = StateGroups.Select(stateGroup =>
         {
             var states = stateGroup.States.Select(state => new PartState

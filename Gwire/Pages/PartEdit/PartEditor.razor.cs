@@ -60,8 +60,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private bool pointWasDragged;
 
     private bool SelectedPointBelongsToPair => EditorStateService.PartEditor.SelectedPointInEditor is { } point
-        && (EditorStateService.PartEditor.EditedPart.ConnectionPairs.Any(pair => pair.Contains(point))
-            || EditorStateService.PartEditor.EditedPart.Potentiometers.Any(potentiometer => potentiometer.Contains(point)));
+        && EditorStateService.PartEditor.EditedPart.IsElementPoint(point);
 
     private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
         await ConfirmationService.ShowAsync("Unsaved changes",
@@ -210,7 +209,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             LocalPosition = new Point(120 + (count % 5) * 140, 120 + (count / 5) * 100)
         };
 
-        EditorStateService.PartEditor.EditedPart.Points.Add(point);
+        EditorStateService.PartEditor.EditedPart.AddPoint(point);
         EditorStateService.PartEditor.SelectedPointInEditor = point;
     }
 
@@ -287,14 +286,7 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        EditorStateService.PartEditor.EditedPart.Points.Remove(EditorStateService.PartEditor.SelectedPointInEditor);
-        foreach (var state in EditorStateService.PartEditor.EditedPart.StateGroups.SelectMany(group => group.States))
-        {
-            foreach (var group in state.ConnectionGroups)
-            {
-                group.ConnectedPints.Remove(EditorStateService.PartEditor.SelectedPointInEditor);
-            }
-        }
+        EditorStateService.PartEditor.EditedPart.RemovePoint(EditorStateService.PartEditor.SelectedPointInEditor);
 
         if (ReferenceEquals(draggedPoint, EditorStateService.PartEditor.SelectedPointInEditor))
         {
@@ -304,12 +296,22 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
         EditorStateService.PartEditor.SelectedPointInEditor = null;
     }
 
+    /// <summary>
+    /// Deletes the selected free point from the Delete or Backspace key, as the Delete selected Point button does.
+    /// </summary>
+    [JSInvokable]
+    public void DeleteSelectedPoint()
+    {
+        ExecuteEdit(RemoveSelectedPoint);
+        StateHasChanged();
+    }
+
     private string PointClass(ConnectionPoint point) =>
         ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "connection-point is-selected" : "connection-point";
 
     private bool ValidatePotentiometers()
     {
-        if (EditorStateService.PartEditor.EditedPart.Potentiometers.Any(potentiometer => !potentiometer.IsValid))
+        if (!EditorStateService.PartEditor.EditedPart.HasValidPotentiometers())
         {
             MessageService.Show("Invalid potentiometer", "Each potentiometer needs a name and a positive total resistance.", MessageType.Danger);
             return false;

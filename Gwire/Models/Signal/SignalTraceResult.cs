@@ -1,6 +1,8 @@
+using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Models.Pairs;
 
-namespace Gwire.Models;
+namespace Gwire.Models.Signal;
 
 /// <summary>
 /// A single calculation shared by signal ribbons and point inspection.

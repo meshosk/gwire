@@ -11,11 +11,17 @@ window.gwire.enableUndoRedoShortcuts = (element, receiver) => {
             return;
         }
         if ((event.key === "Backspace" || event.key === "Delete") &&
-            !event.ctrlKey && !event.metaKey && !event.altKey &&
-            element.classList.contains("scheme-editor")) {
-            event.preventDefault();
-            await receiver.invokeMethodAsync("DeleteSelectedPart");
-            return;
+            !event.ctrlKey && !event.metaKey && !event.altKey) {
+            if (element.classList.contains("scheme-editor")) {
+                event.preventDefault();
+                await receiver.invokeMethodAsync("DeleteSelectedPart");
+                return;
+            }
+            if (element.classList.contains("part-editor")) {
+                event.preventDefault();
+                await receiver.invokeMethodAsync("DeleteSelectedPoint");
+                return;
+            }
         }
         if (!(event.ctrlKey || event.metaKey) || event.altKey) {
             return;

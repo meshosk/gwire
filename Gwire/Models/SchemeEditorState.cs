@@ -1,4 +1,5 @@
 using Gwire.Models.Base;
+using Gwire.Models.Pairs;
 
 namespace Gwire.Models;
 

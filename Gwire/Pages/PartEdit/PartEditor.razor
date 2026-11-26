@@ -5,6 +5,7 @@
 @using Gwire.Extensions
 @using Gwire.Models
 @using Gwire.Models.Base
+@using Gwire.Models.Pairs
 @using Microsoft.AspNetCore.Components.Sections
 
 <PageTitle>Gwire - The part editor</PageTitle>
@@ -193,19 +194,14 @@
 
                         @foreach (var point in EditorStateService.PartEditor.EditedPart.Points)
                                 {
-                                    var pointPair = EditorStateService.PartEditor.EditedPart.ConnectionPairs.FirstOrDefault(pair => pair.Contains(point));
-                                    var pointPotentiometer = EditorStateService.PartEditor.EditedPart.Potentiometers.FirstOrDefault(potentiometer => potentiometer.Contains(point));
+                                    var elementName = EditorStateService.PartEditor.EditedPart.GetElementName(point);
                                     <button @key="point" type="button"
                                             class="btn btn-sm @(ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "btn-primary" : "btn-outline-secondary")"
                                             aria-pressed="@(ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "true" : "false")"
                                             @onclick="() => EditorStateService.PartEditor.SelectedPointInEditor = point">
-                                        @if (pointPair is not null)
+                                        @if (elementName is not null)
                                         {
-                                            <span>@pointPair.Name:</span>
-                                        }
-                                        else if (pointPotentiometer is not null)
-                                        {
-                                            <span>@pointPotentiometer.Name:</span>
+                                            <span>@elementName:</span>
                                         }
                                         @(string.IsNullOrWhiteSpace(point.Label) ? "Unnamed point" : point.Label)
                                     </button>
@@ -293,7 +289,7 @@
                                   class="connection-line" style="stroke: @coil.Color" />
                         }
 
-                        @foreach (var potentiometer in EditorStateService.PartEditor.EditedPart.Potentiometers)
+                        @foreach (var potentiometer in EditorStateService.PartEditor.EditedPart.ConnectionPairs.OfType<Potentiometer>())
                         {
                             @foreach (var point in new[] { potentiometer.A, potentiometer.B })
                             {

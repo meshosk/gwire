@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace Gwire.Models;
+namespace Gwire.Models.Signal;
 
 /// <summary>
 /// Normalized, illustrative signal levels rather than electrical measurements.

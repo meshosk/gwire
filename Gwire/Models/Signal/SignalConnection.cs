@@ -1,6 +1,7 @@
 using Gwire.Models.Base;
+using Gwire.Models.Pairs;
 
-namespace Gwire.Models;
+namespace Gwire.Models.Signal;
 
 /// <summary>
 /// A connection reached by coil signals and its illustrative levels: Signals at From, EndSignals at To.
