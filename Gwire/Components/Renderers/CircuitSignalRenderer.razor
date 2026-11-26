@@ -1,24 +1,26 @@
+<CascadingValue Value="trace">
+    @ChildContent
+</CascadingValue>
+
 @foreach (var connection in connections)
 {
-    @for (var coilIndex = 0; coilIndex < connection.Coils.Count; coilIndex++)
+    var coils = connection.Coils;
+    @for (var coilIndex = 0; coilIndex < coils.Count; coilIndex++)
     {
-        var coil = connection.Coils[coilIndex];
-        var coilOffset = (coilIndex - (connection.Coils.Count - 1) / 2f) * SignalSpacing;
+        var coil = coils[coilIndex];
+        var flowClass = connection.ReverseFlow.Contains(coil) ? "signal-flow signal-flow-reversed" : "signal-flow";
+        var coilOffset = (coilIndex - (coils.Count - 1) / 2f) * SignalSpacing;
+        var signalWidth = GetFlowWidth(connection, coil);
         <g aria-label="@($"{coil.Name}: bass to treble")">
-            @for (var step = 0; step < GradientSteps; step++)
+            @foreach (var band in GetBands(connection, coil, coilOffset))
             {
-                var offset = coilOffset + ((step + 0.5f) / GradientSteps - 0.5f) * SignalWidth;
-                var path = SignalPathGeometry.GetPath(connection.From, connection.To, offset);
-                @if (path.Length > 0)
-                {
-                    <path d="@path" class="signal-band" stroke-width="@GradientStrokeWidth"
-                          style="stroke: @GetGradientColor(coil.Color, step)" />
-                }
+                <path d="@band.Path" class="signal-band" stroke-width="@GradientStrokeWidth(band.Width)"
+                      style="stroke: @GetGradientColor(coil.Color, band.Step)" />
             }
             @{ var flowPath = SignalPathGeometry.GetPath(connection.From, connection.To, coilOffset); }
-            @if (flowPath.Length > 0)
+            @if (flowPath.Length > 0 && signalWidth > 0)
             {
-                <path d="@flowPath" class="signal-band signal-flow" stroke-width="@SignalWidth"
+                <path d="@flowPath" class="signal-band @flowClass" stroke-width="@signalWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                       aria-hidden="true" />
             }
         </g>

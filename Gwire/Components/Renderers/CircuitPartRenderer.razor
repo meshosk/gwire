@@ -27,10 +27,17 @@
     <g class="circuit-part-points">
         @foreach (var point in CircuitPart.Points)
         {
-            <circle cx="@point.LocalPosition.X"
-                    cy="@point.LocalPosition.Y"
-                    r="10"
-                    class="circuit-connection-point @(point.IsHighlighted ? "connection-highlight" : null)" />
+            if (UsesPointRenderer)
+            {
+                <ConnectionPointRenderer @key="point" Point="point" Zoom="Zoom" />
+            }
+            else
+            {
+                <circle cx="@point.LocalPosition.X"
+                        cy="@point.LocalPosition.Y"
+                        r="10"
+                        class="circuit-connection-point @(point.IsHighlighted ? "connection-highlight" : null)" />
+            }
         }
     </g>
     @if (IsSelected)
@@ -40,9 +47,19 @@
     }
 </g>
 
-@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.ConnectionPairs.OfType<CoilPair>().Any() || CircuitPart.StateGroups.Any(group => group.States.Count > 1) || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
+@if (OnDelete.HasDelegate || OnDuplicate.HasDelegate || CircuitPart.Potentiometers.Count > 0 || CircuitPart.ConnectionPairs.OfType<CoilPair>().Any() || CircuitPart.StateGroups.Any(group => group.States.Count > 1) || (CircuitPart.CustomTextValue is not null && OnEditText.HasDelegate))
 {
     <SvgContextMenu Target="@("#" + elementReferenceId)">
+        @foreach (var potentiometer in CircuitPart.Potentiometers)
+        {
+            <SvgContextSubmenu @key="potentiometer" Label="@potentiometer.Name" Disabled="@(History.IsFrozen || !potentiometer.IsValid)">
+                @foreach (var position in Potentiometer.Positions)
+                {
+                    <SvgContextMenuItem OnClick="() => SetPotentiometerPosition(potentiometer, position)" Disabled="@History.IsFrozen"
+                                        IsChecked="@(potentiometer.Position == position)">@position%</SvgContextMenuItem>
+                }
+            </SvgContextSubmenu>
+        }
         @foreach (var coil in CircuitPart.ConnectionPairs.OfType<CoilPair>())
         {
             <label @key="coil" class="dropdown-item d-flex align-items-center justify-content-between gap-2">

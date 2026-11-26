@@ -50,6 +50,8 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
     [Parameter]
     public EventCallback<CircuitPart> OnEditText { get; set; }
 
+    protected virtual bool UsesPointRenderer => true;
+
     protected virtual Point PartPosition => CircuitPart.SchemePosition;
 
     private string PartTransform => FormattableString.Invariant($"translate({PartPosition.X} {PartPosition.Y})");
@@ -87,7 +89,12 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
         ? Task.CompletedTask
         : IsSelectedChanged.InvokeAsync(true);
 
-    private Task Select() => wasDragged || IsSelected ? Task.CompletedTask : IsSelectedChanged.InvokeAsync(true);
+    private Task Select()
+    {
+        var select = !wasDragged && !IsSelected;
+        wasDragged = false;
+        return select ? IsSelectedChanged.InvokeAsync(true) : Task.CompletedTask;
+    }
 
     private void HandleChanged() => StateHasChanged();
 
@@ -99,6 +106,17 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
             action.Redo();
             History.addRedoAction(action);
         }
+    }
+
+    private void SetPotentiometerPosition(Potentiometer potentiometer, int position)
+    {
+        if (History.IsFrozen || potentiometer.Position == position || !Potentiometer.Positions.Contains(position))
+        {
+            return;
+        }
+        var action = new ChangePotentiometerPositionAction(CircuitPart, potentiometer, position);
+        action.Redo();
+        History.addRedoAction(action);
     }
 
     private void ChangeSignalColor(CoilPair coil, string? color)
@@ -117,7 +135,7 @@ public partial class CircuitPartRenderer : ComponentBase, IDisposable
 #region Dragging
         private void StartDrag(PointerEventArgs eventArgs)
     {
-        if (eventArgs.Button != 0 || !eventArgs.IsPrimary || dragPointerId is not null)
+        if (eventArgs.Button != 0 || !eventArgs.IsPrimary || dragPointerId is not null || History.IsFrozen)
         {
             return;
         }

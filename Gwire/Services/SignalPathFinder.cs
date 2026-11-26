@@ -11,7 +11,7 @@ namespace Gwire.Services;
 internal static class SignalPathFinder
 {
     public static IReadOnlyList<(ConnectionPoint From, ConnectionPoint To)> FindConnections(
-        CoilPair coil, IReadOnlySet<BaseCircuitPart> parts)
+        CoilPair coil, SignalNetwork network)
     {
         var source = coil.Point1;
         var destination = coil.Point2;
@@ -30,11 +30,7 @@ internal static class SignalPathFinder
             {
                 reachesDestination.Add(point);
             }
-            var neighbors = point.ConnectionPoints.Concat(point.Owner.GetConnectedPoints(point))
-                .Where(connected => parts.Contains(connected.Owner)
-                    // The coil's own internal connection must not bypass the external wiring.
-                    && !(coil.Contains(point) && coil.Contains(connected)))
-                .Distinct().ToArray();
+            var neighbors = network.GetNeighbors(point).ToArray();
             pending.Push((point, parent, neighbors, 0));
         }
 

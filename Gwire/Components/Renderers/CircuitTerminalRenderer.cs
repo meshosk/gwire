@@ -21,6 +21,8 @@ public sealed class CircuitTerminalRenderer : CircuitPartRenderer
     [Parameter, EditorRequired]
     public SourceGroundPair Pair { get; set; } = default!;
 
+    protected override bool UsesPointRenderer => false;
+
     protected override Point PartPosition => Pair.GetPosition(CircuitPart, SourceGroundPairs);
 
     [Parameter, EditorRequired]

@@ -13,13 +13,6 @@ public abstract class BaseCircuitPart
 {
     public event Action? Changed;
 
-    public void NotifyChanged() => Changed?.Invoke();
-
-    protected BaseCircuitPart()
-    {
-        ClassType = GetType().Name;
-    }
-
     /// <summary>
     /// Name of the concrete part class. // > maybe not needed at all
     /// </summary>
@@ -38,6 +31,13 @@ public abstract class BaseCircuitPart
     /// List of connection points that can connect part into circuit.
     /// </summary>
     public List<ConnectionPoint> Points { get; set; } = new();
+
+    protected BaseCircuitPart()
+    {
+        ClassType = GetType().Name;
+    }
+
+    public void NotifyChanged() => Changed?.Invoke();
 
     /// <summary>
     /// Creates a deep clone of the part and its points without external connections.
@@ -58,6 +58,17 @@ public abstract class BaseCircuitPart
     /// <param name="startingPoint"></param>
     /// <returns></returns>
     public abstract IEnumerable<ConnectionPoint> GetConnectedPoints(ConnectionPoint startingPoint);
+
+    public virtual IEnumerable<ElectricalConnection> GetElectricalConnections()
+    {
+        foreach (var point in Points)
+        {
+            foreach (var connected in GetConnectedPoints(point))
+            {
+                yield return new ElectricalConnection(point, connected);
+            }
+        }
+    }
 
     #endregion
 

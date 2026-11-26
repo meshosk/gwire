@@ -7,30 +7,8 @@
     cursor: pointer;
 }
 
-.cable-connection-point {
-    fill: #1677d2;
-    stroke: #fff;
-    stroke-width: 3;
-}
-
-.cable-endpoint {
-    cursor: grab;
-}
-
-.cable-endpoint:active {
-    cursor: grabbing;
-}
-
-.cable-connection-point.connection-highlight {
-    fill: #ffc107;
-}
-
 .cable-selection-outline {
     stroke: #ffc107;
     stroke-width: 8;
     pointer-events: none;
-}
-
-.cable-connection-point.cable-selected {
-    stroke: #ffc107;
 }

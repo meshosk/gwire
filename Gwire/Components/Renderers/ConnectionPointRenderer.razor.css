@@ -1,0 +1,18 @@
+.connection-point {
+    fill: #1677d2;
+    stroke: #fff;
+    stroke-width: 3;
+    cursor: grab;
+}
+
+.connection-point:active {
+    cursor: grabbing;
+}
+
+.connection-point.connection-highlight {
+    fill: #ffc107;
+}
+
+.connection-point.cable-selected {
+    stroke: #ffc107;
+}

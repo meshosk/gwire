@@ -60,7 +60,8 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private bool pointWasDragged;
 
     private bool SelectedPointBelongsToPair => EditorStateService.PartEditor.SelectedPointInEditor is { } point
-        && EditorStateService.PartEditor.EditedPart.ConnectionPairs.Any(pair => pair.Contains(point));
+        && (EditorStateService.PartEditor.EditedPart.ConnectionPairs.Any(pair => pair.Contains(point))
+            || EditorStateService.PartEditor.EditedPart.Potentiometers.Any(potentiometer => potentiometer.Contains(point)));
 
     private async Task<bool> ConfirmDiscardChangesAsync() => !HasUnsavedChanges ||
         await ConfirmationService.ShowAsync("Unsaved changes",
@@ -306,8 +307,22 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     private string PointClass(ConnectionPoint point) =>
         ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "connection-point is-selected" : "connection-point";
 
+    private bool ValidatePotentiometers()
+    {
+        if (EditorStateService.PartEditor.EditedPart.Potentiometers.Any(potentiometer => !potentiometer.IsValid))
+        {
+            MessageService.Show("Invalid potentiometer", "Each potentiometer needs a name and a positive total resistance.", MessageType.Danger);
+            return false;
+        }
+        return true;
+    }
+
     private void SavePartToService()
     {
+        if (!ValidatePotentiometers())
+        {
+            return;
+        }
         var savedAsCopy = EditorStateService.PartEditor.EditedPart.IsFromRepo || AvailableParts.Any(existing => existing.IsFromRepo && existing.Id == EditorStateService.PartEditor.EditedPart.Id);
         var partToSave = EditorStateService.PartEditor.EditedPart;
         if (savedAsCopy)
@@ -412,6 +427,10 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private async Task ExportPartAsync()
     {
+        if (!ValidatePotentiometers())
+        {
+            return;
+        }
         await using var stream = new MemoryStream();
         await ObjectJsonSerializer.ExportAsync<CircuitPart>(EditorStateService.PartEditor.EditedPart, stream);
         stream.Position = 0;

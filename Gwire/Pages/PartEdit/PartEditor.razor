@@ -181,6 +181,10 @@
                         @bind-SelectedPoint="EditorStateService.PartEditor.SelectedPointInEditor"
                         ExecuteEdit="ExecuteEdit" Disabled="@history.IsFrozen" />
 
+                    <PartPotentiometersEditor Part="EditorStateService.PartEditor.EditedPart"
+                        @bind-SelectedPoint="EditorStateService.PartEditor.SelectedPointInEditor"
+                        ExecuteEdit="ExecuteEdit" Disabled="@history.IsFrozen" />
+
                     @if (EditorStateService.PartEditor.EditedPart.Points.Count > 0)
                     {
                         <fieldset class="border rounded p-2 mt-2">
@@ -190,6 +194,7 @@
                         @foreach (var point in EditorStateService.PartEditor.EditedPart.Points)
                                 {
                                     var pointPair = EditorStateService.PartEditor.EditedPart.ConnectionPairs.FirstOrDefault(pair => pair.Contains(point));
+                                    var pointPotentiometer = EditorStateService.PartEditor.EditedPart.Potentiometers.FirstOrDefault(potentiometer => potentiometer.Contains(point));
                                     <button @key="point" type="button"
                                             class="btn btn-sm @(ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "btn-primary" : "btn-outline-secondary")"
                                             aria-pressed="@(ReferenceEquals(point, EditorStateService.PartEditor.SelectedPointInEditor) ? "true" : "false")"
@@ -197,6 +202,10 @@
                                         @if (pointPair is not null)
                                         {
                                             <span>@pointPair.Name:</span>
+                                        }
+                                        else if (pointPotentiometer is not null)
+                                        {
+                                            <span>@pointPotentiometer.Name:</span>
                                         }
                                         @(string.IsNullOrWhiteSpace(point.Label) ? "Unnamed point" : point.Label)
                                     </button>
@@ -282,6 +291,19 @@
                             <line x1="@coil.Point1.LocalPosition.X" y1="@coil.Point1.LocalPosition.Y"
                                   x2="@coil.Point2.LocalPosition.X" y2="@coil.Point2.LocalPosition.Y"
                                   class="connection-line" style="stroke: @coil.Color" />
+                        }
+
+                        @foreach (var potentiometer in EditorStateService.PartEditor.EditedPart.Potentiometers)
+                        {
+                            @foreach (var point in new[] { potentiometer.A, potentiometer.B })
+                            {
+                                <line x1="@point.LocalPosition.X" y1="@point.LocalPosition.Y"
+                                      x2="@potentiometer.W.LocalPosition.X" y2="@potentiometer.W.LocalPosition.Y"
+                                      class="connection-line-outline" />
+                                <line x1="@point.LocalPosition.X" y1="@point.LocalPosition.Y"
+                                      x2="@potentiometer.W.LocalPosition.X" y2="@potentiometer.W.LocalPosition.Y"
+                                      class="connection-line" />
+                            }
                         }
 
                         @foreach (var point in EditorStateService.PartEditor.EditedPart.Points)

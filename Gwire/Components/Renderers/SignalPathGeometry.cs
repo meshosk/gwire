@@ -9,7 +9,10 @@ namespace Gwire.Components.Renderers;
 /// </summary>
 internal static class SignalPathGeometry
 {
-    public static string GetPath(ConnectionPoint from, ConnectionPoint to, float offset)
+    /// <summary>
+    /// Start and end select a part of a straight connection (0 to 1); cable routes are always whole.
+    /// </summary>
+    public static string GetPath(ConnectionPoint from, ConnectionPoint to, float offset, float start = 0, float end = 1)
     {
         List<(Point Position, bool IsRounded)> route;
         if (from.Owner is CablePart cable && ReferenceEquals(to.Owner, cable))
@@ -41,6 +44,11 @@ internal static class SignalPathGeometry
         }
 
         var points = route.Select((vertex, index) => Offset(route, index, offset)).ToArray();
+        if (points.Length == 2)
+        {
+            var (first, last) = (points[0], points[1]);
+            points = [Interpolate(first, last, start), Interpolate(first, last, end)];
+        }
         var path = new StringBuilder(FormattableString.Invariant($"M {points[0].X},{points[0].Y}"));
         for (var index = 1; index < points.Length - 1; index++)
         {
@@ -83,6 +91,9 @@ internal static class SignalPathGeometry
         return new Point(position.X + (previous.X + next.X) * offset / divisor,
             position.Y + (previous.Y + next.Y) * offset / divisor);
     }
+
+    private static Point Interpolate(Point from, Point to, float position) =>
+        new(from.X + (to.X - from.X) * position, from.Y + (to.Y - from.Y) * position);
 
     private static Point GetNormal(Point from, Point to)
     {

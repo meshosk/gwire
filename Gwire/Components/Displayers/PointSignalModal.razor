@@ -1,0 +1,58 @@
+@using System.Globalization
+@using Gwire.Models
+
+<g transform="@Transform">
+    <foreignObject x="-180" y="-252" width="360" height="240" class="point-signal-layer">
+        <div xmlns="http://www.w3.org/1999/xhtml" class="point-signal-anchor">
+            <div class="point-signal-bubble" role="region" aria-label="Point signal"
+                 @onpointerdown:stopPropagation="true" @onclick:stopPropagation="true">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <strong>@Point.Owner.Name · @(string.IsNullOrWhiteSpace(Point.Label) ? "Unnamed point" : Point.Label)</strong>
+                    <button type="button" class="btn-close" aria-label="Close point signal" @onclick="OnClose"></button>
+                </div>
+                @if (PointSignals.TryGetValue(Point, out var signals) && signals.Count > 0)
+                {
+                    var combined = signals.Values.Aggregate(default(SignalSpectrum), (result, spectrum) => result.Combine(spectrum));
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Source</th>
+                                    <th scope="col" class="text-end">Bass</th>
+                                    <th scope="col" class="text-end">Mids</th>
+                                    <th scope="col" class="text-end">Treble</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var (coil, spectrum) in signals)
+                                {
+                                    <tr @key="coil">
+                                        <th scope="row" class="fw-normal">
+                                            <span class="signal-color me-1" style="background-color: @coil.Color" aria-hidden="true"></span>
+                                            @coil.Point1.Owner.Name · @coil.Name
+                                        </th>
+                                        <td class="text-end text-nowrap">@spectrum.Bass.ToString("P0", CultureInfo.GetCultureInfo("en-US"))</td>
+                                        <td class="text-end text-nowrap">@spectrum.Mids.ToString("P0", CultureInfo.GetCultureInfo("en-US"))</td>
+                                        <td class="text-end text-nowrap">@spectrum.Treble.ToString("P0", CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th scope="row">Combined signal</th>
+                                    <td class="text-end text-nowrap">@combined.Bass.ToString("P0", CultureInfo.GetCultureInfo("en-US"))</td>
+                                    <td class="text-end text-nowrap">@combined.Mids.ToString("P0", CultureInfo.GetCultureInfo("en-US"))</td>
+                                    <td class="text-end text-nowrap">@combined.Treble.ToString("P0", CultureInfo.GetCultureInfo("en-US"))</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="mb-0 text-body-secondary">No active signal at this point.</p>
+                }
+            </div>
+        </div>
+    </foreignObject>
+</g>

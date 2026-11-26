@@ -1,0 +1,31 @@
+.point-signal-layer {
+    pointer-events: none;
+}
+
+.point-signal-anchor {
+    display: flex;
+    align-items: flex-end;
+    height: 100%;
+    padding: 4px;
+}
+
+.point-signal-bubble {
+    width: 100%;
+    max-height: 100%;
+    overflow: auto;
+    padding: .65rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    pointer-events: auto;
+    font-size: .85rem;
+}
+
+.signal-color {
+    display: inline-block;
+    width: .75rem;
+    height: .75rem;
+    border-radius: 50%;
+    vertical-align: baseline;
+}

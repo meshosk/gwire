@@ -1,5 +1,6 @@
 using Gwire.Models.Base;
 using System.Text.Json.Serialization;
+using System.Numerics;
 
 namespace Gwire.Models;
 
@@ -17,4 +18,7 @@ public sealed class CoilPair : ConnectionPair
     public CoilWindingDirection Winding { get; set; } = CoilWindingDirection.CCW;
 
     public CoilPolarity Polarity { get; set; } = CoilPolarity.North;
+
+    // All coils use the same reference source resistance in this illustrative model.
+    public override Complex? GetImpedance(double frequency) => new Complex(ReferenceResistance, 0);
 }

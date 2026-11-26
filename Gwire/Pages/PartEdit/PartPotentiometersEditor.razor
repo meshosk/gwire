@@ -1,0 +1,51 @@
+@using Gwire.Models
+
+<div class="d-grid mt-2">
+    <button type="button" class="btn btn-outline-primary" disabled="@Disabled" @onclick="AddPotentiometer">Add potentiometer</button>
+</div>
+
+@if (Part.Potentiometers.Count > 0)
+{
+    <fieldset class="border rounded p-2 mt-2">
+        <legend class="float-none w-auto px-1 mb-0 fs-6">Potentiometers</legend>
+        <div class="d-flex flex-wrap gap-1">
+            @foreach (var potentiometer in Part.Potentiometers)
+            {
+                <button @key="potentiometer" type="button" disabled="@Disabled"
+                        class="btn btn-sm @(ReferenceEquals(potentiometer, SelectedPotentiometer) ? "btn-primary" : "btn-outline-secondary")"
+                        aria-pressed="@(ReferenceEquals(potentiometer, SelectedPotentiometer) ? "true" : "false")"
+                        @onclick="() => SelectedPointChanged.InvokeAsync(potentiometer.A)">@potentiometer.Name</button>
+            }
+        </div>
+    </fieldset>
+}
+
+@if (SelectedPotentiometer is { } selected)
+{
+    <fieldset class="border rounded p-2 mt-2" disabled="@Disabled">
+        <legend class="float-none w-auto px-1 mb-0 fs-6">Potentiometer</legend>
+        <label class="form-label" for="potentiometer-name">Name</label>
+        <input id="potentiometer-name" class="form-control mb-3" required @bind:get="selected.Name"
+               @bind:set="value => Edit(() => selected.Name = value ?? string.Empty)" />
+        <label class="form-label" for="potentiometer-resistance">Total resistance (kΩ)</label>
+        <input id="potentiometer-resistance" type="number" class="form-control mb-3" min="0.001" step="any" required
+               @bind:get="@(selected.Resistance / 1000)" @bind:set="value => Edit(() => selected.Resistance = value * 1000)" />
+        <label class="form-label" for="potentiometer-position">Position</label>
+        <select id="potentiometer-position" class="form-select mb-3" @bind:get="selected.Position"
+                @bind:set="value => Edit(() => selected.Position = value)">
+            @foreach (var position in Potentiometer.Positions)
+            {
+                <option value="@position">@position%</option>
+            }
+        </select>
+        <div class="d-flex flex-wrap gap-1 mb-3" role="group" aria-label="Potentiometer terminals">
+            @foreach (var point in new[] { selected.A, selected.W, selected.B })
+            {
+                <button type="button" class="btn btn-sm @(ReferenceEquals(point, SelectedPoint) ? "btn-primary" : "btn-outline-secondary")"
+                        aria-pressed="@(ReferenceEquals(point, SelectedPoint) ? "true" : "false")"
+                        @onclick="() => SelectedPointChanged.InvokeAsync(point)">@point.Label</button>
+            }
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemovePotentiometer(selected)">Delete potentiometer and all three terminals</button>
+    </fieldset>
+}

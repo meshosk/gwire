@@ -12,6 +12,10 @@
     animation: signal-flow 1.8s linear infinite;
 }
 
+.signal-flow-reversed {
+    animation-direction: reverse;
+}
+
 @keyframes signal-flow {
     from {
         stroke-dashoffset: 8;

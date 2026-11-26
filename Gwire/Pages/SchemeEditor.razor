@@ -191,37 +191,36 @@
                 </defs>
                 <rect id="scheme-editor-background" width="100%" height="100%" fill="url(#scheme-grid)"
                       @oncontextmenu="ClearSelection" @oncontextmenu:preventDefault="true" />
-                <g data-pdf-content>
-                    @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
+                <CircuitSignalRenderer Circuit="Circuit" Enabled="showSignalMode">
+                    <g data-pdf-content>
+                        @foreach (var part in Circuit.Parts.OfType<CircuitPart>().OrderBy(part => ReferenceEquals(part, SelectedPart)))
+                        {
+                            <CircuitPartRenderer @key="part" CircuitPart="part" Zoom="zoom"
+                                OnDelete="() => DeletePart(part)"
+                                OnDuplicate="() => DuplicatePart(part)"
+                                OnEditText="value => editedTextPart = value"
+                                                 @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
+                                                 @bind-IsSelected:set="value => SetPartSelection(part, value)" />
+                        }
+                        @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
+                        {
+                            <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" Zoom="zoom"
+                            OnDelete="() => DeletePart(cable)"
+                                               @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
+                                               @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
+                        }
+                    </g>
+                    @if (showSourceGroundPair)
                     {
-                        <CircuitPartRenderer @key="part" CircuitPart="part" Zoom="zoom"
-                            OnDelete="() => DeletePart(part)"
-                            OnDuplicate="() => DuplicatePart(part)"
-                            OnEditText="value => editedTextPart = value"
-                                             @bind-IsSelected:get="ReferenceEquals(part, SelectedPart)"
-                                             @bind-IsSelected:set="value => SetPartSelection(part, value)" />
+                        @foreach (var pair in SourceGroundPairs)
+                        {
+                            <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
+                            <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
+                        }
+                        <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
                     }
-                    @foreach (var cable in Circuit.Parts.OfType<CablePart>().OrderBy(cable => ReferenceEquals(cable, SelectedPart)))
-                    {
-                        <CablePartRenderer @key="cable" CablePart="cable" Circuit="Circuit" Zoom="zoom"
-                        OnDelete="() => DeletePart(cable)"
-                                           @bind-IsSelected:get="ReferenceEquals(cable, SelectedPart)"
-                                           @bind-IsSelected:set="value => SetPartSelection(cable, value)" />
-                    }
-                </g>
-                @if (showSourceGroundPair)
-                {
-                    @foreach (var pair in SourceGroundPairs)
-                    {
-                        <CircuitTerminalRenderer @key="pair.PowerSource" CircuitPart="pair.PowerSource" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
-                        <CircuitTerminalRenderer @key="pair.Ground" CircuitPart="pair.Ground" Pair="pair" Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" Zoom="zoom" />
-                    }
-                    <CircuitPathRenderer Circuit="Circuit" SourceGroundPairs="SourceGroundPairs" />
-                }
-                @if (showSignalMode)
-                {
-                    <CircuitSignalRenderer Circuit="Circuit" />
-                }
+                </CircuitSignalRenderer>
+                <SectionOutlet SectionName="point-signal-popup" />
                 <SectionOutlet SectionName="svg-context-menu" />
             </svg>
         </div>

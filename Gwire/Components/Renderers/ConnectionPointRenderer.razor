@@ -1,0 +1,24 @@
+@using Microsoft.AspNetCore.Components.Sections
+
+<circle @ref="element"
+        cx="@Point.LocalPosition.X"
+        cy="@Point.LocalPosition.Y"
+        r="10"
+        class="@PointClass"
+        @onpointerdown="StartGesture"
+        @onpointermove="MoveGesture"
+        @onpointerup="EndGesture"
+        @onpointercancel="CancelGesture"
+        @onpointerdown:stopPropagation="true"
+        @onpointermove:stopPropagation="true"
+        @onpointerup:stopPropagation="true"
+        @onpointercancel:stopPropagation="true"
+        @onclick:stopPropagation="wasDragged" />
+
+@if (showSignalBubble && SignalTrace is { } trace)
+{
+    <SectionContent SectionName="point-signal-popup">
+        <PointSignalModal Point="Point" PointSignals="trace.PointSignals"
+                          Transform="@SignalBubbleTransform" OnClose="() => showSignalBubble = false" />
+    </SectionContent>
+}

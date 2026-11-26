@@ -18,6 +18,8 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
     /// </summary>
     public List<ConnectionPair> ConnectionPairs { get; set; } = [];
 
+    public List<Potentiometer> Potentiometers { get; set; } = [];
+
     public Guid Id { get; set; } = Guid.NewGuid();
 
     /// <summary>
@@ -97,13 +99,39 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
 
     public override IEnumerable<ConnectionPoint> GetConnectedPoints(ConnectionPoint startingPoint)
     {
-        return StateGroups
-            .Where(group => group.ActiveState is not null)
-            .SelectMany(group => group.ActiveState!.GetConnectedPoints(startingPoint))
-            .Concat(ConnectionPairs.OfType<CoilPair>()
-                .Where(coil => coil.Contains(startingPoint))
-                .Select(coil => ReferenceEquals(coil.Point1, startingPoint) ? coil.Point2 : coil.Point1))
+        return GetElectricalConnections()
+            .Where(connection => ReferenceEquals(connection.From, startingPoint) || ReferenceEquals(connection.To, startingPoint))
+            .Select(connection => ReferenceEquals(connection.From, startingPoint) ? connection.To : connection.From)
             .Distinct();
+    }
+
+    public override IEnumerable<ElectricalConnection> GetElectricalConnections()
+    {
+        foreach (var group in StateGroups.Where(group => group.ActiveState is not null)
+            .SelectMany(group => group.ActiveState!.ConnectionGroups))
+        {
+            for (var first = 0; first < group.ConnectedPints.Count - 1; first++)
+            {
+                for (var second = first + 1; second < group.ConnectedPints.Count; second++)
+                {
+                    yield return new ElectricalConnection(group.ConnectedPints[first], group.ConnectedPints[second]);
+                }
+            }
+        }
+        foreach (var pair in ConnectionPairs)
+        {
+            if (pair.GetImpedance(SignalSpectrum.Frequencies[0]) is not null)
+            {
+                yield return new ElectricalConnection(pair.Point1, pair.Point2, pair);
+            }
+        }
+        foreach (var potentiometer in Potentiometers)
+        {
+            foreach (var connection in potentiometer.GetElectricalConnections())
+            {
+                yield return connection;
+            }
+        }
     }
 
     public void UpdateConnectedCablePoints()
@@ -138,6 +166,7 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
         var clone = (CircuitPart)base.Clone();
         var clonedPoints = Points.Zip(clone.Points).ToDictionary(pair => pair.First, pair => pair.Second);
         clone.ConnectionPairs = ConnectionPairs.Select(pair => pair.Clone(clonedPoints)).ToList();
+        clone.Potentiometers = Potentiometers.Select(potentiometer => potentiometer.Clone(clonedPoints)).ToList();
         clone.StateGroups = StateGroups.Select(stateGroup =>
         {
             var states = stateGroup.States.Select(state => new PartState
