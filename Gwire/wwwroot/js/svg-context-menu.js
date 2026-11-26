@@ -1,27 +1,41 @@
 window.gwire = window.gwire || {};
 
-window.gwire.attachSvgContextMenu = (selector, receiver) => {
-    const target = document.querySelector(selector);
-    let returnFocus;
-    const open = (event) => {
-        if (event.defaultPrevented) {
-            return;
+(() => {
+    /** Opens the .NET context menu on right-click and returns focus when it closes. */
+    class SvgContextMenu {
+        returnFocus = null;
+
+        constructor(target, receiver) {
+            this.target = target;
+            this.receiver = receiver;
+            target.addEventListener("contextmenu", this.open);
         }
-        event.preventDefault();
-        returnFocus = document.activeElement;
-        const position = new DOMPoint(event.clientX, event.clientY).matrixTransform(target.getScreenCTM().inverse());
-        receiver.invokeMethodAsync("Open", event.clientX, event.clientY, position.x, position.y);
-    };
-    target.addEventListener("contextmenu", open);
-    return {
-        detach: () => target.removeEventListener("contextmenu", open),
-        restoreFocus: () => {
-            if (returnFocus?.isConnected) {
-                returnFocus.focus({ preventScroll: true });
+
+        // Arrow-function handler retains this instance when called by DOM events.
+        open = (event) => {
+            if (event.defaultPrevented) {
+                return;
+            }
+            event.preventDefault();
+            this.returnFocus = document.activeElement;
+            const position = new DOMPoint(event.clientX, event.clientY).matrixTransform(this.target.getScreenCTM().inverse());
+            this.receiver.invokeMethodAsync("Open", event.clientX, event.clientY, position.x, position.y);
+        };
+
+        detach() {
+            this.target.removeEventListener("contextmenu", this.open);
+        }
+
+        restoreFocus() {
+            if (this.returnFocus?.isConnected) {
+                this.returnFocus.focus({ preventScroll: true });
             }
         }
-    };
-};
+    }
+
+    window.gwire.attachSvgContextMenu = (selector, receiver) =>
+        new SvgContextMenu(document.querySelector(selector), receiver);
+})();
 
 window.gwire.showSvgContextMenu = (overlay, clientX, clientY) => {
     const layer = overlay.parentElement;

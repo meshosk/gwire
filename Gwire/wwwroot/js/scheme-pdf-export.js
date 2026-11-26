@@ -131,35 +131,48 @@ window.gwire = window.gwire || {};
         }
     }
 
-    window.gwire.showPdfExportProgress = async element => {
-        element.gwirePreviousFocus = document.activeElement;
-        const modal = bootstrap.Modal.getOrCreateInstance(element, { backdrop: "static", keyboard: false });
-        modal.show();
-        element.gwireProgressObserver = new MutationObserver(() => {
-            if (!element.isConnected) {
-                window.gwire.hidePdfExportProgress(element);
+    /** Blocking progress modal shown while a PDF export runs. */
+    class PdfExportProgress {
+        constructor(element) {
+            this.element = element;
+            this.previousFocus = document.activeElement;
+            this.modal = bootstrap.Modal.getOrCreateInstance(element, { backdrop: "static", keyboard: false });
+            this.removalObserver = new MutationObserver(() => {
+                if (!element.isConnected) {
+                    window.gwire.hidePdfExportProgress(element);
+                }
+            });
+        }
+
+        async show() {
+            this.modal.show();
+            this.removalObserver.observe(document.body, { childList: true, subtree: true });
+            // Give the browser time to paint the modal before PDF processing starts.
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }
+
+        hide() {
+            this.removalObserver.disconnect();
+            this.modal.hide();
+            this.modal.dispose();
+            if (this.previousFocus?.isConnected) {
+                this.previousFocus.focus({ preventScroll: true });
             }
-        });
-        element.gwireProgressObserver.observe(document.body, { childList: true, subtree: true });
-        // Give the browser time to paint the modal before PDF processing starts.
-        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        }
+    }
+
+    window.gwire.showPdfExportProgress = async element => {
+        element.gwirePdfExportProgress = new PdfExportProgress(element);
+        await element.gwirePdfExportProgress.show();
     };
 
     window.gwire.hidePdfExportProgress = element => {
-        if (!element) {
+        if (!element?.gwirePdfExportProgress) {
             return;
         }
-        element.gwireProgressObserver?.disconnect();
-        delete element.gwireProgressObserver;
-        const modal = bootstrap.Modal.getInstance(element);
-        if (modal) {
-            modal.hide();
-            modal.dispose();
-        }
-        if (element.gwirePreviousFocus?.isConnected) {
-            element.gwirePreviousFocus.focus({ preventScroll: true });
-        }
-        delete element.gwirePreviousFocus;
+        const progress = element.gwirePdfExportProgress;
+        delete element.gwirePdfExportProgress;
+        progress.hide();
     };
 
     window.gwire.exportSchemePdf = (editor, fileName) => SchemePdfExporter.export(editor, fileName);
