@@ -19,6 +19,14 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     [CascadingParameter(Name = "ReloadRepository")]
     public EventCallback ReloadRepository { get; set; }
 
+/// <summary>
+/// If present, this file will be searched in the repository and opened in the scheme editor after the repository has been loaded.
+/// </summary>
+    [SupplyParameterFromQuery(Name = "open-json")]
+    public string? OpenJson { get; set; }
+
+    private readonly CancellationTokenSource disposeCancellation = new();
+
     private CircuitPart? editedTextPart;
 
     [Inject]
@@ -222,6 +230,10 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             await JS.InvokeVoidAsync("gwire.enableUndoRedoShortcuts", editorElement, shortcutReference);
             await JS.InvokeVoidAsync("gwire.enableSchemePan", editorElement, shortcutReference,
                 new { zoom, x = State.ViewportX, y = State.ViewportY, panEnabled = State.PanEnabled });
+            if (OpenJson is not null)
+            {
+                await OpenJsonSchemeAsync(OpenJson);
+            }
         }
     }
 
@@ -283,6 +295,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        disposeCancellation.Cancel();
+        disposeCancellation.Dispose();
         history.Changed -= HandleHistoryChanged;
         GwireParts.Changed -= HandleRepositoryChanged;
         await JS.InvokeVoidAsync("gwire.hidePdfExportProgress", pdfExportModal);
@@ -485,6 +499,32 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
+        await LoadRepositorySchemeAsync(scheme);
+    }
+
+    private async Task OpenJsonSchemeAsync(string file)
+    {
+        try
+        {
+            await GwireParts.Loaded.WaitAsync(disposeCancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        var scheme = GwireParts.Schemes.FirstOrDefault(info => info.File == file);
+        if (scheme is null)
+        {
+            return;
+        }
+
+        await LoadRepositorySchemeAsync(scheme);
+        StateHasChanged();
+    }
+
+    private async Task LoadRepositorySchemeAsync(GwireSchemeInfo scheme)
+    {
         isLoadingScheme = true;
         try
         {

@@ -38,6 +38,13 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
 
     public event Action? Changed;
 
+    /// <summary>
+    /// Completes after the repository data has been downloaded for the first time.
+    /// </summary>
+    public Task Loaded => loaded.Task;
+
+    private readonly TaskCompletionSource loaded = new();
+
     private Uri? schemesDirectoryUrl;
 
     public async Task<Stream> LoadSchemeAsync(GwireSchemeInfo scheme)
@@ -96,6 +103,7 @@ public sealed partial class GwirePartsService(HttpClient httpClient)
         Parts.AddRange(ownParts);
         Schemes.Clear();
         Schemes.AddRange(schemes.Where(s => s is not null));
+        loaded.TrySetResult();
         Changed?.Invoke();
     }
 
