@@ -7,8 +7,8 @@ Route `/part-editor`. Files in `Gwire/Pages/PartEdit/`:
 | `PartEditor.razor` / `.razor.cs` / `.razor.css` | Page layout, toolbar, canvas, file actions, point and value-text dragging. |
 | `PartEditor.History.cs` | Partial class with the snapshot-based undo logic (`BeginEdit`, `CompleteEdit`, `CancelEdit`, `ExecuteEdit`). |
 | `PartSnapshot.cs` | `PartEditor.PartSnapshot` record: cloned part plus selected indices. |
-| `PartConnectionPairsEditor` | Add/edit coils, resistors, capacitors between two points. |
-| `PartPotentiometersEditor` | Add/edit potentiometers (A/W/B points, resistance). |
+| `PartConnectionPairsEditor` | List, edit and delete coils, resistors, capacitors between two points. |
+| `PartPotentiometersEditor` | List, edit and delete potentiometers (A/W/B points, resistance). |
 | `PartStateGroupComponent`, `PartStateComponent`, `PartPointGroupComponent` | Edit state groups, their states, and the connection groups (shorted points) of a state. |
 
 The edited part and all editor selections live in `EditorStateService.PartEditor`
@@ -16,12 +16,16 @@ The edited part and all editor selections live in `EditorStateService.PartEditor
 
 ## Layout
 
+The toolbar has two rows: file, history and help actions on top, and buttons that add a
+connection point, a coil, resistor or capacitor pair, or a potentiometer below. The page creates
+the pair with its points (`CreateCoil()` and so on) and passes it to `CircuitPart.AddPair`.
+
 Two columns:
 
 - **Sidebar** (`BootstrapTabs`) with three tabs:
   - **Part**: name, description, tags (only tags that exist in the catalog), width/height,
     SVG background import with position and rotation, optional custom value text.
-  - **Points**: add connection points, connection pairs and potentiometers, select a point
+  - **Points**: edit connection pairs and potentiometers, select a point
     and edit its label and X/Y.
   - **States** (disabled until the part has points): state groups, states, and connection
     groups. While a connection group is active, clicking a point on the canvas toggles

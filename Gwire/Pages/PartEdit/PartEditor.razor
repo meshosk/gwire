@@ -11,8 +11,8 @@
 <PageTitle>Gwire - The part editor</PageTitle>
 
 <SectionContent SectionName="editor-toolbar">
-    <div class="part-editor-toolbar d-flex flex-wrap align-items-center gap-2"
-         role="toolbar" aria-label="Part editor toolbar">
+    <div class="part-editor-toolbar" role="toolbar" aria-label="Part editor toolbar">
+        <div class="d-flex flex-wrap align-items-center gap-2">
         <button type="button" class="btn btn-sm btn-outline-primary" @onclick="NewPart" title="New part" aria-label="New part">
             <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i>
         </button>
@@ -53,6 +53,41 @@
            target="_blank" rel="noopener noreferrer" title="Support the project" aria-label="Support the project (opens in a new tab)">
             <i class="fa-solid fa-mug-hot" aria-hidden="true"></i>
         </a>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2" role="group" aria-label="Add elements">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Add points and pairs">
+                <button type="button" class="btn btn-sm btn-primary" @onclick="() => ExecuteEdit(AddPoint)" disabled="@history.IsFrozen" title="Add connection point" aria-label="Add connection point">
+                    <span class="add-element-icon" aria-hidden="true">
+                        <svg class="add-element-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h5M17 12h5" /><circle cx="12" cy="12" r="4" /></svg>
+                        <i class="fa-solid fa-plus add-element-plus"></i>
+                    </span>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" @onclick="() => AddPair(CreateCoil())" disabled="@history.IsFrozen" title="Add coil pair" aria-label="Add coil pair">
+                    <span class="add-element-icon" aria-hidden="true">
+                        <svg class="add-element-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 14h3c0-6 4-6 4 0c0-6 4-6 4 0c0-6 4-6 4 0c0-6 4-6 4 0h3" /></svg>
+                        <i class="fa-solid fa-plus add-element-plus"></i>
+                    </span>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" @onclick="() => AddPair(CreateResistor())" disabled="@history.IsFrozen" title="Add resistor pair" aria-label="Add resistor pair">
+                    <span class="add-element-icon" aria-hidden="true">
+                        <svg class="add-element-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12h4M19 12h4" /><rect x="5" y="8" width="14" height="8" /></svg>
+                        <i class="fa-solid fa-plus add-element-plus"></i>
+                    </span>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" @onclick="() => AddPair(CreateCapacitor())" disabled="@history.IsFrozen" title="Add capacitor pair" aria-label="Add capacitor pair">
+                    <span class="add-element-icon" aria-hidden="true">
+                        <svg class="add-element-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12h8M15 12h8M9 5v14M15 5v14" /></svg>
+                        <i class="fa-solid fa-plus add-element-plus"></i>
+                    </span>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" @onclick="() => AddPair(CreatePotentiometer())" disabled="@history.IsFrozen" title="Add potentiometer" aria-label="Add potentiometer">
+                    <span class="add-element-icon" aria-hidden="true">
+                        <svg class="add-element-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 10h4M19 10h4" /><rect x="5" y="6" width="14" height="8" /><path d="M12 23v-6M9.5 19.5 12 17l2.5 2.5" /></svg>
+                        <i class="fa-solid fa-plus add-element-plus"></i>
+                    </span>
+                </button>
+            </div>
+        </div>
     </div>
 </SectionContent>
 
@@ -172,12 +207,6 @@
 			               }
 			            </BootstrapTab>
 			            <BootstrapTab Title="Points">
-				            <div class="mb-1">
-					            <div class="d-grid gap-2">
-						            <button type="button" class="btn btn-primary" @onclick="() => ExecuteEdit(AddPoint)">Add connection point</button>
-					            </div>
-				            </div>
-
                     <PartConnectionPairsEditor Part="EditorStateService.PartEditor.EditedPart"
                         @bind-SelectedPoint="EditorStateService.PartEditor.SelectedPointInEditor"
                         ExecuteEdit="ExecuteEdit" Disabled="@history.IsFrozen" />

@@ -1,6 +1,7 @@
 using Gwire.Components.Dialogs.SearchDialog;
 using Gwire.Models;
 using Gwire.Models.Base;
+using Gwire.Models.Pairs;
 using Gwire.Serialization;
 using Gwire.Services;
 using Gwire.UndoRedo;
@@ -202,15 +203,74 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private void AddPoint()
     {
-        var count = EditorStateService.PartEditor.EditedPart.Points.Count;
-        var point = new ConnectionPoint(EditorStateService.PartEditor.EditedPart)
-        {
-            Label = $"Point {count + 1}",
-            LocalPosition = new Point(120 + (count % 5) * 140, 120 + (count / 5) * 100)
-        };
-
+        var point = CreatePoint($"Point {EditorStateService.PartEditor.EditedPart.Points.Count + 1}", NextPointPosition());
         EditorStateService.PartEditor.EditedPart.AddPoint(point);
         EditorStateService.PartEditor.SelectedPointInEditor = point;
+    }
+
+    /// <summary>
+    /// Default position for the next new point, laid out in rows of five.
+    /// </summary>
+    private Point NextPointPosition()
+    {
+        var count = EditorStateService.PartEditor.EditedPart.Points.Count;
+        return new Point(120 + (count % 5) * 140, 120 + (count / 5) * 100);
+    }
+
+    private ConnectionPoint CreatePoint(string label, Point position) =>
+        new(EditorStateService.PartEditor.EditedPart) { Label = label, LocalPosition = position };
+
+    private CoilPair CreateCoil()
+    {
+        var position = NextPointPosition();
+        return new CoilPair
+        {
+            Point1 = CreatePoint("Signal", position),
+            Point2 = CreatePoint("Ground", new Point(position.X + 100, position.Y)),
+            Color = ConnectionGroup.GetLineColor(EditorStateService.PartEditor.EditedPart.ConnectionPairs.OfType<CoilPair>().Count())
+        };
+    }
+
+    private ResistorPair CreateResistor()
+    {
+        var position = NextPointPosition();
+        return new ResistorPair
+        {
+            Point1 = CreatePoint("Terminal 1", position),
+            Point2 = CreatePoint("Terminal 2", new Point(position.X + 100, position.Y))
+        };
+    }
+
+    private CapacitorPair CreateCapacitor()
+    {
+        var position = NextPointPosition();
+        return new CapacitorPair
+        {
+            Point1 = CreatePoint("Terminal 1", position),
+            Point2 = CreatePoint("Terminal 2", new Point(position.X + 100, position.Y))
+        };
+    }
+
+    private Potentiometer CreatePotentiometer()
+    {
+        var position = NextPointPosition();
+        return new Potentiometer
+        {
+            A = CreatePoint("A", position),
+            W = CreatePoint("W", new Point(position.X + 100, position.Y)),
+            B = CreatePoint("B", new Point(position.X + 200, position.Y))
+        };
+    }
+
+    /// <summary>
+    /// Names the new pair by its type, adds it to the edited part in one undoable edit, and selects its first point.
+    /// </summary>
+    private void AddPair(ConnectionPair pair)
+    {
+        var part = EditorStateService.PartEditor.EditedPart;
+        pair.Name = $"{pair.TypeName} {part.ConnectionPairs.Count(existing => existing.GetType() == pair.GetType()) + 1}";
+        ExecuteEdit(() => part.AddPair(pair));
+        EditorStateService.PartEditor.SelectedPointInEditor = pair.GetPoints()[0];
     }
 
     private void ResetTagSuggestions()
