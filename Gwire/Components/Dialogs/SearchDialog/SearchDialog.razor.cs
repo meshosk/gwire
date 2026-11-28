@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components.Displayers.SearchDialog;
+namespace Gwire.Components.Dialogs.SearchDialog;
 
 public partial class SearchDialog : ComponentBase, IAsyncDisposable
 {
@@ -74,7 +74,7 @@ public partial class SearchDialog : ComponentBase, IAsyncDisposable
             showRequested = false;
             try
             {
-                module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Displayers/SearchDialog/SearchDialog.razor.js");
+                module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Dialogs/SearchDialog/SearchDialog.razor.js");
                 receiver ??= DotNetObjectReference.Create(this);
                 await module.InvokeVoidAsync("show", modalElement, receiver);
             }

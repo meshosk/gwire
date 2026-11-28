@@ -1,4 +1,4 @@
-namespace Gwire.Components.Displayers.SearchDialog;
+namespace Gwire.Components.Dialogs.SearchDialog;
 
 /// <summary>
 /// Supplies typed data and search behavior. Pass this instance to the dialog's Options

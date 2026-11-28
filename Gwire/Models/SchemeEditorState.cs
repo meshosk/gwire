@@ -17,6 +17,11 @@ public sealed class SchemeEditorState
     public Circuit Circuit { get; set; } = new();
 
     /// <summary>
+    /// The repository file of the scheme loaded from the repository, or null when the scheme did not come from it.
+    /// </summary>
+    public string? RepositorySchemeFile { get; set; }
+
+    /// <summary>
     /// The part or cable selected on the canvas, or null when nothing is selected.
     /// </summary>
     public BaseCircuitPart? SelectedPart { get; set; }

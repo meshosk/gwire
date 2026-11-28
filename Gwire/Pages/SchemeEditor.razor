@@ -1,7 +1,7 @@
 ﻿@page "/scheme-editor"
 
 @using Gwire.Models
-@using Gwire.Components.Displayers.SearchDialog
+@using Gwire.Components.Dialogs.SearchDialog
 @using Microsoft.AspNetCore.Components.Sections
 @inject Gwire.Services.GwirePartsService GwireParts
 
@@ -64,7 +64,11 @@
                     <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
                 </button>
             </div>
-            <a class="btn btn-sm btn-outline-primary ms-auto" href="https://github.com/meshosk/gwire/wiki/"
+            <button type="button" class="btn btn-sm btn-outline-primary ms-auto" @onclick="ShowShareLink"
+                    disabled="@(State.RepositorySchemeFile is null || HasUnsavedChanges || history.IsFrozen)" title="Generate share link" aria-label="Generate share link">
+                <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+            </button>
+            <a class="btn btn-sm btn-outline-primary ms-2" href="https://github.com/meshosk/gwire/wiki/"
                target="_blank" rel="noopener noreferrer" title="Help" aria-label="Help (opens in a new tab)">
                 <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
             </a>
@@ -251,7 +255,9 @@
     </div>
 </div>
 
-<PartTextModal @bind-Part="editedTextPart" />
+<PartTextDialog @bind-Part="editedTextPart" />
+
+<ShareLinkDialog @bind-Link="shareLink" />
 
 <SearchDialog Options="partSearchOptions" @bind-Visible="PartSearchIsShown" />
 

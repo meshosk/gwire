@@ -13,7 +13,7 @@ WebAssembly, scoped means one instance for the whole app session):
 | `HttpClient` | Base address = app base URL. Used by the catalog service. |
 | `GwirePartsService` | Downloads and holds catalog parts, tags, and scheme list; keeps parts the user saved locally. See [parts-catalog.md](parts-catalog.md). |
 | `MessageService` | Raises toast messages (`Show(title, text, MessageType)`), displayed by `MessageToasts`. |
-| `ConfirmationService` | `await ShowAsync(title, text)` returns `ConfirmationResult`; displayed by `ConfirmationModal`. One dialog at a time (semaphore). |
+| `ConfirmationService` | `await ShowAsync(title, text)` returns `ConfirmationResult`; displayed by `ConfirmationDialog`. One dialog at a time (semaphore). |
 | `UndoRedoService` | Independent undo/redo histories keyed by `HistoryIds`. See [undo-redo.md](undo-redo.md). |
 | `EditorStateService` | Holds `SchemeEditorState` and `PartEditorState` so both editors keep their document, selection, zoom, etc. when the user navigates between pages. |
 | `SchemePdfExporter` | Calls `gwire.exportSchemePdf` in JavaScript. |
@@ -33,7 +33,7 @@ When adding a service, register it in `Program.cs` the same way and inject it wi
   - the page body, only after the repository loading dialog has finished
     (`canUseApp`). The body gets a cascading `EventCallback` named `ReloadRepository`
     that pages use for the "Reload repository data" button.
-  - `MessageToasts` and `ConfirmationModal`, once, globally.
+  - `MessageToasts` and `ConfirmationDialog`, once, globally.
 - Other named sections: `svg-context-menu` (filled by `SvgContextMenu`, rendered inside
   the scheme SVG) and `point-signal-popup` (filled by `CircuitSignalRenderer`).
 

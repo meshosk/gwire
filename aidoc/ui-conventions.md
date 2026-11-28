@@ -14,7 +14,7 @@ These summarize patterns already used in the code. The binding rules are in
 - Class member order: fields and properties, then constructors, then methods.
 
 New `.razor` folders under `Components/` may need an `@using` in `_Imports.razor`
-(existing ones: `Components`, `Displayers`, `Renderers`, `SvgMenu`, `Layout`).
+(existing ones: `Components`, `Dialogs`, `Displayers`, `Renderers`, `SvgMenu`, `Layout`).
 
 ## Styling and icons
 
@@ -31,7 +31,7 @@ New `.razor` folders under `Components/` may need an `@using` in `_Imports.razor
 - **Two-way binding** between parent and child: a `[Parameter] T Value` plus
   `[Parameter] EventCallback<T> ValueChanged`, used as `@bind-Value`. Examples:
   `IsSelected` on renderers, `SelectedPoint` on part sub-editors, `Visible` on
-  `SearchDialog`, `Part` on `PartTextModal`. Use `@ref` only for DOM/JS interop.
+  `SearchDialog`, `Part` on `PartTextDialog`. Use `@ref` only for DOM/JS interop.
 - **Subscribing to a model parameter's events.** Override `SetParametersAsync`, save the old
   value, `await base.SetParametersAsync(parameters)`, then move the subscription only if
   the reference changed. Unsubscribe in `Dispose`. See `CircuitPartRenderer.SetParametersAsync`.

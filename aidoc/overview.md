@@ -25,10 +25,11 @@ client. See [build-and-deploy.md](build-and-deploy.md).
 | Folder | Contents |
 | --- | --- |
 | `Program.cs`, `App.razor`, `_Imports.razor` | Startup, DI registration, router. |
-| `Layout/` | `MainLayout`: top toolbar, repository loading dialog, global toasts and confirmation modal. |
+| `Layout/` | `MainLayout`: top toolbar, repository loading dialog, global toasts and confirmation dialog. |
 | `Pages/` | Routable pages: `SchemeEditor` (`/scheme-editor`), `PartEdit/PartEditor` (`/part-editor`) and its sub-editors, `Home` (redirects to the scheme editor), `Info`, `NotFound`. |
 | `Components/Renderers/` | SVG renderers used on the scheme canvas: parts, cables, bend points, source/ground terminals, path and signal overlays. |
-| `Components/Displayers/` | Dialogs and overlays: confirmation modal, toasts, search dialog, part text modal, point signal popup, repository loading dialog. |
+| `Components/Dialogs/` | Dialogs: confirmation dialog, search dialog, part text dialog, share link dialog, repository loading dialog. |
+| `Components/Displayers/` | Overlays: toasts, point signal popup. |
 | `Components/SvgMenu/` | Right-click context menu rendered inside the SVG. |
 | `Components/Tabs/` | `BootstrapTabs` / `BootstrapTab` wrapper used by the part editor. |
 | `Components/` (root) | `PartSvgBackground`, `SvgBackground` (part artwork). |

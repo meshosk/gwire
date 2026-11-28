@@ -3,14 +3,14 @@ using Gwire.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components.Displayers;
+namespace Gwire.Components.Dialogs;
 
-public partial class ConfirmationModal : ComponentBase, IAsyncDisposable
+public partial class ConfirmationDialog : ComponentBase, IAsyncDisposable
 {
     private ConfirmationRequest? request;
     private ElementReference modalElement;
     private IJSObjectReference? module;
-    private DotNetObjectReference<ConfirmationModal>? receiver;
+    private DotNetObjectReference<ConfirmationDialog>? receiver;
     private bool showRequested;
     private bool responding;
 

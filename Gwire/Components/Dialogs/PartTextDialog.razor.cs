@@ -5,14 +5,14 @@ using Gwire.UndoRedo.Actions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
-namespace Gwire.Components.Displayers;
+namespace Gwire.Components.Dialogs;
 
-public partial class PartTextModal : ComponentBase, IAsyncDisposable
+public partial class PartTextDialog : ComponentBase, IAsyncDisposable
 {
     private string draftValue = string.Empty;
     private ElementReference modalElement;
     private IJSObjectReference? module;
-    private DotNetObjectReference<PartTextModal>? receiver;
+    private DotNetObjectReference<PartTextDialog>? receiver;
     private bool showRequested;
     private bool responding;
 

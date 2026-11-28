@@ -1,4 +1,4 @@
-using Gwire.Components.Displayers.SearchDialog;
+using Gwire.Components.Dialogs.SearchDialog;
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;

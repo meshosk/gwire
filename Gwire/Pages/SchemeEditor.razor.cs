@@ -1,4 +1,4 @@
-using Gwire.Components.Displayers.SearchDialog;
+using Gwire.Components.Dialogs.SearchDialog;
 using Gwire.Models;
 using Gwire.Models.Base;
 using Gwire.Serialization;
@@ -28,6 +28,8 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     private readonly CancellationTokenSource disposeCancellation = new();
 
     private CircuitPart? editedTextPart;
+
+    private string? shareLink;
 
     [Inject]
     private EditorStateService EditorStateService { get; set; } = default!;
@@ -104,6 +106,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
 
     [Inject]
     private MessageService MessageService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
 
     [Inject]
     private ILogger<SchemeEditor> Logger { get; set; } = default!;
@@ -315,13 +320,14 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        SetCircuit(new Circuit());
+        SetCircuit(new Circuit(), null);
     }
 
-    private void SetCircuit(Circuit circuit)
+    private void SetCircuit(Circuit circuit, string? repositorySchemeFile)
     {
         history.Clear();
         Circuit = circuit;
+        State.RepositorySchemeFile = repositorySchemeFile;
         unchangedSchemeDetails = (circuit.Name, circuit.Description, circuit.Tags.ToArray());
         SourceGroundPairs.Clear();
         SourceGroundPairs.Add(new SourceGroundPair());
@@ -334,9 +340,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
     }
 
     private Task ImportSchemeAsync(InputFileChangeEventArgs eventArgs) =>
-        ImportSchemeAsync(() => Task.FromResult(eventArgs.File.OpenReadStream()));
+        ImportSchemeAsync(() => Task.FromResult(eventArgs.File.OpenReadStream()), null);
 
-    private async Task ImportSchemeAsync(Func<Task<Stream>> openJsonStream)
+    private async Task ImportSchemeAsync(Func<Task<Stream>> openJsonStream, string? repositorySchemeFile)
     {
         if (history.IsFrozen)
         {
@@ -371,7 +377,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        SetCircuit(circuit);
+        SetCircuit(circuit, repositorySchemeFile);
         MessageService.Show("Scheme imported", "Scheme imported successfully.", MessageType.Success);
     }
 
@@ -502,6 +508,9 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         await LoadRepositorySchemeAsync(scheme);
     }
 
+    private void ShowShareLink() =>
+        shareLink = $"{Navigation.BaseUri}?page=scheme-editor&open-json={Uri.EscapeDataString(State.RepositorySchemeFile!)}";
+
     private async Task OpenJsonSchemeAsync(string file)
     {
         try
@@ -532,7 +541,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
             {
                 await JS.InvokeVoidAsync("gwire.showPdfExportProgress", pdfExportModal);
                 return await GwireParts.LoadSchemeAsync(scheme);
-            });
+            }, scheme.File);
         }
         finally
         {

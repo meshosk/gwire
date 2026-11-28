@@ -1,4 +1,4 @@
-namespace Gwire.Components.Displayers.SearchDialog;
+namespace Gwire.Components.Dialogs.SearchDialog;
 
 public abstract class SearchItem
 {
