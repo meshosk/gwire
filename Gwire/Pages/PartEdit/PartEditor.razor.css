@@ -28,21 +28,9 @@
     height: 1.25em;
 }
 
-.add-element-plus {
-    position: absolute;
-    right: -0.45em;
-    bottom: -0.25em;
-    z-index: 1;
-    display: grid;
-    place-items: center;
-    width: 1.5em;
-    height: 1.5em;
-    font-size: 0.55em;
+.add-element-mdi {
+    font-size: 1.25em;
     line-height: 1;
-    color: var(--bs-btn-bg);
-    background-color: var(--bs-btn-color);
-    border-radius: 50%;
-    box-shadow: 0 0 0 0.15em var(--bs-btn-bg);
 }
 
 .part-editor-layout {

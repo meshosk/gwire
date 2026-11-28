@@ -63,7 +63,7 @@ Services raise their own events (`GwirePartsService.Changed`,
 
 Browser-only features (pointer capture, pan/zoom, keyboard shortcuts, context menu
 positioning, file download, PDF export, Bootstrap modals) are in `wwwroot/js`. See
-[ui-conventions.md](ui-conventions.md#javascript-interop).
+[js-interop.md](js-interop.md).
 
 ## Offline and hosting
 

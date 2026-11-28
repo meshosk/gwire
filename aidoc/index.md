@@ -18,14 +18,16 @@ Working rules for agents (scope, approval, building, style) are in
 | Path and signal tracing | change the source-ground measurement path or the coil signal mode | [signal-tracing.md](signal-tracing.md) |
 | JSON import/export | change serialized models or the scheme/part file formats | [serialization.md](serialization.md) |
 | Parts catalog | change loading of parts, tags, and schemes from the remote catalog repository | [parts-catalog.md](parts-catalog.md) |
-| UI and Blazor conventions | write components, styles, dialogs, messages, or JavaScript interop | [ui-conventions.md](ui-conventions.md) |
+| UI and Blazor conventions | write components, styles, icons, dialogs, or messages | [ui-conventions.md](ui-conventions.md) |
+| JavaScript interop | add or change scripts in `wwwroot/js`, keyboard shortcuts, or `[JSInvokable]` callbacks | [js-interop.md](js-interop.md) |
+| Vendored libraries | add or update Bootstrap, Font Awesome, Material Design Icons, or jsPDF | [vendored-libraries.md](vendored-libraries.md) |
 | Build, run, and deploy | need to build, debug, publish to GitHub Pages, or package the desktop app | [build-and-deploy.md](build-and-deploy.md) |
 
 ## Quick facts
 
 - .NET 10 Blazor WebAssembly client only (`Gwire/`). There is no backend API; the
   `Server/` project is just a local static host for debugging.
-- UI: Bootstrap 5.3.3 and Font Awesome Free 7.3.1, both vendored in `Gwire/wwwroot/lib`.
+- UI: Bootstrap 5.3.3, Font Awesome Free 7.3.1, and Material Design Icons 7.4.47 (`lib/mdi`, only the woff2 font, used for electronic symbols), all vendored in `Gwire/wwwroot/lib`.
 - Diagrams are rendered as SVG by Razor components; a few browser features use small
   JavaScript files in `Gwire/wwwroot/js` under the `window.gwire` namespace.
 - Parts, tags, and example schemes are downloaded at startup from the
