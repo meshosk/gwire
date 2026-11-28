@@ -34,12 +34,6 @@ public partial class PartStateGroupComponent
     public EventCallback<ConnectionGroup?> ActiveConnectionGroupChanged { get; set; }
 
     [Parameter]
-    public int ConnectionGroupTabIndex { get; set; }
-
-    [Parameter]
-    public EventCallback<int> ConnectionGroupTabIndexChanged { get; set; }
-
-    [Parameter]
     public ConnectionPoint? SelectedPointInEditor { get; set; }
 
     [Parameter]
@@ -49,11 +43,8 @@ public partial class PartStateGroupComponent
 
     private async Task SelectStateGroup(int index)
     {
-        var state = StateGroups[index].ActiveState;
         await ActiveStateGroupIndexChanged.InvokeAsync(index);
-        await ActiveStateInEditorChanged.InvokeAsync(state);
-        await ActiveConnectionGroupChanged.InvokeAsync(null);
-        await ConnectionGroupTabIndexChanged.InvokeAsync(0);
+        await SelectActiveState(StateGroups[index].States.FirstOrDefault());
     }
 
     private async Task AddStateGroup()
@@ -102,15 +93,9 @@ public partial class PartStateGroupComponent
         }
 
         var state = new PartState { Label = $"State {group.States.Count + 1}" };
-        await ExecuteEdit.InvokeAsync(() =>
-        {
-            group.States.Add(state);
-            group.ActiveState = state;
-        });
+        await ExecuteEdit.InvokeAsync(() => group.States.Add(state));
         await StateGroupsChanged.InvokeAsync(StateGroups);
-        await ActiveStateInEditorChanged.InvokeAsync(state);
-        await ActiveConnectionGroupChanged.InvokeAsync(null);
-        await ConnectionGroupTabIndexChanged.InvokeAsync(0);
+        await SelectActiveState(state);
     }
 
     private async Task CopyState(PartState state)
@@ -139,38 +124,28 @@ public partial class PartStateGroupComponent
             return;
         }
 
-        var removeActiveState = ReferenceEquals(ActiveStateInEditor, state) || ReferenceEquals(group.ActiveState, state);
-        var removeActiveGroup = ActiveConnectionGroup is not null && state.ConnectionGroups.Contains(ActiveConnectionGroup);
         await ExecuteEdit.InvokeAsync(() =>
         {
             group.States.Remove(state);
-            if (removeActiveState)
+            // Keep the saved active state valid; the editor selection below does not change it.
+            if (ReferenceEquals(group.ActiveState, state))
             {
                 group.ActiveState = group.States.FirstOrDefault();
             }
         });
         await StateGroupsChanged.InvokeAsync(StateGroups);
-        if (removeActiveState)
+        if (ReferenceEquals(ActiveStateInEditor, state))
         {
-            await ActiveStateInEditorChanged.InvokeAsync(group.ActiveState);
-        }
-        if (removeActiveGroup)
-        {
-            await ActiveConnectionGroupChanged.InvokeAsync(null);
-            await ConnectionGroupTabIndexChanged.InvokeAsync(0);
+            await SelectActiveState(group.States.FirstOrDefault());
         }
     }
 
-    private async Task SelectActiveState(PartState state)
+    /// <summary>
+    /// Selects the state to edit and its first connection group. The part's saved active state is not changed.
+    /// </summary>
+    private async Task SelectActiveState(PartState? state)
     {
-        if (ActiveStateGroupInEditor is not { } group)
-        {
-            return;
-        }
-
-        group.ActiveState = state;
-        await StateGroupsChanged.InvokeAsync(StateGroups);
         await ActiveStateInEditorChanged.InvokeAsync(state);
-        await ConnectionGroupTabIndexChanged.InvokeAsync(0);
+        await ActiveConnectionGroupChanged.InvokeAsync(state?.ConnectionGroups.FirstOrDefault());
     }
 }

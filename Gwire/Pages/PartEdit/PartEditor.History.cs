@@ -1,3 +1,4 @@
+using Gwire.Models;
 using Gwire.Services;
 using Gwire.UndoRedo;
 using Gwire.UndoRedo.Actions;
@@ -66,7 +67,7 @@ public partial class PartEditor
             return;
         }
 
-        pendingEdit = PartSnapshot.CaptureSnapshot(EditorStateService.PartEditor);
+        pendingEdit = EditorStateService.PartEditor.CaptureSnapshot();
         history.Freeze();
     }
 
@@ -79,7 +80,7 @@ public partial class PartEditor
 
         try
         {
-            var after = PartSnapshot.CaptureSnapshot(EditorStateService.PartEditor);
+            var after = EditorStateService.PartEditor.CaptureSnapshot();
             // Compare the cloned graphs so unchanged values and clicks do not create history entries.
             if (JsonSerializer.Serialize(before.Part, snapshotOptions) != JsonSerializer.Serialize(after.Part, snapshotOptions))
             {

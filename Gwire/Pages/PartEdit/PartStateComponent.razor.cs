@@ -25,12 +25,6 @@ public partial class PartStateComponent
     public EventCallback<ConnectionGroup?> ActiveConnectionGroupChanged { get; set; }
 
     [Parameter]
-    public int ConnectionGroupTabIndex { get; set; }
-
-    [Parameter]
-    public EventCallback<int> ConnectionGroupTabIndexChanged { get; set; }
-
-    [Parameter]
     public EventCallback<PartState> OnCopy { get; set; }
 
     [Parameter]
@@ -38,6 +32,15 @@ public partial class PartStateComponent
 
     [Parameter]
     public bool Disabled { get; set; }
+
+    /// <summary>
+    /// The connection group tab follows the active connection group, whose points canvas clicks toggle.
+    /// </summary>
+    private int ActiveConnectionGroupIndex => ActiveConnectionGroup is null
+        ? 0 : Math.Max(0, State.ConnectionGroups.IndexOf(ActiveConnectionGroup));
+
+    private Task SelectConnectionGroup(int index) =>
+        ActiveConnectionGroupChanged.InvokeAsync(State.ConnectionGroups.ElementAtOrDefault(index));
 
     private async Task SetStateLabel(string value)
     {
@@ -50,6 +53,7 @@ public partial class PartStateComponent
         var group = new ConnectionGroup();
         await ExecuteEdit.InvokeAsync(() => State.ConnectionGroups.Add(group));
         await StateChanged.InvokeAsync(State);
+        await ActiveConnectionGroupChanged.InvokeAsync(group);
     }
 
     private async Task RemoveActiveConnectionGroup(ConnectionGroup group)
@@ -64,8 +68,7 @@ public partial class PartStateComponent
         await StateChanged.InvokeAsync(State);
         if (removeActiveGroup)
         {
-            await ActiveConnectionGroupChanged.InvokeAsync(null);
-            await ConnectionGroupTabIndexChanged.InvokeAsync(0);
+            await ActiveConnectionGroupChanged.InvokeAsync(State.ConnectionGroups.FirstOrDefault());
         }
     }
 }

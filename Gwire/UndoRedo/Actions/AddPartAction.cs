@@ -36,6 +36,7 @@ public sealed class AddPartAction : IUndoableAction
     public static AddPartAction CreatePart(Circuit circuit, SchemeEditorState editor, CircuitPart selectedPart, Point? position = null)
     {
         var part = selectedPart.Clone();
+        part.ResetStates();
         if (position is { } center)
         {
             part.SchemePosition = new Point(center.X - part.SvgLocalPosition.X - part.Width / 2f,

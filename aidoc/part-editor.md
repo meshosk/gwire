@@ -6,7 +6,6 @@ Route `/part-editor`. Files in `Gwire/Pages/PartEdit/`:
 | --- | --- |
 | `PartEditor.razor` / `.razor.cs` / `.razor.css` | Page layout, toolbar, canvas, file actions, point and value-text dragging. |
 | `PartEditor.History.cs` | Partial class with the snapshot-based undo logic (`BeginEdit`, `CompleteEdit`, `CancelEdit`, `ExecuteEdit`). |
-| `PartSnapshot.cs` | `PartEditor.PartSnapshot` record: cloned part plus selected indices. |
 | `PartConnectionPairsEditor` | List, edit and delete coils, resistors, capacitors between two points. |
 | `PartPotentiometersEditor` | List, edit and delete potentiometers (A/W/B points, resistance). |
 | `PartStateGroupComponent`, `PartStateComponent`, `PartPointGroupComponent` | Edit state groups, their states, and the connection groups (shorted points) of a state. |
@@ -28,10 +27,11 @@ Two columns:
   - **Points**: edit connection pairs and potentiometers, select a point
     and edit its label and X/Y.
   - **States** (disabled until the part has points): state groups, states, and connection
-    groups. While a connection group is active, clicking a point on the canvas toggles
-    its membership.
+    groups. The selected connection group tab is `PartEditorState.ActiveConnectionGroup`;
+    while the States tab is open, clicking a point on the canvas toggles its membership.
+    Selecting a state does not change the part's saved `ActiveState`.
 - **Canvas**: SVG preview of the part with its artwork (`PartSvgBackground`), draggable
-  points, and the draggable value text. Connection groups are drawn with colors from
+  points, and the draggable value text. Connection groups of the state being edited are drawn with colors from
   `ConnectionGroup.GetLineColor(index)`.
 
 ## File and catalog actions

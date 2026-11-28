@@ -1,5 +1,4 @@
 using Gwire.Models;
-using static Gwire.Pages.PartEdit.PartEditor;
 
 namespace Gwire.UndoRedo.Actions;
 
@@ -15,7 +14,7 @@ public sealed class PartSnapshotAction(PartEditorState editor, PartSnapshot init
 
     private void SwapSnapshot()
     {
-        var current = PartSnapshot.CaptureSnapshot(editor);
+        var current = editor.CaptureSnapshot();
         editor.RestoreSnapshot(snapshot);
         snapshot = current;
     }

@@ -60,6 +60,11 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
     private bool pointWasDragged;
 
+    /// <summary>
+    /// Index of the States sidebar tab; only there do canvas clicks toggle connection group membership.
+    /// </summary>
+    private const int StatesTabIndex = 2;
+
     private bool SelectedPointBelongsToPair => EditorStateService.PartEditor.SelectedPointInEditor is { } point
         && EditorStateService.PartEditor.EditedPart.IsElementPoint(point);
 
@@ -133,7 +138,8 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
             return;
         }
 
-        if (draggedPoint is not null && !pointWasDragged && EditorStateService.PartEditor.ActiveConnectionGroup is not null)
+        if (draggedPoint is not null && !pointWasDragged && EditorStateService.PartEditor.ActiveTabIndex == StatesTabIndex
+            && EditorStateService.PartEditor.ActiveConnectionGroup is not null)
         {
             if (!EditorStateService.PartEditor.ActiveConnectionGroup.ConnectedPints.Remove(draggedPoint))
             {
@@ -357,12 +363,23 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Deletes the selected free point from the Delete or Backspace key, as the Delete selected Point button does.
+    /// Delete or Backspace key: deletes the selected free point, or the whole pair with all its points
+    /// when the selected point belongs to a pair.
     /// </summary>
     [JSInvokable]
     public void DeleteSelectedPoint()
     {
-        ExecuteEdit(RemoveSelectedPoint);
+        var editor = EditorStateService.PartEditor;
+        if (editor.SelectedPointInEditor is { } point
+            && editor.EditedPart.ConnectionPairs.FirstOrDefault(pair => pair.Contains(point)) is { } pair)
+        {
+            ExecuteEdit(() => editor.EditedPart.RemovePair(pair));
+            editor.SelectedPointInEditor = null;
+        }
+        else
+        {
+            ExecuteEdit(RemoveSelectedPoint);
+        }
         StateHasChanged();
     }
 
@@ -459,12 +476,8 @@ public partial class PartEditor : ComponentBase, IAsyncDisposable
 
         EditorStateService.PartEditor.SelectedPointInEditor = null;
         EditorStateService.PartEditor.ActiveStateGroupIndex = 0;
-        EditorStateService.PartEditor.ActiveStateInEditor = EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState is { } activeState && EditorStateService.PartEditor.ActiveStateGroupInEditor.States.Contains(activeState)
-            ? activeState
-            : EditorStateService.PartEditor.ActiveStateGroupInEditor.States.FirstOrDefault();
-        EditorStateService.PartEditor.ActiveStateGroupInEditor.ActiveState = EditorStateService.PartEditor.ActiveStateInEditor;
-        EditorStateService.PartEditor.ActiveConnectionGroup = null;
-        EditorStateService.PartEditor.ConnectionGroupTabIndex = 0;
+        EditorStateService.PartEditor.ActiveStateInEditor = EditorStateService.PartEditor.ActiveStateGroupInEditor.States.FirstOrDefault();
+        EditorStateService.PartEditor.ActiveConnectionGroup = EditorStateService.PartEditor.ActiveStateInEditor?.ConnectionGroups.FirstOrDefault();
         ResetPointDrag();
     }
 

@@ -1,5 +1,4 @@
 using Gwire.Models.Base;
-using static Gwire.Pages.PartEdit.PartEditor;
 
 namespace Gwire.Models;
 
@@ -44,11 +43,6 @@ public sealed class PartEditorState
     public int ActiveTabIndex { get; set; }
 
     /// <summary>
-    /// The zero-based index of the selected connection-group tab within the active state.
-    /// </summary>
-    public int ConnectionGroupTabIndex { get; set; }
-
-    /// <summary>
     /// The draft text entered in the tag input before a suggested tag is added to the part.
     /// </summary>
     public string SelectedTag { get; set; } = string.Empty;
@@ -63,20 +57,27 @@ public sealed class PartEditorState
     /// </summary>
     public int ActiveTagSuggestionIndex { get; set; }
 
-    internal void RestoreSnapshot(PartSnapshot snapshot)
+    /// <summary>
+    /// Captures a clone of the edited part and the selection as indices into it.
+    /// </summary>
+    public PartSnapshot CaptureSnapshot() => new(
+        EditedPart.Clone(),
+        SelectedPointInEditor is null ? -1 : EditedPart.Points.IndexOf(SelectedPointInEditor),
+        ActiveStateGroupIndex,
+        ActiveStateInEditor is null ? -1 : ActiveStateGroupInEditor.States.IndexOf(ActiveStateInEditor),
+        ActiveConnectionGroup is null ? -1 : ActiveStateInEditor?.ConnectionGroups.IndexOf(ActiveConnectionGroup) ?? -1);
+
+    /// <summary>
+    /// Restores the edited part and the selection captured by <see cref="CaptureSnapshot"/>.
+    /// </summary>
+    public void RestoreSnapshot(PartSnapshot snapshot)
     {
         // Each restoration gets a fresh graph; further edits must not mutate the stored snapshot.
         EditedPart = snapshot.Part.Clone();
-        for (var index = 0; index < EditedPart.StateGroups.Count; index++)
-        {
-            var source = snapshot.Part.StateGroups[index];
-            var target = EditedPart.StateGroups[index];
-            target.ActiveState = target.States.ElementAtOrDefault(source.ActiveState is null ? -1 : source.States.IndexOf(source.ActiveState));
-        }
         SelectedPointInEditor = EditedPart.Points.ElementAtOrDefault(snapshot.SelectedPointIndex);
         ActiveStateGroupIndex = snapshot.StateGroupIndex;
-        ActiveStateInEditor = ActiveStateGroupInEditor.ActiveState;
-        ActiveConnectionGroup = ActiveStateInEditor?.ConnectionGroups.ElementAtOrDefault(snapshot.ActiveGroupIndex);
+        ActiveStateInEditor = ActiveStateGroupInEditor.States.ElementAtOrDefault(snapshot.StateIndex);
+        ActiveConnectionGroup = ActiveStateInEditor?.ConnectionGroups.ElementAtOrDefault(snapshot.ConnectionGroupIndex);
         SelectedTag = string.Empty;
     }
 }

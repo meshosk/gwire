@@ -51,8 +51,6 @@
                     <PartStateComponent @bind-State:get="state" @bind-State:set="ActiveStateInEditorChanged.InvokeAsync"
                         @bind-ActiveConnectionGroup:get="ActiveConnectionGroup"
                         @bind-ActiveConnectionGroup:set="ActiveConnectionGroupChanged.InvokeAsync"
-                        @bind-ConnectionGroupTabIndex:get="ConnectionGroupTabIndex"
-                        @bind-ConnectionGroupTabIndex:set="ConnectionGroupTabIndexChanged.InvokeAsync"
                         SelectedPointInEditor="SelectedPointInEditor" Disabled="Disabled"
                         OnCopy="CopyState" OnRemove="RemoveState" />
                 </div>

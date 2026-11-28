@@ -21,8 +21,8 @@
 @if (State.ConnectionGroups.Count > 0)
 {
     <div class="p-3">
-        <BootstrapTabs @bind-ActiveIndex:get="ConnectionGroupTabIndex"
-                       @bind-ActiveIndex:set="ConnectionGroupTabIndexChanged.InvokeAsync">
+        <BootstrapTabs @bind-ActiveIndex:get="ActiveConnectionGroupIndex"
+                       @bind-ActiveIndex:set="SelectConnectionGroup">
             @foreach (var group in State.ConnectionGroups.WithIndex())
             {
                 <BootstrapTab @key="group.Item" Title="@($"Group {group.Index}")">

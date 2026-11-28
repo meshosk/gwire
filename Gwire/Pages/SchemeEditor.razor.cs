@@ -564,6 +564,7 @@ public partial class SchemeEditor : ComponentBase, IAsyncDisposable
         }
 
         var duplicate = part.Clone();
+        duplicate.ResetStates();
         duplicate.SchemePosition = new Point(part.SchemePosition.X + 50, part.SchemePosition.Y + 50);
         var action = new AddPartAction(Circuit, State, duplicate);
         action.Redo();

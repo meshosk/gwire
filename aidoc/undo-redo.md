@@ -57,8 +57,9 @@ When you add an action:
 
 The part editor records whole-part snapshots instead of fine-grained actions:
 
-- `PartSnapshot.CaptureSnapshot(state)` clones the edited part (preserving which state is
-  active in each group) and the selected point/group indices.
+- `PartEditorState.CaptureSnapshot()` returns a `PartSnapshot` (`Models/PartSnapshot.cs`, a plain
+  record): a clone of the edited part and the selected point, state group, state, and
+  connection group as indices. `PartEditorState.RestoreSnapshot(snapshot)` is the reverse.
 - `BeginEdit()` captures the "before" snapshot and freezes history.
 - `CompleteEdit()` captures "after", compares both clones serialized as JSON, and adds a
   `PartSnapshotAction` only when they differ. It always unfreezes.

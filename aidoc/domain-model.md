@@ -65,8 +65,10 @@ potentiometer segment.
   never replace a point object while other structures still reference it.
 - **Clone, don't share.** `CircuitPart.Clone()` deep-copies points, pairs, potentiometers,
   and states, remaps references to the cloned points, drops external connections, and
-  sets each group's active state to its first state. Use it when adding a catalog part
-  to a scheme, duplicating, saving to the catalog, or snapshotting for undo.
+  keeps each group's active state. Use it when adding a catalog part to a scheme,
+  duplicating, saving to the catalog, or snapshotting for undo. Adding to a scheme and
+  duplicating then call `ResetStates()`, so a placed part starts in the first state of each group.
+- The part editor never sets `ActiveState`; it edits the state selected in `PartEditorState`.
 - `CircuitPart` always has at least one `PartStateGroup` (enforced on deserialization).
 - Coordinates: part points are part-local; `SchemePosition` places the part; cable points
   and bend points are already in scheme coordinates.

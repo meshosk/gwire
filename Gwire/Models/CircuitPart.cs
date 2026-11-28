@@ -147,6 +147,17 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
     }
 
     /// <summary>
+    /// Switches every state group to its first state, as a part placed into a scheme starts.
+    /// </summary>
+    public void ResetStates()
+    {
+        foreach (var group in StateGroups)
+        {
+            group.ActiveState = group.States.FirstOrDefault();
+        }
+    }
+
+    /// <summary>
     /// Adds the point to the part.
     /// </summary>
     public void AddPoint(ConnectionPoint point) => Points.Add(point);
@@ -210,7 +221,7 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
 
 
     /// <summary>
-    /// Clones the shared connection graph, dimensions, and the part's tags.
+    /// Clones the shared connection graph, dimensions, the part's tags, and the active state of each state group.
     /// </summary>
     public override CircuitPart Clone()
     {
@@ -231,7 +242,7 @@ public sealed class CircuitPart : BaseCircuitPart, IJsonOnDeserialized
             {
                 Label = stateGroup.Label,
                 States = states,
-                ActiveState = states.FirstOrDefault()
+                ActiveState = states.ElementAtOrDefault(stateGroup.ActiveState is null ? -1 : stateGroup.States.IndexOf(stateGroup.ActiveState))
             };
         }).ToList();
 

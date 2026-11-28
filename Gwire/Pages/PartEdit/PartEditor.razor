@@ -262,7 +262,6 @@
                             @bind-ActiveStateGroupIndex="EditorStateService.PartEditor.ActiveStateGroupIndex"
                             @bind-ActiveStateInEditor="EditorStateService.PartEditor.ActiveStateInEditor"
                             @bind-ActiveConnectionGroup="EditorStateService.PartEditor.ActiveConnectionGroup"
-                            @bind-ConnectionGroupTabIndex="EditorStateService.PartEditor.ConnectionGroupTabIndex"
                             SelectedPointInEditor="EditorStateService.PartEditor.SelectedPointInEditor"
                             Disabled="@history.IsFrozen" />
                     </CascadingValue>
@@ -287,9 +286,9 @@
             <Gwire.Components.PartSvgBackground @key="EditorStateService.PartEditor.EditedPart" @bind-Part="EditorStateService.PartEditor.EditedPart"
                                                 EditStarted="BeginEdit" EditCompleted="CompleteEdit" EditCanceled="CancelEdit">
 
-                        @foreach (var stateGroup in EditorStateService.PartEditor.EditedPart.StateGroups.Where(group => group.ActiveState is not null))
+                        @if (EditorStateService.PartEditor.ActiveStateInEditor is { } editedState)
                         {
-                            @foreach (var group in stateGroup.ActiveState!.ConnectionGroups.WithIndex())
+                            @foreach (var group in editedState.ConnectionGroups.WithIndex())
                             {
                                 var points = group.Item.ConnectedPints;
                                 @for (var firstIndex = 0; firstIndex < points.Count - 1; firstIndex++)
